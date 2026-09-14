@@ -1,0 +1,6 @@
+{
+  "name": "Merge Tower",
+  "description": "Космическая merge-игра в стилистике Heroes of Might and Magic V: 4 Звёздных Дома, сингулярности и чёрные дыры, живой маскот Мэджик, прокачка Цитадели и интеграция с Яндекс Играми.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

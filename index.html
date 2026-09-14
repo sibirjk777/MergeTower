@@ -1,0 +1,1802 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+  <title>Merge Tower</title>
+  <meta name="description" content="Космическая merge-игра в стилистике Heroes of Might and Magic V: 4 Звёздных Дома, сингулярности и чёрные дыры, живой маскот Мэджик, прокачка Цитадели и интеграция с Яндекс Играми." />
+  <meta property="og:title" content="Merge Tower" />
+  <meta property="og:description" content="Космическая merge-игра в стилистике Heroes of Might and Magic V: 4 Звёздных Дома, сингулярности и чёрные дыры, живой маскот Мэджик, прокачка Цитадели и интеграция с Яндекс Играми." />
+  <meta property="og:type" content="website" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <style>
+    :root {
+      --bg-deep: #070a1f;
+      --bg-glow: #131a44;
+      --neon-cyan: #4deeea;
+      --neon-magenta: #ff3d9a;
+      --neon-blue: #2bb8e8;
+      --neon-purple: #9a7bff;
+      --gold: #ffd23f;
+      --gold-dark: #b8860b;
+      --tube-line: #1c2354;
+      --text-dim: #9aa5d6;
+    }
+    * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+    html, body {
+      margin: 0; padding: 0;
+      width: 100%; height: 100%; height: 100dvh;
+      overflow: hidden;
+      background: radial-gradient(ellipse at 50% -10%, var(--bg-glow) 0%, var(--bg-deep) 65%);
+      font-family: 'Baloo 2', 'Trebuchet MS', system-ui, -apple-system, sans-serif;
+      color: #fff;
+      touch-action: none;
+      user-select: none;
+      -webkit-user-select: none;
+    }
+    #app {
+      position: relative;
+      width: 100%; height: 100%;
+      max-width: 480px; margin: 0 auto;
+      display: flex; flex-direction: column; align-items: center;
+      padding: env(safe-area-inset-top, 6px) 0 env(safe-area-inset-bottom, 4px) 0;
+    }
+    #hud {
+      width: 94%; display: flex; justify-content: space-between; align-items: center;
+      padding: 6px 6px 4px 6px;
+      position: relative; z-index: 5;
+    }
+    .hud-block {
+      display: flex; flex-direction: column; align-items: flex-start;
+      background: rgba(8, 14, 38, 0.75);
+      border: 2px solid rgba(77, 238, 234, 0.35);
+      border-radius: 14px; padding: 3px 10px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.35), inset 0 1px 2px rgba(255,255,255,0.2);
+    }
+    .hud-block.right { align-items: flex-end; }
+    .hud-label {
+      font-size: 10px; letter-spacing: 1px; text-transform: uppercase;
+      color: var(--text-dim); font-weight: 800; line-height: 1.1;
+    }
+    .hud-value {
+      font-size: 22px; font-weight: 900; line-height: 1.1;
+      color: #fff;
+      text-shadow: 0 0 10px rgba(77,238,234,0.6);
+      font-variant-numeric: tabular-nums;
+    }
+    #nextPreview { display: flex; flex-direction: column; align-items: center; gap: 2px; }
+    #nextBallWrap {
+      width: 38px; height: 38px; border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-weight: 900; font-size: 16px;
+      box-shadow: 0 0 14px rgba(255,210,63,0.5), inset 0 2px 4px rgba(255,255,255,0.6);
+      border: 2.5px solid rgba(255,255,255,0.85);
+      transition: transform 0.15s ease;
+    }
+    #stage-wrap {
+      position: relative;
+      flex: 1;
+      width: 100%;
+      display: flex; justify-content: center; align-items: center;
+      overflow: hidden;
+    }
+    #stage-inner {
+      position: relative;
+      display: flex; justify-content: center; align-items: center;
+    }
+    canvas {
+      display: block;
+      border-radius: 24px;
+      background: linear-gradient(180deg, rgba(22,27,61,0.4) 0%, rgba(10,14,39,0.8) 100%);
+      box-shadow:
+        inset 0 0 0 2px var(--tube-line),
+        inset 0 0 35px rgba(77,238,234,0.08),
+        0 8px 30px rgba(0,0,0,0.65);
+      cursor: crosshair;
+    }
+    #dangerLine {
+      position: absolute; left: 0; right: 0;
+      border-top: 2px dashed rgba(255,61,154,0.8);
+      pointer-events: none; opacity: 0;
+      transition: opacity 0.1s linear, border-color 0.1s linear, box-shadow 0.1s linear;
+      z-index: 4;
+    }
+    #dangerLine.danger-critical {
+      animation: dangerPulse 0.35s ease-in-out infinite;
+      border-top-style: solid;
+    }
+    @keyframes dangerPulse {
+      0%, 100% { opacity: 1; filter: drop-shadow(0 0 10px #ff3d9a); }
+      50% { opacity: 0.35; filter: none; }
+    }
+
+    /* --- Casual 3D UI KIT (based on screenshot, adapted to cosmic neon universe) --- */
+    .cosmic-modal-wrap {
+      position: absolute; inset: 0; z-index: 50;
+      background: rgba(4, 7, 22, 0.88);
+      display: none; align-items: center; justify-content: center;
+      backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px);
+      padding: 12px; overflow-y: auto;
+    }
+    .cosmic-modal-wrap.show-modal { display: flex; }
+
+    .cosmic-modal {
+      position: relative;
+      width: 100%; max-width: 350px;
+      background: linear-gradient(180deg, #16244f 0%, #0d1533 100%);
+      border: 3px solid rgba(255, 255, 255, 0.85);
+      border-radius: 30px;
+      padding: 38px 18px 20px 18px;
+      box-shadow:
+        0 18px 45px rgba(0, 0, 0, 0.75),
+        inset 0 2px 6px rgba(255, 255, 255, 0.4),
+        inset 0 -6px 14px rgba(0, 160, 255, 0.15),
+        0 0 25px rgba(77, 238, 234, 0.25);
+      display: flex; flex-direction: column; align-items: center;
+      text-align: center;
+      animation: modalPopIn 0.28s cubic-bezier(0.18, 0.89, 0.32, 1.25);
+    }
+    @keyframes modalPopIn {
+      from { opacity: 0; transform: scale(0.85) translateY(12px); }
+      to { opacity: 1; transform: scale(1) translateY(0); }
+    }
+
+    /* Glossy 3D Header Cap (like snow cap in screenshot, styled as cosmic neon crystal) */
+    .modal-cap {
+      position: absolute; top: -20px; left: 50%; transform: translateX(-50%);
+      min-width: 190px; padding: 7px 24px;
+      background: linear-gradient(180deg, #ffffff 0%, #a4efff 40%, #30c2ee 100%);
+      border: 3px solid #ffffff;
+      border-radius: 999px;
+      box-shadow: 0 6px 16px rgba(0, 0, 0, 0.4), inset 0 2px 2px #ffffff, 0 3px 0 #137ea3;
+      font-size: 19px; font-weight: 900; letter-spacing: 1.5px;
+      text-transform: uppercase;
+      color: #062b4c;
+      text-shadow: 0 1px 0 rgba(255, 255, 255, 0.9);
+      white-space: nowrap; z-index: 2;
+    }
+    .modal-cap.danger-cap {
+      background: linear-gradient(180deg, #ffffff 0%, #ffb1d7 40%, #ff3d9a 100%);
+      box-shadow: 0 6px 16px rgba(0, 0, 0, 0.4), inset 0 2px 2px #ffffff, 0 3px 0 #9c1555;
+      color: #450322;
+    }
+    .modal-cap.gold-cap {
+      background: linear-gradient(180deg, #ffffff 0%, #ffeaa0 40%, #ffd23f 100%);
+      box-shadow: 0 6px 16px rgba(0, 0, 0, 0.4), inset 0 2px 2px #ffffff, 0 3px 0 #a37b0d;
+      color: #4a3602;
+    }
+
+    /* Modal Close Button ✖ (round glossy button top-right) */
+    .modal-close-btn {
+      position: absolute; top: -14px; right: -8px;
+      width: 36px; height: 36px; border-radius: 50%;
+      background: linear-gradient(180deg, #ff7dbf 0%, #ff2b8f 50%, #c41065 100%);
+      border: 2.5px solid #ffffff;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.4), inset 0 2px 2px rgba(255,255,255,0.7), 0 3px 0 #80063e;
+      color: #fff; font-size: 15px; font-weight: 900;
+      display: flex; align-items: center; justify-content: center;
+      cursor: pointer; z-index: 10;
+      transition: transform 0.1s ease;
+    }
+    .modal-close-btn:active { transform: scale(0.92) translateY(2px); }
+
+    /* 3D Glossy Pill Buttons (like Resume, Restart, Settings, etc.) */
+    .pill-3d-btn {
+      width: 100%; max-width: 250px;
+      margin: 6px 0; padding: 11px 18px;
+      border-radius: 999px;
+      border: 2.5px solid #ffffff;
+      background: linear-gradient(180deg, #9af3ff 0%, #30caf5 45%, #1397d4 100%);
+      box-shadow:
+        0 4px 0 #0d6089,
+        0 7px 12px rgba(0,0,0,0.35),
+        inset 0 2px 2px rgba(255,255,255,0.85);
+      color: #052a4a; font-weight: 900; font-size: 16px;
+      letter-spacing: 0.5px;
+      cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px;
+      transition: transform 0.08s ease, box-shadow 0.08s ease;
+    }
+    .pill-3d-btn:active {
+      transform: translateY(3px);
+      box-shadow: 0 1px 0 #0d6089, 0 3px 6px rgba(0,0,0,0.35), inset 0 2px 2px rgba(255,255,255,0.85);
+    }
+    .pill-3d-btn.alt-magenta {
+      background: linear-gradient(180deg, #ff9ed2 0%, #ff409e 45%, #cb1572 100%);
+      box-shadow: 0 4px 0 #7e0743, 0 7px 12px rgba(0,0,0,0.35), inset 0 2px 2px rgba(255,255,255,0.85);
+      color: #3b021c;
+    }
+    .pill-3d-btn.alt-magenta:active {
+      transform: translateY(3px);
+      box-shadow: 0 1px 0 #7e0743, 0 3px 6px rgba(0,0,0,0.35);
+    }
+    .pill-3d-btn.alt-gold {
+      background: linear-gradient(180deg, #fff2aa 0%, #ffd447 45%, #e0a912 100%);
+      box-shadow: 0 4px 0 #8d6704, 0 7px 12px rgba(0,0,0,0.35), inset 0 2px 2px rgba(255,255,255,0.85);
+      color: #3e2802;
+    }
+    .pill-3d-btn.alt-gold:active {
+      transform: translateY(3px);
+      box-shadow: 0 1px 0 #8d6704, 0 3px 6px rgba(0,0,0,0.35);
+    }
+    .pill-3d-btn.alt-purple {
+      background: linear-gradient(180deg, #ccb4ff 0%, #9a7bff 45%, #6d47df 100%);
+      box-shadow: 0 4px 0 #3c2096, 0 7px 12px rgba(0,0,0,0.35), inset 0 2px 2px rgba(255,255,255,0.85);
+      color: #1c0e4d;
+    }
+    .pill-3d-btn.alt-purple:active {
+      transform: translateY(3px);
+      box-shadow: 0 1px 0 #3c2096, 0 3px 6px rgba(0,0,0,0.35);
+    }
+
+    /* 3D Round Buttons for Modal Footers (like [☰] [🔄] [▶] [🏠]) */
+    .round-3d-btn {
+      width: 48px; height: 48px; border-radius: 50%;
+      border: 2.5px solid #ffffff;
+      background: linear-gradient(180deg, #9af3ff 0%, #30caf5 45%, #1397d4 100%);
+      box-shadow:
+        0 4px 0 #0d6089,
+        0 6px 10px rgba(0,0,0,0.35),
+        inset 0 2px 2px rgba(255,255,255,0.85);
+      color: #052a4a; font-size: 20px;
+      display: flex; align-items: center; justify-content: center;
+      cursor: pointer; transition: transform 0.08s ease, box-shadow 0.08s ease;
+    }
+    .round-3d-btn:active {
+      transform: translateY(3px);
+      box-shadow: 0 1px 0 #0d6089, 0 3px 5px rgba(0,0,0,0.35);
+    }
+    .round-3d-btn.btn-magenta {
+      background: linear-gradient(180deg, #ff9ed2 0%, #ff409e 45%, #cb1572 100%);
+      box-shadow: 0 4px 0 #7e0743, 0 6px 10px rgba(0,0,0,0.35), inset 0 2px 2px rgba(255,255,255,0.85);
+      color: #3b021c;
+    }
+    .round-3d-btn.btn-magenta:active { transform: translateY(3px); box-shadow: 0 1px 0 #7e0743; }
+    .round-3d-btn.btn-gold {
+      background: linear-gradient(180deg, #fff2aa 0%, #ffd447 45%, #e0a912 100%);
+      box-shadow: 0 4px 0 #8d6704, 0 6px 10px rgba(0,0,0,0.35), inset 0 2px 2px rgba(255,255,255,0.85);
+      color: #3e2802;
+    }
+    .round-3d-btn.btn-gold:active { transform: translateY(3px); box-shadow: 0 1px 0 #8d6704; }
+
+    .modal-footer-row {
+      display: flex; gap: 14px; justify-content: center; align-items: center;
+      margin-top: 18px; width: 100%;
+    }
+
+    /* Metric pill boxes (Score, Time, Money on Complete modal) */
+    .metric-pill-row {
+      width: 100%; max-width: 270px;
+      display: flex; justify-content: space-between; align-items: center;
+      background: rgba(6, 12, 34, 0.7);
+      border: 2px solid rgba(255, 255, 255, 0.4);
+      border-radius: 999px;
+      padding: 6px 14px; margin: 4px 0;
+      box-shadow: inset 0 2px 4px rgba(0,0,0,0.4);
+    }
+    .metric-pill-label { font-size: 13px; font-weight: 800; color: #a5b7e8; }
+    .metric-pill-val {
+      font-size: 16px; font-weight: 900; color: #fff;
+      background: rgba(255,255,255,0.12); padding: 2px 10px; border-radius: 999px;
+    }
+
+    /* 3-Stars Cluster on Level Complete */
+    .stars-cluster {
+      display: flex; justify-content: center; align-items: flex-end;
+      gap: 12px; margin: 8px 0 14px 0; height: 60px;
+    }
+    .star-item {
+      font-size: 36px; line-height: 1; filter: grayscale(1) opacity(0.35);
+      transition: transform 0.3s cubic-bezier(0.18, 0.89, 0.32, 1.25), filter 0.3s ease;
+    }
+    .star-item.star-mid { font-size: 48px; margin-bottom: 6px; }
+    .star-item.earned {
+      filter: drop-shadow(0 0 14px #ffd23f) drop-shadow(0 0 24px rgba(255,210,63,0.7));
+      color: #ffd23f;
+      animation: starPop 0.45s ease forwards;
+    }
+    @keyframes starPop {
+      0% { transform: scale(0.3) rotate(-30deg); opacity: 0; }
+      70% { transform: scale(1.25) rotate(8deg); opacity: 1; }
+      100% { transform: scale(1) rotate(0deg); opacity: 1; }
+    }
+
+    /* Upgrades Screen Elements */
+    .upgrade-card {
+      width: 100%; max-width: 300px;
+      display: flex; align-items: center; gap: 10px;
+      background: rgba(7, 14, 38, 0.65);
+      border: 2px solid rgba(255, 255, 255, 0.3);
+      border-radius: 20px; padding: 8px 12px; margin-bottom: 8px;
+    }
+    .upgrade-icon-wrap {
+      width: 38px; height: 38px; border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 20px; border: 2px solid #ffffff;
+      box-shadow: 0 3px 6px rgba(0,0,0,0.3);
+    }
+    .upgrade-bar-wrap { flex: 1; display: flex; flex-direction: column; gap: 3px; text-align: left; }
+    .upgrade-title-row { display: flex; justify-content: space-between; font-size: 12px; font-weight: 800; color: #fff; }
+    .upgrade-pips {
+      display: flex; gap: 3px; height: 10px; width: 100%;
+      background: rgba(0,0,0,0.4); border-radius: 999px; padding: 2px;
+    }
+    .upgrade-pip {
+      flex: 1; border-radius: 999px; background: rgba(255,255,255,0.15);
+      transition: background 0.2s ease;
+    }
+    .upgrade-pip.active {
+      background: linear-gradient(90deg, #4deeea, #ffd23f);
+      box-shadow: 0 0 6px rgba(77,238,234,0.6);
+    }
+    .upgrade-add-btn {
+      width: 34px; height: 34px; border-radius: 50%;
+      border: 2px solid #fff;
+      background: linear-gradient(180deg, #9af3ff 0%, #30caf5 50%, #1397d4 100%);
+      box-shadow: 0 3px 0 #0d6089, 0 4px 6px rgba(0,0,0,0.3);
+      color: #052a4a; font-size: 18px; font-weight: 900;
+      display: flex; align-items: center; justify-content: center;
+      cursor: pointer;
+    }
+    .upgrade-add-btn:disabled { opacity: 0.35; cursor: default; }
+    .upgrade-add-btn:not(:disabled):active { transform: translateY(2px); box-shadow: 0 1px 0 #0d6089; }
+
+    /* Map Screen Elements */
+    .map-container {
+      width: 100%; max-width: 310px; max-height: 380px; overflow-y: auto;
+      padding: 10px 4px; display: flex; flex-direction: column; align-items: center;
+    }
+    .map-loc-tabs { display: flex; gap: 4px; margin-bottom: 12px; }
+    .map-tab-btn {
+      padding: 6px 12px; border-radius: 999px; font-size: 11px; font-weight: 800;
+      border: 1.5px solid rgba(255,255,255,0.4); background: rgba(255,255,255,0.08);
+      color: #fff; cursor: pointer;
+    }
+    .map-tab-btn.active {
+      background: linear-gradient(180deg, #9af3ff 0%, #30caf5 100%);
+      border-color: #ffffff; color: #052a4a;
+      box-shadow: 0 2px 6px rgba(77,238,234,0.4);
+    }
+    .map-path-grid {
+      display: flex; flex-wrap: wrap; justify-content: center; gap: 12px; width: 100%;
+    }
+    .map-node {
+      position: relative; width: 54px; height: 54px; border-radius: 50%;
+      border: 3px solid #ffffff;
+      background: linear-gradient(180deg, #1f2f64 0%, #0f1938 100%);
+      box-shadow: 0 4px 0 #0a1024, 0 6px 10px rgba(0,0,0,0.4);
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      cursor: pointer; transition: transform 0.1s ease;
+    }
+    .map-node:not(.locked):active { transform: translateY(2px); }
+    .map-node.unlocked {
+      background: linear-gradient(180deg, #9af3ff 0%, #30caf5 45%, #1397d4 100%);
+      box-shadow: 0 4px 0 #0d6089, 0 6px 10px rgba(0,0,0,0.4);
+      color: #052a4a;
+    }
+    .map-node.current {
+      animation: nodePulse 1.4s ease-in-out infinite;
+      border-color: #ffd23f;
+    }
+    @keyframes nodePulse {
+      0%, 100% { box-shadow: 0 4px 0 #0d6089, 0 0 16px rgba(77,238,234,0.8); }
+      50% { box-shadow: 0 4px 0 #0d6089, 0 0 28px rgba(255,210,63,0.9); }
+    }
+    .map-node.locked { opacity: 0.45; cursor: default; }
+    .map-node-num { font-size: 17px; font-weight: 900; line-height: 1; }
+    .map-node-stars {
+      position: absolute; bottom: -8px; font-size: 11px;
+      color: #ffd23f; text-shadow: 0 1px 2px #000;
+      white-space: nowrap;
+    }
+
+    /* Settings Sliders */
+    .setting-slider-row {
+      width: 100%; max-width: 270px; margin: 8px 0;
+      display: flex; flex-direction: column; gap: 4px; text-align: left;
+    }
+    .setting-slider-header { display: flex; justify-content: space-between; font-size: 13px; font-weight: 800; }
+    .casual-slider {
+      -webkit-appearance: none; appearance: none;
+      width: 100%; height: 14px; border-radius: 999px;
+      background: #09132e; border: 2px solid rgba(255,255,255,0.4);
+      outline: none; box-shadow: inset 0 2px 4px rgba(0,0,0,0.5);
+    }
+    .casual-slider::-webkit-slider-thumb {
+      -webkit-appearance: none; appearance: none;
+      width: 24px; height: 24px; border-radius: 50%;
+      background: linear-gradient(180deg, #ff7dbf 0%, #ff2b8f 100%);
+      border: 2px solid #ffffff; cursor: pointer;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.4);
+    }
+
+    /* Currency Balance Pill (Gold coins / Stars) */
+    .currency-pill {
+      display: inline-flex; align-items: center; gap: 5px;
+      background: linear-gradient(180deg, #ffe78a 0%, #f6ba16 100%);
+      border: 2.5px solid #ffffff; border-radius: 999px;
+      padding: 4px 14px; color: #432b03; font-weight: 900; font-size: 15px;
+      box-shadow: 0 3px 0 #8f6504, 0 5px 8px rgba(0,0,0,0.3);
+      margin-bottom: 10px;
+    }
+
+    /* Screen State Switching: Menu vs In-Game */
+    body.in-menu #toolbar { display: none !important; }
+    body.in-menu .in-game-only { display: none !important; }
+    body.in-menu .menu-only { display: flex !important; }
+    body:not(.in-menu) .menu-only { display: none !important; }
+    body:not(.in-menu) .in-game-only { display: flex !important; }
+
+    /* Top HUD Menu Currency Badge */
+    .hud-menu-stars {
+      display: flex; align-items: center; gap: 6px;
+      background: rgba(8, 14, 38, 0.75);
+      border: 2px solid rgba(255,210,63,0.5);
+      border-radius: 14px; padding: 4px 12px;
+      font-size: 16px; font-weight: 900; color: #ffd23f;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.35);
+    }
+
+    /* Modal Layout Enhancement: Hero, Grids, and Sub-Actions */
+    .primary-hero-btn {
+      max-width: 270px; padding: 13px 20px; font-size: 17px;
+      box-shadow: 0 5px 0 #0d6089, 0 8px 16px rgba(77,238,234,0.4), inset 0 2px 2px #fff;
+    }
+    .primary-hero-btn.alt-gold {
+      box-shadow: 0 5px 0 #8d6704, 0 8px 16px rgba(255,210,63,0.4), inset 0 2px 2px #fff;
+    }
+    .primary-hero-btn.alt-magenta {
+      box-shadow: 0 5px 0 #7e0743, 0 8px 16px rgba(255,61,154,0.4), inset 0 2px 2px #fff;
+    }
+    .modal-btn-grid {
+      display: grid; grid-template-columns: 1fr 1fr; gap: 8px;
+      width: 100%; max-width: 270px; margin-top: 10px;
+    }
+    .grid-action-btn {
+      display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px;
+      padding: 9px 6px; border-radius: 16px; border: 2px solid #ffffff;
+      background: linear-gradient(180deg, #1c2b5e 0%, #10183b 100%);
+      box-shadow: 0 3px 0 #0a1027, 0 5px 8px rgba(0,0,0,0.35), inset 0 1px 2px rgba(255,255,255,0.4);
+      color: #fff; font-weight: 900; font-size: 12.5px; cursor: pointer;
+      transition: transform 0.08s ease, box-shadow 0.08s ease;
+    }
+    .grid-action-btn:active { transform: translateY(2px); box-shadow: 0 1px 0 #0a1027; }
+    .grid-action-btn .gab-icon { font-size: 20px; line-height: 1.1; }
+    .grid-action-btn.alt-magenta {
+      background: linear-gradient(180deg, #ff9ed2 0%, #ff409e 45%, #cb1572 100%);
+      box-shadow: 0 3px 0 #7e0743, 0 5px 8px rgba(0,0,0,0.35), inset 0 1px 2px rgba(255,255,255,0.85);
+      color: #3b021c;
+    }
+    .grid-action-btn.alt-magenta:active { box-shadow: 0 1px 0 #7e0743; }
+    .grid-action-btn.alt-gold {
+      background: linear-gradient(180deg, #fff2aa 0%, #ffd447 45%, #e0a912 100%);
+      box-shadow: 0 3px 0 #8d6704, 0 5px 8px rgba(0,0,0,0.35), inset 0 1px 2px rgba(255,255,255,0.85);
+      color: #3e2802;
+    }
+    .grid-action-btn.alt-gold:active { box-shadow: 0 1px 0 #8d6704; }
+    .grid-action-btn.alt-purple {
+      background: linear-gradient(180deg, #ccb4ff 0%, #9a7bff 45%, #6d47df 100%);
+      box-shadow: 0 3px 0 #3c2096, 0 5px 8px rgba(0,0,0,0.35), inset 0 1px 2px rgba(255,255,255,0.85);
+      color: #1c0e4d;
+    }
+    .grid-action-btn.alt-purple:active { box-shadow: 0 1px 0 #3c2096; }
+    .grid-action-btn.alt-dark {
+      background: linear-gradient(180deg, #2b396b 0%, #151d3b 100%);
+      box-shadow: 0 3px 0 #0d1226, 0 5px 8px rgba(0,0,0,0.35), inset 0 1px 2px rgba(255,255,255,0.3);
+      color: #e4ecff;
+    }
+    .grid-action-btn.alt-dark:active { box-shadow: 0 1px 0 #0d1226; }
+
+    .modal-sub-link-btn {
+      display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+      padding: 7px 16px; border-radius: 999px;
+      border: 1.5px solid rgba(255,255,255,0.35); background: rgba(255,255,255,0.08);
+      color: #d6e2ff; font-size: 12px; font-weight: 800; cursor: pointer;
+      margin-top: 10px; transition: background 0.15s ease;
+    }
+    .modal-sub-link-btn:active { background: rgba(255,255,255,0.18); }
+
+    .modal-sub-actions-row {
+      display: flex; gap: 8px; justify-content: center; align-items: center;
+      width: 100%; max-width: 280px; margin-top: 12px;
+    }
+    .sub-action-btn {
+      flex: 1; display: flex; align-items: center; justify-content: center; gap: 5px;
+      padding: 8px 6px; border-radius: 14px; border: 2px solid rgba(255,255,255,0.85);
+      background: linear-gradient(180deg, #1f2f64 0%, #10193b 100%);
+      color: #fff; font-size: 12px; font-weight: 800;
+      box-shadow: 0 3px 0 #090e24, 0 4px 8px rgba(0,0,0,0.35), inset 0 1px 1px rgba(255,255,255,0.3);
+      cursor: pointer; transition: transform 0.08s ease;
+    }
+    .sub-action-btn:active { transform: translateY(2px); box-shadow: 0 1px 0 #090e24; }
+    .sub-action-btn.btn-magenta {
+      background: linear-gradient(180deg, #ff9ed2 0%, #ff409e 45%, #cb1572 100%);
+      box-shadow: 0 3px 0 #7e0743, 0 4px 8px rgba(0,0,0,0.35); color: #3b021c;
+    }
+
+    /* --- HoMM V Cosmic Citadel Aesthetic --- */
+    #overlay {
+      position: absolute; inset: 0;
+      background: radial-gradient(circle at 50% 30%, #0d173d 0%, #060a22 60%, #030513 100%);
+      display: none; align-items: center; justify-content: space-between;
+      flex-direction: column; text-align: center;
+      z-index: 20; backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
+      padding: env(safe-area-inset-top, 8px) 12px env(safe-area-inset-bottom, 8px) 12px;
+      overflow-y: auto; overflow-x: hidden;
+    }
+    #overlay.show { display: flex; }
+
+    /* Top Heraldic Bar */
+    .homm-top-bar {
+      width: 100%; max-width: 420px;
+      display: flex; justify-content: space-between; align-items: center;
+      padding: 4px 6px;
+      z-index: 5;
+    }
+    .homm-crest-pill {
+      display: flex; align-items: center; gap: 6px;
+      background: linear-gradient(180deg, #1f274a 0%, #0c1024 100%);
+      border: 1.5px solid #d4af37;
+      border-radius: 999px; padding: 4px 12px;
+      box-shadow: 0 0 10px rgba(212, 175, 55, 0.25), inset 0 1px 2px rgba(255,255,255,0.3);
+      font-size: 13px; font-weight: 900; color: #ffd23f;
+    }
+    .homm-gem-star { color: #ffe600; text-shadow: 0 0 8px #ffd23f; }
+    .homm-chest-btn {
+      display: flex; align-items: center; gap: 6px;
+      background: linear-gradient(180deg, #5b390b 0%, #261601 100%);
+      border: 1.5px solid #ffd23f; border-radius: 999px;
+      padding: 4px 12px; color: #fff; font-size: 12px; font-weight: 800;
+      cursor: pointer; animation: chestGlowPulse 1.8s ease-in-out infinite;
+      box-shadow: 0 0 12px rgba(255,210,63,0.4);
+    }
+    @keyframes chestGlowPulse {
+      0%, 100% { transform: scale(1); box-shadow: 0 0 8px rgba(255,210,63,0.3); }
+      50% { transform: scale(1.05); box-shadow: 0 0 18px rgba(255,210,63,0.7); }
+    }
+    .homm-top-actions { display: flex; gap: 6px; align-items: center; }
+    .homm-icon-crest {
+      width: 34px; height: 34px; border-radius: 50%;
+      background: linear-gradient(180deg, #242c52 0%, #10142e 100%);
+      border: 1.5px solid #d4af37; color: #ffd23f;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 16px; cursor: pointer;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.5), inset 0 1px 1px rgba(255,255,255,0.3);
+      transition: transform 0.1s ease;
+    }
+    .homm-icon-crest:active { transform: scale(0.92); }
+
+    /* Title Block */
+    .homm-title-block { margin: 2px 0 0 0; }
+    .homm-filigree-top {
+      font-size: 11px; letter-spacing: 3px; color: #e6b843;
+      text-shadow: 0 0 8px rgba(230,184,67,0.6); opacity: 0.9;
+    }
+    .homm-title {
+      margin: 2px 0; font-size: 30px; font-weight: 900; letter-spacing: 2px;
+      background: linear-gradient(180deg, #fff7d6 0%, #f7d070 45%, #b37f1b 75%, #ffe694 100%);
+      -webkit-background-clip: text; background-clip: text; color: transparent;
+      filter: drop-shadow(0 2px 8px rgba(0,0,0,0.8)) drop-shadow(0 0 16px rgba(244,208,104,0.4));
+      text-transform: uppercase;
+    }
+    .homm-subtitle {
+      font-size: 10px; font-weight: 800; letter-spacing: 4px;
+      color: #9ab4f5; text-transform: uppercase;
+      text-shadow: 0 0 8px rgba(154,180,245,0.5);
+    }
+
+    /* Hero Canvas Stage (Citadel, Black Hole Singularity, Animated Mägic) */
+    .homm-stage-container {
+      position: relative;
+      width: 100%; max-width: 360px; height: 190px;
+      margin: 4px 0;
+      border-radius: 20px;
+      background: radial-gradient(circle at 50% 50%, #0e153b 0%, #06091c 100%);
+      border: 2px solid #b8860b;
+      box-shadow:
+        inset 0 0 25px rgba(0,0,0,0.85),
+        0 0 20px rgba(184,134,11,0.25),
+        0 8px 24px rgba(0,0,0,0.6);
+      overflow: hidden;
+      cursor: pointer;
+    }
+    #hommHeroCanvas {
+      width: 100%; height: 100%;
+      display: block;
+    }
+    .homm-char-interactive-hint {
+      position: absolute; bottom: 6px; left: 50%; transform: translateX(-50%);
+      font-size: 9px; font-weight: 800; letter-spacing: 1px;
+      color: rgba(244, 208, 104, 0.85);
+      background: rgba(8, 14, 38, 0.7);
+      border: 1px solid rgba(212, 175, 55, 0.4);
+      border-radius: 999px; padding: 2px 10px;
+      pointer-events: none;
+      animation: hintFade 2.4s ease-in-out infinite;
+    }
+    @keyframes hintFade {
+      0%, 100% { opacity: 0.6; }
+      50% { opacity: 1; }
+    }
+
+    /* Mascot Variants Selector Dock (4 Brand Options) */
+    .homm-mascot-row {
+      display: flex; gap: 6px; width: 100%; max-width: 360px;
+      margin: 3px 0 5px 0; justify-content: space-between;
+    }
+    .homm-mascot-btn {
+      flex: 1; display: flex; flex-direction: column; align-items: center; gap: 1px;
+      padding: 4px 2px; border-radius: 12px;
+      background: linear-gradient(180deg, #131b3a 0%, #080d22 100%);
+      border: 1.5px solid rgba(212, 175, 55, 0.3);
+      color: #cbd5e1; cursor: pointer; transition: all 0.16s ease;
+      user-select: none;
+    }
+    .homm-mascot-btn:hover {
+      border-color: rgba(255, 210, 63, 0.6);
+      transform: translateY(-1px);
+    }
+    .homm-mascot-btn.active {
+      border-color: #ffd23f;
+      background: linear-gradient(180deg, #1f2b58 0%, #0d1536 100%);
+      box-shadow: 0 0 10px rgba(255, 210, 63, 0.4), inset 0 1px 2px rgba(255, 255, 255, 0.35);
+      transform: translateY(-2px);
+    }
+    .homm-mascot-btn .m-icon { font-size: 15px; line-height: 1.1; }
+    .homm-mascot-btn .m-title { font-size: 9.5px; font-weight: 800; color: #fff; }
+    .homm-mascot-btn .m-role { font-size: 7.5px; font-weight: 700; color: #ffd23f; opacity: 0.95; }
+
+    /* 4 Great Houses Banners */
+    .homm-houses-row {
+      display: flex; gap: 6px; width: 100%; max-width: 360px;
+      margin: 2px 0 6px 0; justify-content: space-between;
+    }
+    .homm-house-banner {
+      flex: 1; display: flex; flex-direction: column; align-items: center; gap: 1px;
+      padding: 5px 2px; border-radius: 12px;
+      background: linear-gradient(180deg, #182245 0%, #0a0f24 100%);
+      border: 1.5px solid rgba(212, 175, 55, 0.35);
+      color: #cbd5e1; cursor: pointer; transition: all 0.15s ease;
+    }
+    .homm-house-banner .house-rune { font-size: 16px; line-height: 1; }
+    .homm-house-banner .house-name { font-size: 10px; font-weight: 800; color: #fff; }
+    .homm-house-banner .house-perk { font-size: 8px; font-weight: 700; color: #d4af37; }
+    .homm-house-banner.active {
+      border-color: #ffd23f;
+      background: linear-gradient(180deg, #2b396b 0%, #12193b 100%);
+      box-shadow: 0 0 12px rgba(255,210,63,0.5), inset 0 1px 2px rgba(255,255,255,0.4);
+      transform: translateY(-2px);
+    }
+    .homm-house-banner.active .house-name { color: #ffd23f; }
+
+    /* Mode Tabs */
+    .homm-mode-tabs {
+      display: flex; width: 100%; max-width: 360px;
+      background: rgba(6, 10, 28, 0.9);
+      border: 1.5px solid #a3721e; border-radius: 14px;
+      padding: 3px; gap: 4px;
+    }
+    .homm-tab {
+      flex: 1; padding: 7px 4px; border-radius: 10px; border: none;
+      background: transparent; color: #9aa5d6;
+      font-size: 12px; font-weight: 800; cursor: pointer;
+      transition: all 0.12s ease;
+    }
+    .homm-tab.active {
+      background: linear-gradient(180deg, #2c3e7d 0%, #151e44 100%);
+      border: 1px solid #d4af37; color: #fff;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.4), inset 0 1px 1px rgba(255,255,255,0.3);
+    }
+
+    /* Grand Battle Shield Button (HoMM V Royal Shield) */
+    .homm-battle-container {
+      width: 100%; max-width: 360px;
+      display: flex; justify-content: center;
+      margin: 6px 0;
+    }
+    .homm-shield-btn {
+      position: relative;
+      width: 220px; height: 56px;
+      background: linear-gradient(180deg, #d4af37 0%, #8b5a12 50%, #4a2e05 100%);
+      border: none; border-radius: 18px 18px 24px 24px;
+      padding: 3px; cursor: pointer;
+      box-shadow:
+        0 6px 0 #301d02,
+        0 10px 20px rgba(0,0,0,0.6),
+        0 0 20px rgba(212, 175, 55, 0.5);
+      transition: transform 0.08s ease, box-shadow 0.08s ease;
+    }
+    .homm-shield-btn:active {
+      transform: translateY(3px);
+      box-shadow: 0 3px 0 #301d02, 0 6px 12px rgba(0,0,0,0.6), 0 0 12px rgba(212, 175, 55, 0.3);
+    }
+    .shield-inner-bg {
+      width: 100%; height: 100%;
+      background: linear-gradient(180deg, #20316b 0%, #0d163a 100%);
+      border-radius: 15px 15px 21px 21px;
+      display: flex; align-items: center; justify-content: center; gap: 8px;
+      border: 1px solid rgba(255,240,160,0.5);
+      box-shadow: inset 0 2px 4px rgba(255,255,255,0.4);
+    }
+    .shield-rune { font-size: 20px; filter: drop-shadow(0 0 6px #ffd23f); }
+    .shield-title {
+      font-size: 20px; font-weight: 900; letter-spacing: 3px;
+      background: linear-gradient(180deg, #ffffff 0%, #ffeaa7 50%, #e0ab44 100%);
+      -webkit-background-clip: text; background-clip: text; color: transparent;
+      text-transform: uppercase;
+      filter: drop-shadow(0 2px 4px rgba(0,0,0,0.8));
+    }
+    .shield-gem { color: #4deeea; font-size: 14px; text-shadow: 0 0 8px #4deeea; }
+
+    /* Difficulty Bar */
+    .homm-diff-row {
+      display: flex; gap: 6px; width: 100%; max-width: 320px;
+      margin-bottom: 6px;
+    }
+    .diff-btn {
+      flex: 1; display: flex; align-items: center; justify-content: center; gap: 4px;
+      padding: 5px 6px; border-radius: 10px;
+      border: 1px solid rgba(212, 175, 55, 0.25); background: rgba(10, 16, 42, 0.7);
+      color: #9aa5d6; font-weight: 800; font-size: 11px; cursor: pointer;
+    }
+    .diff-btn.diff-active {
+      border-color: #ffd23f; background: linear-gradient(180deg, #253363 0%, #101736 100%);
+      color: #fff; box-shadow: 0 0 10px rgba(255,210,63,0.3);
+    }
+    .diff-btn.diff-locked { opacity: 0.35; cursor: default; }
+
+    /* Arcane Wheel: 5 Golden Medallions */
+    .homm-arcane-wheel {
+      display: flex; gap: 8px; width: 100%; max-width: 380px;
+      justify-content: space-around; align-items: center;
+      padding: 4px 6px;
+    }
+    .homm-medallion {
+      display: flex; flex-direction: column; align-items: center; gap: 3px;
+      background: transparent; border: none; cursor: pointer;
+      padding: 2px;
+    }
+    .medallion-rim {
+      position: relative;
+      width: 46px; height: 46px; border-radius: 50%;
+      background: linear-gradient(180deg, #e0ab44 0%, #855310 50%, #442a04 100%);
+      display: flex; align-items: center; justify-content: center;
+      box-shadow: 0 3px 0 #2b1a03, 0 4px 8px rgba(0,0,0,0.5), 0 0 10px rgba(224,171,68,0.3);
+      transition: transform 0.1s ease;
+    }
+    .homm-medallion:active .medallion-rim { transform: translateY(2px); box-shadow: 0 1px 0 #2b1a03; }
+    .medallion-icon {
+      width: 38px; height: 38px; border-radius: 50%;
+      background: linear-gradient(180deg, #1b2650 0%, #0d1330 100%);
+      border: 1px solid rgba(255,255,255,0.4);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 18px;
+    }
+    .medallion-label {
+      font-size: 10px; font-weight: 800; color: #cbd5e1;
+      text-shadow: 0 1px 3px rgba(0,0,0,0.8);
+    }
+    .homm-badge {
+      position: absolute; top: -3px; right: -3px;
+      background: linear-gradient(180deg, #ff3d9a 0%, #9e1555 100%);
+      border: 1px solid #fff; border-radius: 999px;
+      font-size: 8px; font-weight: 900; color: #fff;
+      padding: 1px 4px; box-shadow: 0 2px 4px rgba(0,0,0,0.5);
+    }
+
+    .homm-hint {
+      font-size: 10px; color: #8794c7; margin: 4px 0 2px 0;
+      letter-spacing: 0.5px;
+    }
+
+    /* Master Overlays: Daily Challenge, Missions, Tower */
+    .master-overlay {
+      position: absolute; inset: 0;
+      background: rgba(5,7,20,0.92);
+      display: none; align-items: center; justify-content: center;
+      flex-direction: column; text-align: center;
+      z-index: 25; backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px);
+      padding: 16px; overflow-y: auto;
+    }
+    .master-overlay.show,
+    .master-overlay.show-modal,
+    .master-overlay.show-select {
+      display: flex;
+    }
+    .master-sub {
+      color: var(--text-dim);
+      font-size: 13px;
+      margin-top: 4px;
+      max-width: 320px;
+    }
+
+    #goalBanner {
+      z-index: 6; background: rgba(7, 13, 36, 0.85);
+      border: 2px solid rgba(77, 238, 234, 0.4); border-radius: 16px;
+      padding: 6px 14px; margin: 0 auto 4px auto;
+      display: flex; flex-direction: column; align-items: center; gap: 4px;
+      width: fit-content; min-width: 180px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+    }
+    #goalLabel { font-size: 12px; font-weight: 900; color: #fff; white-space: nowrap; }
+    #goalBarTrack { width: 150px; height: 6px; border-radius: 3px; background: rgba(255,255,255,0.15); overflow: hidden; }
+    #goalBarFill { height: 100%; width: 0%; background: linear-gradient(90deg, #4deeea, #ffd23f); transition: width 0.25s ease; }
+
+    /* In-Game Bottom Toolbar */
+    #toolbar {
+      display: flex; gap: 8px; justify-content: center; align-items: center;
+      padding: 6px 0 4px 0; z-index: 5;
+    }
+    .tool-btn {
+      display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1px;
+      width: 54px; height: 46px; border-radius: 16px;
+      border: 2px solid rgba(255,255,255,0.65);
+      background: linear-gradient(180deg, #1b2650 0%, #0d142e 100%);
+      box-shadow: 0 3px 0 #080d1e, inset 0 1px 2px rgba(255,255,255,0.3);
+      color: #fff; cursor: pointer; transition: transform 0.08s ease;
+    }
+    .tool-btn .tool-icon { font-size: 18px; line-height: 1; }
+    .tool-btn .tool-cost { font-size: 10px; color: var(--gold); font-weight: 800; line-height: 1; }
+    .tool-btn:disabled { opacity: 0.35; cursor: default; }
+    .tool-btn:not(:disabled):active { transform: translateY(2px); box-shadow: 0 1px 0 #080d1e; }
+    .tool-btn.tool-selected {
+      border-color: #ffd23f; background: linear-gradient(180deg, #3d3215 0%, #1c1505 100%);
+      box-shadow: 0 0 12px rgba(255,210,63,0.6);
+    }
+    .shop-quick-btn {
+      border-color: rgba(255,210,63,0.7);
+      background: linear-gradient(180deg, #342814 0%, #1a1205 100%);
+    }
+    #starsBadge {
+      display: flex; align-items: center; gap: 4px;
+      font-size: 13px; font-weight: 900; color: #432b03;
+      background: linear-gradient(180deg, #ffe78a 0%, #f6ba16 100%);
+      border: 2px solid #ffffff; box-shadow: 0 2px 0 #8f6504;
+      border-radius: 999px; padding: 4px 10px; height: 32px;
+    }
+    #settingsBtn {
+      width: 36px; height: 36px; border-radius: 50%;
+      border: 2px solid #ffffff;
+      background: linear-gradient(180deg, #9af3ff 0%, #30caf5 45%, #1397d4 100%);
+      box-shadow: 0 3px 0 #0d6089, 0 4px 6px rgba(0,0,0,0.3);
+      font-size: 18px; display: flex; align-items: center; justify-content: center;
+      cursor: pointer; z-index: 5;
+    }
+    #settingsBtn:active { transform: translateY(2px); box-shadow: 0 1px 0 #0d6089; }
+    #footerHint {
+      color: var(--text-dim); font-size: 11px; text-align: center;
+      padding: 2px 0 6px 0; letter-spacing: 0.5px;
+    }
+
+    .vfx-ring {
+      position: absolute; pointer-events: none; border-radius: 50%;
+      border: 3px solid rgba(255,255,255,0.8);
+      transform: translate(-50%, -50%) scale(0.2);
+      animation: vfxRing 0.45s ease-out forwards;
+      z-index: 10;
+    }
+    @keyframes vfxRing { to { opacity: 0; transform: translate(-50%, -50%) scale(1.8); } }
+
+    .ach-toast {
+      position: fixed; top: 16px; left: 50%; transform: translateX(-50%);
+      z-index: 9999; display: flex; align-items: center; gap: 10px;
+      background: rgba(10,14,39,0.96); border: 2px solid rgba(255,210,63,0.8);
+      border-radius: 16px; padding: 10px 18px;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.55), 0 0 16px rgba(255,210,63,0.35);
+      animation: achToastIn 0.35s ease;
+    }
+    .ach-toast.ach-toast-out { animation: achToastOut 0.35s ease forwards; }
+    @keyframes achToastIn { from { opacity: 0; transform: translateX(-50%) translateY(-16px); } to { opacity: 1; transform: translateX(-50%) translateY(0); } }
+    @keyframes achToastOut { from { opacity: 1; } to { opacity: 0; transform: translateX(-50%) translateY(-16px); } }
+
+    .loc-section {
+      width: 100%; max-width: 320px; margin-bottom: 12px;
+      border-radius: 20px; padding: 12px;
+      border: 2px solid rgba(255,255,255,0.25); background: rgba(10,18,44,0.6);
+    }
+    .loc-title { display: flex; align-items: center; gap: 8px; font-weight: 900; font-size: 14px; margin-bottom: 8px; color: #fff; }
+    .loc-levels { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; }
+
+    .shop-item, .ach-item, .mission-card {
+      width: 100%; max-width: 320px; display: flex; align-items: center; gap: 12px;
+      background: rgba(8, 16, 42, 0.7); border: 2px solid rgba(255,255,255,0.25);
+      border-radius: 18px; padding: 10px 12px; margin-bottom: 8px;
+      transition: all 0.2s ease;
+    }
+    .mission-card.mission-ready {
+      border-color: rgba(255, 210, 63, 0.75);
+      background: rgba(24, 30, 68, 0.85);
+      box-shadow: 0 0 16px rgba(255, 210, 63, 0.2), inset 0 0 10px rgba(255, 210, 63, 0.08);
+    }
+    .mission-card.mission-done {
+      border-color: rgba(255, 255, 255, 0.12);
+      opacity: 0.82;
+      background: rgba(8, 14, 36, 0.6);
+    }
+    @keyframes pulseGoldGlow {
+      0%, 100% { transform: scale(1); box-shadow: 0 0 10px rgba(255,210,63,0.5), 0 3px 0 #8f6504; }
+      50% { transform: scale(1.05); box-shadow: 0 0 18px rgba(255,210,63,0.85), 0 3px 0 #8f6504; }
+    }
+    .mission-claim-btn {
+      animation: pulseGoldGlow 1.4s ease-in-out infinite;
+    }
+    .tower-perk-card {
+      display: flex; align-items: center; gap: 10px;
+      padding: 7px 10px; border-radius: 12px;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      transition: all 0.25s ease;
+    }
+    .tower-perk-card.unlocked {
+      background: rgba(154, 123, 255, 0.14);
+      border-color: rgba(255, 210, 63, 0.6);
+      box-shadow: 0 0 10px rgba(154, 123, 255, 0.15);
+    }
+    .tower-perk-badge {
+      font-size: 10px; font-weight: 800; padding: 2px 8px; border-radius: 999px; white-space: nowrap;
+    }
+    .tower-perk-badge.active {
+      background: linear-gradient(180deg, #ffe78a 0%, #f6ba16 100%);
+      color: #3e2802; border: 1px solid #fff;
+    }
+    .tower-perk-badge.locked {
+      background: rgba(255, 255, 255, 0.08);
+      color: var(--text-dim); border: 1px solid rgba(255, 255, 255, 0.15);
+    }
+    .shop-item .si-info, .ach-item .ach-info { flex: 1; text-align: left; }
+    .shop-item .si-name, .ach-item .ach-name { color: #fff; font-weight: 800; font-size: 13px; }
+    .shop-item .si-desc, .ach-item .ach-desc { color: var(--text-dim); font-size: 11px; margin-top: 1px; }
+    .shop-buy-btn {
+      padding: 8px 14px; border-radius: 999px; border: 2px solid #ffffff;
+      background: linear-gradient(180deg, #ffe78a 0%, #f6ba16 100%);
+      box-shadow: 0 3px 0 #8f6504;
+      color: #3e2802; font-weight: 900; font-size: 13px;
+      cursor: pointer; white-space: nowrap;
+    }
+    .shop-buy-btn:disabled { opacity: 0.35; cursor: default; }
+    .shop-buy-btn:not(:disabled):active { transform: translateY(2px); box-shadow: 0 1px 0 #8f6504; }
+
+    .platform-row { display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; margin-top: 12px; }
+    .platform-btn {
+      padding: 8px 14px; border-radius: 999px; border: 2px solid rgba(255,255,255,0.5);
+      background: rgba(255,255,255,0.08); color: #fff; font-weight: 800; font-size: 12px; cursor: pointer;
+    }
+    .platform-btn.primary {
+      background: linear-gradient(180deg, #9af3ff 0%, #30caf5 100%);
+      border-color: #ffffff; color: #052a4a;
+      box-shadow: 0 3px 0 #0d6089;
+    }
+    .platform-note { font-size: 11px; color: var(--text-dim); max-width: 290px; text-align: center; margin-top: 4px; }
+
+    .tutorial-hidden { display: none !important; }
+    #tutorial {
+      position: absolute; inset: 0; z-index: 30;
+      display: flex; flex-direction: column; align-items: center; justify-content: flex-start;
+      padding-top: 100px; pointer-events: none;
+    }
+    #tutHand { font-size: 40px; animation: tutSwipe 1.6s ease-in-out infinite; filter: drop-shadow(0 0 10px rgba(77,238,234,0.6)); }
+    @keyframes tutSwipe {
+      0%, 100% { transform: translateX(-40px) rotate(-8deg); }
+      50% { transform: translateX(40px) rotate(8deg); }
+    }
+    #tutBubble {
+      margin-top: 14px; background: rgba(10,14,39,0.94);
+      border: 2px solid #4deeea; border-radius: 18px;
+      padding: 10px 16px; max-width: 260px; text-align: center;
+      box-shadow: 0 8px 26px rgba(0,0,0,0.5); font-size: 13.5px; font-weight: 800; color: #fff;
+    }
+    #tutSkip {
+      pointer-events: auto; margin-top: 18px; padding: 8px 22px;
+      border-radius: 999px; border: 2px solid #ffffff;
+      background: rgba(255,255,255,0.12); color: #fff; font-weight: 800; font-size: 12px; cursor: pointer;
+    }
+    .reward-ad-btn {
+      margin-top: 12px; padding: 11px 22px; border-radius: 999px; border: 2px solid #ffffff;
+      background: linear-gradient(180deg, #ffe78a 0%, #f6ba16 100%);
+      box-shadow: 0 4px 0 #8f6504, 0 6px 12px rgba(0,0,0,0.35);
+      color: #3e2802; font-weight: 900; font-size: 14px; cursor: pointer;
+    }
+    .reward-ad-btn:active { transform: translateY(2px); box-shadow: 0 2px 0 #8f6504; }
+
+    /* --- FEVER MODE (ЛИХОРАДКА) --- */
+    .fever-banner {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      width: 100%;
+      max-width: 320px;
+      margin: 3px auto 5px;
+      padding: 3px 8px;
+      background: rgba(14, 18, 48, 0.9);
+      border: 1.5px solid #ffd23f;
+      border-radius: 999px;
+      box-shadow: 0 0 14px rgba(255, 210, 63, 0.35);
+      position: relative;
+      overflow: hidden;
+      z-index: 10;
+    }
+    .fever-spark-icon {
+      font-size: 13px;
+      animation: feverPulseIcon 0.8s ease-in-out infinite alternate;
+    }
+    @keyframes feverPulseIcon {
+      0% { transform: scale(0.9); filter: drop-shadow(0 0 2px #ffd23f); }
+      100% { transform: scale(1.25); filter: drop-shadow(0 0 8px #ff3d9a); }
+    }
+    .fever-track {
+      flex: 1;
+      height: 12px;
+      background: rgba(0, 0, 0, 0.65);
+      border-radius: 999px;
+      overflow: hidden;
+      position: relative;
+      border: 1px solid rgba(255, 255, 255, 0.15);
+    }
+    .fever-bar-fill {
+      height: 100%;
+      width: 0%;
+      background: linear-gradient(90deg, #38bdf8 0%, #ffd23f 50%, #ff3d9a 100%);
+      border-radius: 999px;
+      transition: width 0.15s ease-out;
+      box-shadow: 0 0 10px #ffd23f;
+    }
+    .fever-label {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 8.5px;
+      font-weight: 900;
+      letter-spacing: 1px;
+      color: #ffffff;
+      text-shadow: 0 1px 2px rgba(0,0,0,0.9);
+      pointer-events: none;
+    }
+    .fever-mult-badge {
+      font-size: 11px;
+      font-weight: 900;
+      color: #ffd23f;
+      background: rgba(255, 61, 154, 0.25);
+      border: 1px solid #ffd23f;
+      border-radius: 6px;
+      padding: 1px 5px;
+      line-height: 1.2;
+    }
+    #stage-inner.fever-active-glow {
+      box-shadow: 0 0 30px rgba(255, 210, 63, 0.75), inset 0 0 24px rgba(255, 61, 154, 0.35) !important;
+      border-color: #ffd23f !important;
+      animation: stageFeverBorder 0.6s ease-in-out infinite alternate;
+    }
+    @keyframes stageFeverBorder {
+      0% { border-color: #ffd23f; box-shadow: 0 0 25px rgba(255, 210, 63, 0.6), inset 0 0 20px rgba(255, 61, 154, 0.3); }
+      100% { border-color: #ff3d9a; box-shadow: 0 0 35px rgba(255, 61, 154, 0.8), inset 0 0 28px rgba(255, 210, 63, 0.4); }
+    }
+
+    /* --- HOUSE ACTIVE BADGE --- */
+    .house-active-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      margin: 1px auto 4px;
+      padding: 2px 10px;
+      background: rgba(14, 18, 48, 0.85);
+      border: 1px solid rgba(255, 210, 63, 0.4);
+      border-radius: 999px;
+      font-size: 10px;
+      font-weight: 700;
+      color: #ffd23f;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.4);
+      white-space: nowrap;
+      pointer-events: none;
+      z-index: 11;
+      max-width: 90%;
+      text-overflow: ellipsis;
+      overflow: hidden;
+    }
+    .house-active-badge .house-icon {
+      font-size: 11px;
+    }
+
+    /* --- RESCUE MODAL (SECOND CHANCE) --- */
+    .rescue-vortex-icon {
+      font-size: 44px;
+      text-align: center;
+      margin: 2px 0;
+      animation: rescueVortexSpin 4s linear infinite;
+    }
+    @keyframes rescueVortexSpin {
+      0% { transform: rotate(0deg) scale(1); }
+      50% { transform: rotate(180deg) scale(1.15); filter: drop-shadow(0 0 16px #ff3d9a); }
+      100% { transform: rotate(360deg) scale(1); }
+    }
+    .rescue-timer-wrap {
+      position: relative;
+      width: 72px;
+      height: 72px;
+      margin: 0 auto 6px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .rescue-timer-svg {
+      width: 72px;
+      height: 72px;
+      transform: rotate(-90deg);
+    }
+    .rescue-timer-bg {
+      fill: none;
+      stroke: rgba(255, 255, 255, 0.1);
+      stroke-width: 6;
+    }
+    .rescue-timer-bar {
+      fill: none;
+      stroke: #ff3d9a;
+      stroke-width: 6;
+      stroke-linecap: round;
+      stroke-dasharray: 213.6;
+      stroke-dashoffset: 0;
+      transition: stroke-dashoffset 0.1s linear;
+    }
+    .rescue-countdown-num {
+      position: absolute;
+      font-size: 26px;
+      font-weight: 900;
+      color: #ffffff;
+      text-shadow: 0 0 12px #ff3d9a;
+    }
+
+    /* --- FORTUNE WHEEL MODAL --- */
+    .fortune-wheel-container {
+      position: relative;
+      width: 260px;
+      height: 260px;
+      margin: 8px auto 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .fortune-pointer {
+      position: absolute;
+      top: -8px;
+      left: 50%;
+      transform: translateX(-50%);
+      font-size: 24px;
+      color: #ffd23f;
+      text-shadow: 0 0 10px rgba(255, 210, 63, 0.9);
+      z-index: 20;
+      pointer-events: none;
+      animation: pointerNudge 0.6s ease-in-out infinite alternate;
+    }
+    @keyframes pointerNudge {
+      0% { transform: translateX(-50%) translateY(0); }
+      100% { transform: translateX(-50%) translateY(3px); }
+    }
+    #fortuneWheelCanvas {
+      border-radius: 50%;
+      box-shadow: 0 0 24px rgba(255, 210, 63, 0.4), 0 0 50px rgba(77, 238, 234, 0.2);
+    }
+    .fortune-result-box {
+      background: rgba(255, 210, 63, 0.15);
+      border: 1.5px solid #ffd23f;
+      border-radius: 12px;
+      padding: 8px 12px;
+      text-align: center;
+      color: #ffffff;
+      font-size: 13px;
+      font-weight: 800;
+      margin-top: 6px;
+      box-shadow: 0 0 16px rgba(255, 210, 63, 0.3);
+      animation: popIn 0.3s ease-out;
+    }
+    .homm-badge-dot {
+      position: absolute;
+      top: 2px;
+      right: 2px;
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: #ffd23f;
+      box-shadow: 0 0 8px #ffd23f;
+      display: none;
+      animation: badgeDotPulse 1.2s ease-in-out infinite;
+    }
+    @keyframes badgeDotPulse {
+      0%, 100% { transform: scale(0.9); opacity: 0.8; }
+      50% { transform: scale(1.3); opacity: 1; }
+    }
+  </style>
+  <!-- Yandex Games SDK official script tag with graceful fallback -->
+  <script src="https://yandex.ru/games/sdk/v2" onerror="console.info('Using local SDK mock')"></script>
+  <script src="/sdk.js"></script>
+</head>
+<body>
+<div id="app">
+  <div id="hud">
+    <!-- In-Game active score -->
+    <div class="hud-block in-game-only">
+      <div class="hud-label" data-i18n="scoreLabel">Счёт</div>
+      <div class="hud-value" id="scoreVal">0</div>
+    </div>
+
+    <!-- In-Game next ball preview -->
+    <div id="nextPreview" class="in-game-only">
+      <div class="hud-label" data-i18n="nextLabel">Далее</div>
+      <div id="nextBallWrap"></div>
+    </div>
+
+    <!-- Menu mode star balance -->
+    <div class="hud-menu-stars menu-only" id="menuStarsBadge">
+      <span style="color:#ffd23f;">★</span><span id="menuStarsVal">0</span>
+    </div>
+
+    <div style="display: flex; align-items: flex-end; gap: 8px;">
+      <div class="hud-block right">
+        <div class="hud-label" data-i18n="bestLabel">Рекорд</div>
+        <div class="hud-value" id="bestVal">0</div>
+      </div>
+      <button id="settingsBtn" aria-label="Настройки" title="Настройки">⚙️</button>
+    </div>
+  </div>
+
+  <div id="goalBanner" style="display: none;">
+    <span id="goalLabel"></span>
+    <div id="goalBarTrack"><div id="goalBarFill"></div></div>
+  </div>
+
+  <!-- Cosmic Fever Bar (Лихорадка) -->
+  <div id="feverBanner" class="fever-banner" style="display: none;">
+    <div class="fever-spark-icon">⚡</div>
+    <div class="fever-track">
+      <div id="feverBarFill" class="fever-bar-fill"></div>
+      <div id="feverLabel" class="fever-label">ЛИХОРАДКА 0%</div>
+    </div>
+    <div id="feverMultBadge" class="fever-mult-badge">×3</div>
+  </div>
+
+  <!-- Active House Blessing Badge -->
+  <div id="houseActiveBadge" class="house-active-badge" style="display: none;">
+    <span id="houseActiveIcon" class="house-icon">⚜️</span>
+    <span id="houseActiveName">ХРОНО</span>
+  </div>
+
+  <div id="stage-wrap">
+    <div id="stage-inner">
+      <canvas id="game"></canvas>
+      <div id="dangerLine"></div>
+
+      <div id="tutorial" class="tutorial-hidden">
+        <div id="tutHand">👆</div>
+        <div id="tutBubble">
+          <div id="tutLine1" data-i18n="tutDrag">Веди пальцем влево-вправо, чтобы прицелиться</div>
+          <div id="tutLine2" style="display: none;" data-i18n="tutRelease">Отпусти — и шар упадёт вниз</div>
+        </div>
+        <button id="tutSkip" data-i18n="tutSkip">Понятно, играть →</button>
+      </div>
+
+      <div id="locTransition" style="display: none; position: absolute; inset: 0; z-index: 22; pointer-events: none; align-items: center; justify-content: center; flex-direction: column;">
+        <div id="ltIcon" style="font-size: 48px; filter: drop-shadow(0 0 14px rgba(255,255,255,0.6));">🌌</div>
+        <div id="ltName" style="font-size: 22px; font-weight: 900; color: #fff; margin-top: 6px;">Локация</div>
+        <div id="ltLevelNum" style="font-size: 13px; color: var(--text-dim); margin-top: 2px;">Уровень 1</div>
+      </div>
+    </div>
+
+    <!-- === CASUAL 3D MODAL OVERLAYS (Cosmic Neon Theme) === -->
+
+    <!-- 1. OPTIONS / PAUSE MODAL -->
+    <div id="optionsModal" class="cosmic-modal-wrap">
+      <div class="cosmic-modal">
+        <div class="modal-cap" data-i18n="optionsTitle">OPTIONS</div>
+        <button id="optionsCloseBtn" class="modal-close-btn" aria-label="Закрыть">✖</button>
+
+        <!-- Primary Hero Action -->
+        <button id="optResumeBtn" class="pill-3d-btn primary-hero-btn" style="margin-top: 10px;">
+          <span>▶</span><span data-i18n="resume">Продолжить</span>
+        </button>
+
+        <!-- Balanced 2x2 Quick Actions -->
+        <div class="modal-btn-grid">
+          <button id="optRestartBtn" class="grid-action-btn alt-magenta">
+            <span class="gab-icon">🔄</span>
+            <span data-i18n="restart">Заново</span>
+          </button>
+          <button id="optExitBtn" class="grid-action-btn alt-dark">
+            <span class="gab-icon">🚪</span>
+            <span data-i18n="exitToMenu">В меню</span>
+          </button>
+          <button id="optUpgradesBtn" class="grid-action-btn alt-gold">
+            <span class="gab-icon">⚡</span>
+            <span data-i18n="upgradesTitle">Прокачка</span>
+          </button>
+          <button id="optSettingsBtn" class="grid-action-btn alt-purple">
+            <span class="gab-icon">⚙</span>
+            <span data-i18n="settingsTitle">Настройки</span>
+          </button>
+        </div>
+
+        <!-- Strategy / Rules Link -->
+        <button id="optHelpBtn" class="modal-sub-link-btn">
+          <span>❓</span><span data-i18n="helpTitle">Как играть и правила</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- 2. QUIT / WARNING MODAL -->
+    <div id="quitWarningModal" class="cosmic-modal-wrap">
+      <div class="cosmic-modal">
+        <div class="modal-cap danger-cap" data-i18n="warningTitle">WARNING</div>
+        <button id="quitWarningCloseBtn" class="modal-close-btn" aria-label="Закрыть">✖</button>
+        <p style="color: #fff; font-size: 15px; font-weight: 800; margin: 16px 0 18px 0; line-height: 1.45;" data-i18n="quitPrompt">
+          Уверен, что хочешь выйти в меню? Текущий раунд башни будет завершён!
+        </p>
+        <div style="display: flex; gap: 10px; width: 100%; justify-content: center;">
+          <button id="quitCancelBtn" class="pill-3d-btn" style="flex: 1; max-width: 130px; font-size: 14px;">
+            <span data-i18n="cancel">Отмена</span>
+          </button>
+          <button id="quitConfirmBtn" class="pill-3d-btn alt-magenta" style="flex: 1; max-width: 130px; font-size: 14px;">
+            <span data-i18n="quitOk">Выйти</span>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 3. SETTINGS MODAL -->
+    <div id="settingsModal" class="cosmic-modal-wrap">
+      <div class="cosmic-modal">
+        <div class="modal-cap" data-i18n="settingsTitle">SETTINGS</div>
+        <button id="settingsCloseBtn" class="modal-close-btn" aria-label="Закрыть">✖</button>
+        <div style="width: 100%; margin-top: 10px; display: flex; flex-direction: column; align-items: center;">
+          <div class="setting-slider-row">
+            <div class="setting-slider-header">
+              <span data-i18n="musicLabel">Музыка</span>
+              <span id="musicValText">80%</span>
+            </div>
+            <input type="range" id="musicSlider" class="casual-slider" min="0" max="100" value="80" />
+          </div>
+          <div class="setting-slider-row">
+            <div class="setting-slider-header">
+              <span data-i18n="soundLabel">Звуки</span>
+              <span id="soundValText">90%</span>
+            </div>
+            <input type="range" id="soundSlider" class="casual-slider" min="0" max="100" value="90" />
+          </div>
+          <div style="width: 100%; max-width: 270px; display: flex; justify-content: space-between; align-items: center; margin-top: 10px;">
+            <span style="font-size: 14px; font-weight: 800;" data-i18n="langLabel">Язык</span>
+            <div style="display: flex; gap: 8px;">
+              <button id="langRuBtn" class="platform-btn primary">RU</button>
+              <button id="langEnBtn" class="platform-btn">EN</button>
+            </div>
+          </div>
+          <button id="settingsOkBtn" class="pill-3d-btn" style="margin-top: 20px;">
+            <span data-i18n="ok">Готово</span>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 4. LEVEL COMPLETE MODAL -->
+    <div id="completeModal" class="cosmic-modal-wrap">
+      <div class="cosmic-modal">
+        <div class="modal-cap gold-cap" data-i18n="completeTitle">COMPLETE</div>
+        <div id="compLevelText" style="font-size: 17px; font-weight: 900; color: #ffd23f; margin-top: 2px;">Уровень 1</div>
+        <div class="stars-cluster">
+          <div id="compStar1" class="star-item">★</div>
+          <div id="compStar2" class="star-item star-mid">★</div>
+          <div id="compStar3" class="star-item">★</div>
+        </div>
+        <div class="metric-pill-row">
+          <span class="metric-pill-label" data-i18n="scoreLabel">Счёт</span>
+          <span id="compScoreVal" class="metric-pill-val">0</span>
+        </div>
+        <div class="metric-pill-row">
+          <span class="metric-pill-label" data-i18n="mergesLabel">Слияния</span>
+          <span id="compMergesVal" class="metric-pill-val">0</span>
+        </div>
+        <div class="metric-pill-row">
+          <span class="metric-pill-label" data-i18n="rewardLabel">Награда</span>
+          <span id="compRewardVal" class="metric-pill-val" style="color: #ffd23f;">+10 ★</span>
+        </div>
+
+        <!-- Primary Hero Button: Next Level -->
+        <button id="compNextBtn" class="pill-3d-btn alt-gold primary-hero-btn" style="margin-top: 14px;">
+          <span>▶</span><span data-i18n="nextLevelBtn">Следующий уровень</span>
+        </button>
+
+        <!-- Secondary Navigation Row -->
+        <div class="modal-sub-actions-row">
+          <button id="compHomeBtn" class="sub-action-btn" title="Главное меню">
+            <span>🏠</span><span data-i18n="homeBtn">В меню</span>
+          </button>
+          <button id="compMapBtn" class="sub-action-btn" title="Карта уровней">
+            <span>🗺️</span><span data-i18n="mapBtn">Карта</span>
+          </button>
+          <button id="compRestartBtn" class="sub-action-btn btn-magenta" title="Заново">
+            <span>🔄</span><span data-i18n="restart">Заново</span>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 5. GAME OVER MODAL -->
+    <div id="gameOverModal" class="cosmic-modal-wrap">
+      <div class="cosmic-modal">
+        <div class="modal-cap danger-cap" data-i18n="gameOverTitle">GAME OVER</div>
+        <p style="color: #ff9ed2; font-size: 13px; margin: 6px 0 10px;" data-i18n="towerOverflow">Башня переполнилась!</p>
+        <div class="metric-pill-row">
+          <span class="metric-pill-label" data-i18n="scoreLabel">Счёт</span>
+          <span id="goScoreVal" class="metric-pill-val">0</span>
+        </div>
+        <div class="metric-pill-row">
+          <span class="metric-pill-label" data-i18n="bestLabel">Рекорд</span>
+          <span id="goBestVal" class="metric-pill-val" style="color: #4deeea;">0</span>
+        </div>
+        <button id="rewardAdBtn" class="reward-ad-btn" data-i18n="rewardAdBtn" style="margin-top: 10px;">🎬 +15★ Посмотреть рекламу</button>
+
+        <!-- Primary Hero Action -->
+        <button id="goRestartBtn" class="pill-3d-btn alt-magenta primary-hero-btn" style="margin-top: 12px;">
+          <span>🔄</span><span data-i18n="retryBtn">Попробовать снова</span>
+        </button>
+
+        <!-- Secondary Navigation Row -->
+        <div class="modal-sub-actions-row">
+          <button id="goHomeBtn" class="sub-action-btn" title="Главное меню">
+            <span>🏠</span><span data-i18n="homeBtn">В меню</span>
+          </button>
+          <button id="goMapBtn" class="sub-action-btn" title="Карта" style="display: none;">
+            <span>🗺️</span><span data-i18n="mapBtn">Карта</span>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 6. UPGRADES MODAL -->
+    <div id="upgradesModal" class="cosmic-modal-wrap">
+      <div class="cosmic-modal" style="max-width: 360px;">
+        <div class="modal-cap gold-cap" data-i18n="upgradesTitle">UPGRADES</div>
+        <button id="upgradesCloseBtn" class="modal-close-btn" aria-label="Закрыть">✖</button>
+        <div class="currency-pill">★ <span id="upgradesStarsVal">0</span></div>
+        <div id="upgradesList" style="width: 100%; display: flex; flex-direction: column; align-items: center;"></div>
+        <button id="upgradesOkBtn" class="pill-3d-btn" style="margin-top: 10px;">
+          <span data-i18n="ok">Готово</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- 7. MAP / LEVEL MODAL -->
+    <div id="mapModal" class="cosmic-modal-wrap">
+      <div class="cosmic-modal" style="max-width: 370px;">
+        <div class="modal-cap" data-i18n="mapTitle">MAP</div>
+        <button id="mapCloseBtn" class="modal-close-btn" aria-label="Закрыть">✖</button>
+        <div class="map-loc-tabs" id="mapLocTabs"></div>
+        <div class="map-container" id="mapContainer"></div>
+        <button id="mapHomeBtn" class="pill-3d-btn" style="margin-top: 12px;">
+          <span>🏠</span><span data-i18n="homeBtn">В меню</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- 8. HELP & STRATEGY MODAL -->
+    <div id="helpModal" class="cosmic-modal-wrap">
+      <div class="cosmic-modal">
+        <div class="modal-cap" data-i18n="helpTitle">HELP</div>
+        <button id="helpCloseBtn" class="modal-close-btn" aria-label="Закрыть">✖</button>
+        <div style="text-align: left; font-size: 12.5px; line-height: 1.5; color: #d0d7f5; margin-top: 10px;">
+          <p><b>1. Suika-пирамида:</b> Тяжёлые и крупные шары направляй к основанию, лёгкие складывай сверху для цепных реакций.</p>
+          <p><b>2. 📳 Толчок башни:</b> Застрял шар? Нажми кнопку толчка внизу, чтобы микрогравитация помогла шарам найти пару!</p>
+          <p><b>3. ⚡ Каскад комбо:</b> Несколько слияний подряд приносят умножение очков и дополнительные звёзды.</p>
+          <p><b>4. Инструменты:</b> 🔧 Уменьшение, 💣 Взрыв и 🔄 Замена помогут спастись при опасном уровне переполнения.</p>
+        </div>
+        <button id="helpOkBtn" class="pill-3d-btn" style="margin-top: 14px;">
+          <span data-i18n="ok">Понятно</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- 9. SHOP MODAL -->
+    <div id="shopModal" class="cosmic-modal-wrap">
+      <div class="cosmic-modal" style="max-width: 360px;">
+        <div class="modal-cap gold-cap" data-i18n="shopTitle">SHOP</div>
+        <button id="shopCloseBtn" class="modal-close-btn" aria-label="Закрыть">✖</button>
+        <div class="currency-pill">★ <span id="shopModalStarsVal">0</span></div>
+        <div id="shopList" style="width: 100%; max-height: 320px; overflow-y: auto;"></div>
+        <button id="shopBackBtn" class="pill-3d-btn" style="margin-top: 14px;">
+          <span data-i18n="ok">Готово</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- 10. ACHIEVEMENTS MODAL -->
+    <div id="achModal" class="cosmic-modal-wrap">
+      <div class="cosmic-modal" style="max-width: 360px;">
+        <div class="modal-cap" data-i18n="achTitle">ACHIEVEMENTS</div>
+        <button id="achCloseBtn" class="modal-close-btn" aria-label="Закрыть">✖</button>
+        <div id="achList" style="width: 100%; max-height: 330px; overflow-y: auto;"></div>
+        <button id="achOkBtn" class="pill-3d-btn" style="margin-top: 12px;">
+          <span data-i18n="ok">Готово</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- 11. EMERGENCY RESCUE MODAL (SECOND CHANCE) -->
+    <div id="rescueModal" class="cosmic-modal-wrap">
+      <div class="cosmic-modal" style="max-width: 330px; border-color: #ff3d9a; box-shadow: 0 0 35px rgba(255, 61, 154, 0.45), inset 0 0 20px rgba(255, 61, 154, 0.2);">
+        <div class="modal-cap danger-cap" data-i18n="rescueTitle">СПАСЕНИЕ БАШНИ</div>
+        <div class="rescue-vortex-icon">🕳️</div>
+        <div class="rescue-timer-wrap">
+          <svg class="rescue-timer-svg" viewBox="0 0 80 80">
+            <circle class="rescue-timer-bg" cx="40" cy="40" r="34"></circle>
+            <circle id="rescueTimerCircle" class="rescue-timer-bar" cx="40" cy="40" r="34"></circle>
+          </svg>
+          <div id="rescueTimerText" class="rescue-countdown-num">5</div>
+        </div>
+        <p style="color: #ffd2a0; font-size: 12.5px; line-height: 1.4; margin: 6px 0 12px; text-align: center;" data-i18n="rescueDesc">
+          Коллапс неизбежен! Активируй Сингулярность, чтобы поглотить верхние сферы и спасти свой рекорд!
+        </p>
+        <button id="rescueActionBtn" class="pill-3d-btn alt-magenta primary-hero-btn" style="width: 100%;">
+          <span>⚡</span><span id="rescueActionText" data-i18n="rescueBtn">СПАСТИ БАШНЮ</span>
+        </button>
+        <button id="rescueSkipBtn" class="sub-action-btn" style="margin-top: 10px; width: 100%; justify-content: center; opacity: 0.85;">
+          <span data-i18n="rescueSkipBtn">Сдаться</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- 12. CELESTIAL WHEEL OF FORTUNE MODAL -->
+    <div id="fortuneModal" class="cosmic-modal-wrap">
+      <div class="cosmic-modal" style="max-width: 350px;">
+        <div class="modal-cap" data-i18n="fortuneTitle">АЛТАРЬ ЗВЁЗДНОЙ ФОРТУНЫ</div>
+        <button id="fortuneCloseBtn" class="modal-close-btn" aria-label="Закрыть">✖</button>
+        <p style="color: #cbd5e1; font-size: 11.5px; margin: 4px 0 8px; text-align: center;" data-i18n="fortuneDesc">
+          Испытай космическую удачу! Вращай алтарь и получай звёзды и редкие артефакты.
+        </p>
+        <div class="fortune-wheel-container">
+          <div class="fortune-pointer">▼</div>
+          <canvas id="fortuneWheelCanvas" width="260" height="260"></canvas>
+        </div>
+        <div id="fortuneResultNotice" class="fortune-result-box" style="display: none;">
+          <span id="fortuneResultIcon">🎁</span> <span id="fortuneResultText"></span>
+        </div>
+        <button id="fortuneSpinBtn" class="pill-3d-btn alt-gold primary-hero-btn" style="margin-top: 12px; width: 100%;">
+          <span id="fortuneSpinIcon">🎁</span><span id="fortuneSpinText" data-i18n="fortuneSpinFree">ВРАЩАТЬ (БЕСПЛАТНО)</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Main Menu Overlay (HoMM V Cosmic Citadel Edition) -->
+    <div id="overlay" class="show">
+      <!-- Top Royal Bar: Stars, Daily Gift, Cloud, Rules & Settings -->
+      <div class="homm-top-bar">
+        <div class="homm-crest-pill" id="hommStarsPill" title="Звёздные артефакты">
+          <span class="homm-gem-star">★</span> <span id="starsValMenu">0</span>
+        </div>
+        <button id="dailyBonusBtn" class="homm-chest-btn" style="display: none;" title="Забрать ежедневный дар">
+          <span class="chest-icon">🎁</span> <span class="chest-txt" data-i18n="dailyBonus">+8★ Дар дня</span>
+        </button>
+        <div class="homm-top-actions">
+          <button id="fortuneBtn" class="homm-icon-crest" title="Алтарь Звёздной Фортуны" style="position: relative;">
+            <span>🎡</span>
+            <span id="fortuneBadgeDot" class="homm-badge-dot"></span>
+          </button>
+          <button id="cloudBtn" class="homm-icon-crest" title="Облако Yandex">☁️</button>
+          <button id="menuRulesBtn" class="homm-icon-crest" title="Манускрипт правил">📜</button>
+          <button id="menuSettingsBtn" class="homm-icon-crest" title="Настройки">⚙️</button>
+        </div>
+      </div>
+
+      <!-- Epic Heraldic Header -->
+      <div class="homm-title-block">
+        <div class="homm-filigree-top">✦ ─────── ⚜️ ─────── ✦</div>
+        <h1 class="homm-title" data-i18n="gameTitle">MERGE TOWER</h1>
+        <div class="homm-subtitle">ХРОНИКИ ЗВЁЗДНЫХ ДОМОВ</div>
+      </div>
+
+      <!-- Interactive Citadel & Singularity Visual Stage with Mägic -->
+      <div class="homm-stage-container" id="hommHeroStageWrap" title="Нажми на персонажа!">
+        <canvas id="hommHeroCanvas" width="360" height="190"></canvas>
+        <div class="homm-char-interactive-hint" id="hommCharHint">✦ Тапни по персонажу ✦</div>
+      </div>
+
+      <!-- Mascot Archetype Selector: 4 Brand Options -->
+      <div class="homm-mascot-row" id="hommMascotRow">
+        <button class="homm-mascot-btn active" data-mascot="lumi" id="mascotBtn_lumi" title="Люми — Астральный Звёздный Дух">
+          <span class="m-icon">✨</span>
+          <span class="m-title" data-i18n="mascot_name_lumi">Люми</span>
+          <span class="m-role" data-i18n="mascot_role_lumi">Дух Света</span>
+        </button>
+        <button class="homm-mascot-btn" data-mascot="bot" id="mascotBtn_bot" title="Нова — Кибер-Фамильяр">
+          <span class="m-icon">🤖</span>
+          <span class="m-title" data-i18n="mascot_name_bot">Нова</span>
+          <span class="m-role" data-i18n="mascot_role_bot">Кибер-Бот</span>
+        </button>
+        <button class="homm-mascot-btn" data-mascot="dragon" id="mascotBtn_dragon" title="Эфир — Звёздный Дракончик">
+          <span class="m-icon">🐲</span>
+          <span class="m-title" data-i18n="mascot_name_dragon">Эфир</span>
+          <span class="m-role" data-i18n="mascot_role_dragon">Дракон</span>
+        </button>
+        <button class="homm-mascot-btn" data-mascot="knight" id="mascotBtn_knight" title="Орион — Звёздный Рыцарь">
+          <span class="m-icon">⚔️</span>
+          <span class="m-title" data-i18n="mascot_name_knight">Орион</span>
+          <span class="m-role" data-i18n="mascot_role_knight">Рыцарь</span>
+        </button>
+      </div>
+
+      <!-- 4 Great Houses (Banners) Selector -->
+      <div class="homm-houses-row" id="hommHousesRow">
+        <button class="homm-house-banner active" data-house="chrono" id="houseChrono" title="Дом Хрономантов (Мэджик) — Контроль времени и маны">
+          <span class="house-rune">⚜️</span>
+          <span class="house-name">Хроно</span>
+          <span class="house-perk">Мана +</span>
+        </button>
+        <button class="homm-house-banner" data-house="singularity" id="houseSingularity" title="Легион Сингулярности (Владыка Ноктис) — Черная дыра и гравитация">
+          <span class="house-rune">🕳️</span>
+          <span class="house-name">Сингуляр</span>
+          <span class="house-perk">Воронка</span>
+        </button>
+        <button class="homm-house-banner" data-house="pulsar" id="housePulsar" title="Кузница Пульсаров (Бронокс) — Солнечный синтез и комбо">
+          <span class="house-rune">☀️</span>
+          <span class="house-name">Пульсар</span>
+          <span class="house-perk">Синтез</span>
+        </button>
+        <button class="homm-house-banner" data-house="nebula" id="houseNebula" title="Сияние Небулы (Люмина) — Квантовые ростки и артефакты">
+          <span class="house-rune">🪸</span>
+          <span class="house-name">Небула</span>
+          <span class="house-perk">Росток</span>
+        </button>
+      </div>
+
+      <!-- Mode Selector Tabs (HoMM V Style) -->
+      <div class="homm-mode-tabs">
+        <button id="endlessModeTab" class="homm-tab active">
+          <span>♾️ Бесконечный</span>
+        </button>
+        <button id="pathModeTab" class="homm-tab">
+          <span>🗺️ Поход (Путь)</span>
+        </button>
+        <button id="dailyModeTab" class="homm-tab">
+          <span>⚡ Испытание</span>
+        </button>
+      </div>
+
+      <!-- Main Battle Shield Button (HoMM V Royal Shield) -->
+      <div class="homm-battle-container">
+        <button id="heroPlayBtn" class="homm-shield-btn">
+          <div class="shield-inner-bg">
+            <span class="shield-rune">⚔️</span>
+            <span class="shield-title" id="heroPlayTitle">В БОЙ</span>
+            <span class="shield-gem">◆</span>
+          </div>
+        </button>
+      </div>
+
+      <!-- Difficulty Selector -->
+      <div id="difficultyRow" class="homm-diff-row"></div>
+
+      <!-- Arcane Wheel: 5 Golden Medallions (HoMM V City Screen Style) -->
+      <div class="homm-arcane-wheel">
+        <button id="missionsBtn" class="homm-medallion" title="Свитки заданий">
+          <div class="medallion-rim">
+            <span class="medallion-icon">📜</span>
+            <span id="missionsBadge" class="homm-badge" style="display: none;">!</span>
+          </div>
+          <span class="medallion-label" data-i18n="missions">Задания</span>
+        </button>
+
+        <button id="towerBtn" class="homm-medallion" title="Чертоги Башни">
+          <div class="medallion-rim">
+            <span class="medallion-icon">🏰</span>
+          </div>
+          <span class="medallion-label" data-i18n="towerMeta">Башня</span>
+        </button>
+
+        <button id="achBtn" class="homm-medallion" title="Пантеон достижений">
+          <div class="medallion-rim">
+            <span class="medallion-icon">🏆</span>
+            <span id="achBadge" class="homm-badge">0/10</span>
+          </div>
+          <span class="medallion-label" data-i18n="achTitle">Награды</span>
+        </button>
+
+        <button id="shopBtn" class="homm-medallion" title="Лавка реликвий">
+          <div class="medallion-rim">
+            <span class="medallion-icon">🔮</span>
+          </div>
+          <span class="medallion-label" data-i18n="shopTitle">Реликвии</span>
+        </button>
+
+        <button id="leaderboardBtn" class="homm-medallion" title="Книга Героев">
+          <div class="medallion-rim">
+            <span class="medallion-icon">👑</span>
+          </div>
+          <span class="medallion-label" data-i18n="leaderboardBtn">Рекорды</span>
+        </button>
+      </div>
+
+      <!-- Hidden compatibility buttons for existing code paths -->
+      <div style="display: none;">
+        <button id="endlessBtn"></button>
+        <button id="pathBtn"></button>
+        <button id="dailyChallengeBtn"></button>
+      </div>
+
+      <div id="platformNote" class="platform-note"></div>
+      <div id="startHint" class="homm-hint" data-i18n="startHint">Двигай ману пальцем или мышью — соединяй сферы в сердце Башни</div>
+    </div>
+
+    <!-- Daily Challenge Overlay -->
+    <div id="dailyOverlay" class="master-overlay">
+      <h2 data-i18n="dailyChallenge">Испытание дня</h2>
+      <div class="master-sub" data-i18n="dailyDesc">Одинаковая последовательность шаров для всех игроков. Победи рекорд дня!</div>
+      <div style="margin-top: 12px; padding: 6px 14px; border-radius: 999px; background: rgba(77,238,234,0.12); border: 1px solid rgba(77,238,234,0.3); color: #4deeea; font-weight: 800; font-size: 12px;" id="dailySeedText"></div>
+      <div style="margin-top: 8px; color: var(--text-dim); font-size: 13px;"><span data-i18n="dailyBestLabel">Лучший результат дня:</span> <b id="dailyBestVal" style="color: #fff;">0</b></div>
+      <button id="startDailyBtn" class="pill-3d-btn primary-hero-btn alt-gold" style="margin-top: 16px;">
+        <span>⚡</span><span data-i18n="startDaily">Начать испытание</span>
+      </button>
+      <button id="backFromDailyBtn" class="pill-3d-btn" style="margin-top: 12px; max-width: 180px; font-size: 13px;">
+        <span>←</span><span data-i18n="backToMenu">В меню</span>
+      </button>
+    </div>
+
+    <!-- Missions Overlay -->
+    <div id="missionsOverlay" class="master-overlay">
+      <h2 data-i18n="missions">Задания</h2>
+      <div class="master-sub" data-i18n="missionsDesc">Три ежедневных задания. Выполняй и забирай звёзды!</div>
+      <div id="missionsMetaRow" style="display:flex; justify-content:space-between; align-items:center; width:100%; max-width:320px; margin: 8px auto 2px; font-size:11px; color:var(--text-dim);">
+        <span id="missionsDateText">📅 Сегодня</span>
+        <span id="missionsReadyText" style="color:#ffd23f; font-weight:800;"></span>
+      </div>
+      <div id="missionsList" style="width: 100%; max-width: 340px; margin-top: 6px;"></div>
+      <button id="backFromMissionsBtn" class="pill-3d-btn" style="margin-top: 14px; max-width: 180px; font-size: 13px;">
+        <span>←</span><span data-i18n="backToMenu">В меню</span>
+      </button>
+    </div>
+
+    <!-- Tower Overlay -->
+    <div id="towerOverlay" class="master-overlay">
+      <h2 data-i18n="towerMeta">Башня Мерджика</h2>
+      <div class="master-sub" data-i18n="towerDesc">Слияния наполняют башню силой. Чем выше уровень, тем величественнее твоя цитадель.</div>
+      <div style="width: 100%; max-width: 330px; border-radius: 18px; padding: 16px; margin-top: 12px; background: radial-gradient(circle at 50% 0, rgba(154,123,255,0.2), rgba(255,255,255,0.03) 65%); border: 1px solid rgba(154,123,255,0.3); text-align: center;">
+        <div id="masterIcon" style="font-size: 58px; filter: drop-shadow(0 0 16px rgba(154,123,255,0.45));">🏰</div>
+        <div id="masterLevelText" style="font-size: 20px; font-weight: 900; color: #fff; margin-top: 4px;">Уровень 1</div>
+        <div style="height: 8px; background: rgba(255,255,255,0.1); border-radius: 8px; overflow: hidden; margin: 10px 10px 4px;"><i id="masterXpFill" style="display: block; height: 100%; width: 0%; background: linear-gradient(90deg, #9a7bff, #4deeea, #ffd23f); transition: width 0.3s ease;"></i></div>
+        <div id="masterXpText" style="color: var(--text-dim); font-size: 11px;">0 / 50 XP</div>
+        <div id="masterRewardText" style="color: #ffd23f; font-size: 12px; font-weight: 800; margin-top: 6px;">Следующий этап: +6 ★</div>
+      </div>
+      <!-- Tower Perks Section -->
+      <div style="width: 100%; max-width: 330px; margin-top: 10px; text-align: left;">
+        <div style="font-size: 12px; font-weight: 800; color: #cbd5e1; margin-bottom: 6px; display: flex; align-items: center; justify-content: space-between;">
+          <span style="display:flex; align-items:center; gap:5px;"><span>✨</span><span data-i18n="towerPerksTitle">Перки Цитадели</span></span>
+          <span style="font-size: 10px; color: #a78bfa;" data-i18n="towerPerksSub">Пассивные бонусы</span>
+        </div>
+        <div id="towerPerksList" style="display: flex; flex-direction: column; gap: 6px;"></div>
+      </div>
+      <button id="backFromTowerBtn" class="pill-3d-btn" style="margin-top: 14px; max-width: 180px; font-size: 13px;">
+        <span>←</span><span data-i18n="backToMenu">В меню</span>
+      </button>
+    </div>
+  </div>
+
+  <div id="toolbar">
+    <div id="starsBadge">★ <span id="starsVal">0</span></div>
+    <button class="tool-btn" id="shrinkBtn" data-i18n-title="shrinkTooltip" title="Уменьшить выбранный шар">
+      <span class="tool-icon">🔧</span><span class="tool-cost">×0</span>
+    </button>
+    <button class="tool-btn" id="bombBtn" data-i18n-title="bombTooltip" title="Взорвать выбранный шар">
+      <span class="tool-icon">💣</span><span class="tool-cost">×0</span>
+    </button>
+    <button class="tool-btn" id="swapBtn" data-i18n-title="swapTooltip" title="Поменять текущий шар со следующим">
+      <span class="tool-icon">🔄</span><span class="tool-cost">×0</span>
+    </button>
+    <button class="tool-btn" id="nudgeBtn" data-i18n-title="nudgeTooltip" title="Толчок башни: встряхнуть шары">
+      <span class="tool-icon">📳</span><span class="tool-cost" id="nudgeCost">Готов</span>
+    </button>
+    <button class="tool-btn shop-quick-btn" id="inGameShopBtn" data-i18n-title="shopTitle" title="Магазин предметов">
+      <span class="tool-icon">🛒</span><span class="tool-cost" data-i18n="shopPlus">+Ещё</span>
+    </button>
+  </div>
+  <div id="footerHint">Merge Tower · Космическая башня</div>
+</div>
+
+<script src="/game.js"></script>
+</body>
+</html>
+
+
