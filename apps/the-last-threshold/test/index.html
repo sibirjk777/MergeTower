@@ -3,385 +3,71 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
-<title>THE LAST THRESHOLD — Slice 05</title>
+<title>Книга Порога — Пролог</title>
 <style>
-*{box-sizing:border-box}
-html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#050806;color:#eee;font-family:system-ui,-apple-system,Segoe UI,sans-serif;touch-action:none;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none}
-#game{position:fixed;inset:0;overflow:hidden}
-canvas{position:absolute;inset:0;width:100%;height:100%;display:block}
-#hud{position:absolute;top:max(8px,env(safe-area-inset-top));left:8px;right:8px;z-index:10;display:flex;gap:7px;align-items:flex-start;pointer-events:none}
-.card{background:rgba(8,12,15,.84);border:1px solid rgba(207,191,136,.35);border-radius:12px;padding:7px 9px;backdrop-filter:blur(5px);box-shadow:0 6px 20px rgba(0,0,0,.3)}
-.label{font-size:8px;letter-spacing:.14em;color:#b3aa8b;text-transform:uppercase}
-.num{font-size:14px;font-weight:900;line-height:1.1}
-.bar{height:6px;width:110px;background:#171d1c;border:1px solid #3c4742;border-radius:99px;overflow:hidden;margin-top:4px}
-.fill{height:100%;width:100%;background:#aa554d}
-.mem .fill{background:#7fae8c}
-#objective{position:absolute;top:74px;left:50%;transform:translateX(-50%);z-index:9;max-width:min(88vw,620px);padding:7px 10px;border:1px solid rgba(215,195,143,.42);border-radius:10px;background:rgba(7,12,14,.82);font-size:10px;text-align:center;pointer-events:none}
-#toast{position:absolute;left:50%;bottom:205px;transform:translate(-50%,16px);z-index:30;opacity:0;transition:.18s;max-width:min(88vw,660px);padding:9px 13px;border-radius:10px;border:1px solid #93855d;background:rgba(8,12,14,.94);font-size:12px;text-align:center;pointer-events:none}
-#controls{position:absolute;left:0;right:0;bottom:calc(env(safe-area-inset-bottom) + 8px);height:176px;z-index:20;pointer-events:none}
-.pad{position:absolute;left:10px;bottom:0;width:172px;height:172px;pointer-events:auto}
-.pad button,.actions button{position:absolute;width:68px;height:68px;border-radius:20px;border:1px solid #8e8260;background:rgba(8,16,16,.88);color:#ece8d7;font-size:24px;font-weight:900;box-shadow:0 7px 18px rgba(0,0,0,.35)}
-.pad button:active,.actions button:active{transform:translateY(2px) scale(.97);background:rgba(37,49,46,.96)}
-.up{left:52px;top:0}.down{left:52px;bottom:0}.left{left:0;top:52px}.right{right:0;top:52px}
-.actions{position:absolute;right:10px;bottom:0;width:220px;height:172px;pointer-events:auto}
-.actions button{width:92px;height:72px;font-size:13px;letter-spacing:.02em}
-.jump{left:0;top:4px}.attack{right:0;top:4px}.interact{left:0;bottom:4px;width:212px!important}
-#menu,#modal,#pause{position:absolute;inset:0;z-index:50;display:grid;place-items:center;background:rgba(1,4,6,.72);backdrop-filter:blur(7px)}
-.panel{width:min(720px,90vw);padding:28px;border-radius:20px;border:1px solid rgba(218,198,149,.45);background:rgba(10,14,17,.94);box-shadow:0 20px 70px rgba(0,0,0,.5)}
-h1{font:700 clamp(34px,8vw,72px)/.9 Georgia,serif;margin:0 0 8px;color:#e5d18e;letter-spacing:.03em}
-h2{font:700 clamp(22px,5vw,36px) Georgia,serif;margin:0 0 12px;color:#dfcc94}
-.sub{color:#a6b0ad;line-height:1.5}
-.btn{display:block;width:100%;margin-top:14px;padding:14px;border-radius:12px;border:1px solid #9d8d62;background:#17211e;color:#f1ead4;font-size:15px;font-weight:900}
-.btn.alt{background:#111716}
+*{box-sizing:border-box}html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#050706;color:#eee;font-family:system-ui,sans-serif;touch-action:none;user-select:none;-webkit-user-select:none}
+#game,canvas{position:fixed;inset:0;width:100%;height:100%;display:block}#ui{position:fixed;inset:0;pointer-events:none}.hud{position:absolute;top:max(8px,env(safe-area-inset-top));left:8px;right:8px;display:flex;gap:7px}.card{background:rgba(8,11,12,.82);border:1px solid #6d6247;border-radius:11px;padding:7px 9px;font-size:11px;backdrop-filter:blur(5px)}.lab{font-size:8px;letter-spacing:.14em;color:#b9a978;text-transform:uppercase}.big{font-weight:900}
+#objective{position:absolute;top:70px;left:50%;transform:translateX(-50%);max-width:88vw;padding:8px 12px;text-align:center;font-size:11px;border:1px solid #665b42;border-radius:11px;background:rgba(7,11,12,.8)}
+#bookBtn{position:absolute;right:10px;top:calc(env(safe-area-inset-top) + 75px);width:72px;height:72px;border-radius:18px;border:1px solid #b49b60;background:rgba(28,23,15,.92);color:#f1dda0;font-weight:900;pointer-events:auto;box-shadow:0 7px 20px #0008}
+#toast{position:absolute;left:50%;bottom:200px;transform:translate(-50%,12px);opacity:0;transition:.2s;max-width:88vw;padding:9px 13px;border:1px solid #9b8756;border-radius:10px;background:#090e0feF;font-size:12px;text-align:center}
+#controls{position:absolute;left:0;right:0;bottom:calc(env(safe-area-inset-bottom) + 8px);height:170px}.pad,.acts{pointer-events:auto;position:absolute;bottom:0}.pad{left:8px;width:172px;height:170px}.acts{right:8px;width:225px;height:170px}.pad button,.acts button{position:absolute;border:1px solid #8f8059;background:#091110e8;color:#efe7d0;border-radius:19px;font-weight:900}.pad button{width:65px;height:65px;font-size:23px}.up{left:53px}.down{left:53px;bottom:0}.left{left:0;top:52px}.right{right:0;top:52px}.acts button{width:94px;height:70px;font-size:12px}.jump{left:0;top:0}.act{right:0;top:0}.interact{left:0;bottom:0;width:217px!important}
+.overlay{position:absolute;inset:0;display:grid;place-items:center;background:#010405cc;backdrop-filter:blur(7px);pointer-events:auto}.panel{width:min(720px,90vw);padding:28px;border:1px solid #8f8058;border-radius:20px;background:#0b1010f5;box-shadow:0 20px 70px #000b}.panel h1,.panel h2{font-family:Georgia,serif;color:#e0c882;margin:0 0 12px}.panel h1{font-size:clamp(34px,8vw,68px);line-height:.9}.panel h2{font-size:clamp(24px,6vw,40px)}.panel p{line-height:1.55;color:#b8c1be}.btn{width:100%;margin-top:12px;padding:14px;border:1px solid #9e8d60;border-radius:11px;background:#17201d;color:#f0e8d1;font-weight:900;font-size:14px}.choice{display:grid;grid-template-columns:1fr 1fr;gap:10px}.choice .btn{margin-top:10px}
 .hidden{display:none!important}
-@media (min-width:800px){#controls{height:130px}.pad{width:132px;height:132px;transform:scale(.8);transform-origin:bottom left}.actions{height:132px;transform:scale(.8);transform-origin:bottom right}#objective{top:78px;font-size:12px}}
-@media (max-width:700px) and (orientation:portrait){#objective{top:112px;font-size:10px}.card{padding:6px 8px}.bar{width:82px}.num{font-size:12px}}
+.book{width:min(900px,94vw);height:min(700px,90vh);padding:18px;display:flex;flex-direction:column}.bookTop{display:flex;justify-content:space-between;align-items:center}.pages{display:flex;gap:12px;flex:1;min-height:0;margin-top:12px}.page{flex:1;min-width:0;overflow:auto;background:#d9caa0;color:#29261f;border:1px solid #8c7a50;border-radius:8px;padding:22px;font:16px/1.6 Georgia,serif;box-shadow:inset 0 0 40px #7b674522}.page h3{margin-top:0;color:#45391f}.sig{font-weight:900;font-size:22px;letter-spacing:.08em}.symbol{font-size:62px;text-align:center;color:#6f603e;margin:25px}
 </style>
 </head>
 <body>
-<div id="game">
-<canvas id="c"></canvas>
-<div id="hud">
-  <div class="card"><div class="label">Состояние</div><div>HP <span class="num" id="hp">100</span></div><div class="bar"><div class="fill" id="hpF"></div></div></div>
-  <div class="card mem"><div class="label">Память</div><div class="num" id="shards">0 / 3</div><div class="bar"><div class="fill" id="shardF"></div></div></div>
-  <div class="card"><div class="label">Контроль</div><div class="num" id="checkpoint">Не сохранено</div></div>
-</div>
-<div id="objective">Найди 3 осколка памяти. Алтарь сохранит точку возврата. Затем открой врата.</div>
-<div id="toast"></div>
-<div id="controls">
-  <div class="pad">
-    <button class="up" data-dir="up">▲</button>
-    <button class="down" data-dir="down">▼</button>
-    <button class="left" data-dir="left">◀</button>
-    <button class="right" data-dir="right">▶</button>
-  </div>
-  <div class="actions">
-    <button class="jump" data-act="jump">ПРЫЖОК</button>
-    <button class="attack" data-act="attack">УДАР</button>
-    <button class="interact" data-act="interact">ВЗАИМОДЕЙСТВИЕ</button>
-  </div>
-</div>
-<div id="menu">
-  <div class="panel">
-    <div class="label">THE LAST THRESHOLD</div>
-    <h1>ЗАЛ ИСПЫТАНИЯ</h1>
-    <p class="sub">Каэль спускается глубже. Осколки памяти реагируют на живого человека, а существо в темноте уже знает его имя.</p>
-    <button class="btn" id="start">Начать испытание</button>
-    <button class="btn alt" id="load">Продолжить</button>
-  </div>
-</div>
-<div id="pause" class="hidden"><div class="panel"><h2>Пауза</h2><p class="sub">Игра остановлена.</p><button class="btn" id="resume">Продолжить</button><button class="btn alt" id="reset">Начать заново</button></div></div>
-<div id="modal" class="hidden"><div class="panel"><h2 id="modalTitle"></h2><div class="sub" id="modalBody"></div><button class="btn" id="ok">Продолжить</button></div></div>
-</div>
+<div id="game"><canvas id="c"></canvas><div id="ui">
+<div class="hud"><div class="card"><div class="lab">Герой</div><div class="big">РЕН</div></div><div class="card"><div class="lab">Память</div><div class="big" id="memory">0 / 3</div></div><div class="card"><div class="lab">Книга</div><div class="big" id="bookState">Закрыта</div></div></div>
+<div id="objective">Найди книгу у входа в храм.</div>
+<button id="bookBtn">КНИГА</button><div id="toast"></div>
+<div id="controls"><div class="pad"><button class="up" data-k="up">▲</button><button class="down" data-k="down">▼</button><button class="left" data-k="left">◀</button><button class="right" data-k="right">▶</button></div><div class="acts"><button class="jump" data-a="jump">ПРЫЖОК</button><button class="act" data-a="attack">УДАР</button><button class="interact" data-a="interact">ВЗАИМОДЕЙСТВИЕ</button></div></div>
+<div id="start" class="overlay"><div class="panel"><div class="lab">НОВАЯ ИГРА</div><h1>КНИГА<br>ПОРОГА</h1><p>Мира исчезла у древнего храма три дня назад. Рен приходит за ней и находит книгу без названия.</p><button class="btn" id="startBtn">Войти в храм</button></div></div>
+<div id="book" class="overlay hidden"><div class="panel book"><div class="bookTop"><h2>Книга Порога</h2><button class="btn" id="closeBook" style="width:auto;margin:0;padding:9px 14px">Закрыть</button></div><div class="pages"><div class="page"><h3>Страница I</h3><div class="symbol">◈</div><p id="leftPage">«Назови того, кто вошёл».</p></div><div class="page"><h3>Страница II</h3><p id="rightPage">Пока здесь ничего нет.</p></div></div><div id="bookChoices" class="choice hidden"><button class="btn" data-choice="mira">ИСКАТЬ МИРУ</button><button class="btn" data-choice="self">ИСКАТЬ СЕБЯ</button></div></div></div>
+<div id="modal" class="overlay hidden"><div class="panel"><h2 id="mTitle"></h2><p id="mBody"></p><button class="btn" id="mOk">Продолжить</button></div></div>
+</div></div>
 <script>
 "use strict";
-const c=document.getElementById("c"),ctx=c.getContext("2d");
-const state={
- mode:"menu",time:0,shards:0,checkpoint:false,gate:false,
- keys:Object.create(null),touch:{left:false,right:false,up:false,down:false},
- flash:0,shake:0,
- p:{x:72,y:444,w:42,h:64,vx:0,vy:0,ground:false,jumps:0,dir:1,hp:100,inv:0,atk:0},
- spawn:{x:72,y:444},
- enemy:{x:670,y:436,w:48,h:56,hp:100,dead:false,dir:-1,cd:0},
- trap:{x:790,y:492,w:66,h:16,armed:true,cool:0},
- altar:{x:1236,y:446,w:72,h:62},
- door:{x:1320,y:368,w:58,h:140},
- crystals:[{x:250,y:330,taken:false,b:0},{x:450,y:270,taken:false,b:0},{x:1080,y:230,taken:false,b:0}],
- platforms:[
-  {x:20,y:508,w:300,h:32},{x:335,y:508,w:230,h:32},{x:580,y:508,w:235,h:32},{x:830,y:508,w:210,h:32},{x:1060,y:508,w:320,h:32},
-  {x:185,y:405,w:145,h:20},{x:385,y:345,w:150,h:20},{x:605,y:405,w:150,h:20},{x:805,y:365,w:155,h:20},{x:1028,y:305,w:180,h:20}
- ],
- cameraX:0
-};
-let last=performance.now();
-
-function isMobile(){return matchMedia("(max-width:700px)").matches}
-function resize(){
- const d=Math.min(devicePixelRatio||1,2);
- c.width=Math.floor(innerWidth*d);c.height=Math.floor(innerHeight*d);
+const c=document.getElementById("c"),x=c.getContext("2d");
+const S={mode:"menu",t:0,book:false,named:false,chose:false,miraSeen:false,wallSolved:false,p:{x:90,y:436,w:42,h:64,vx:0,vy:0,ground:false,jumps:0,dir:1},keys:{},touch:{left:false,right:false},objective:"Найди книгу у входа в храм."};
+const world={ground:{x:0,y:500,w:1500,h:40},door:{x:1360,y:330,w:70,h:170},bag:{x:290,y:430,w:54,h:45},wall:{x:1030,y:330,w:35,h:170}};
+function resize(){const d=Math.min(devicePixelRatio||1,2);c.width=innerWidth*d;c.height=innerHeight*d}addEventListener("resize",resize);resize();
+function toast(m,ms=1500){const e=document.getElementById("toast");e.textContent=m;e.style.opacity=1;e.style.transform="translate(-50%,0)";clearTimeout(toast.t);toast.t=setTimeout(()=>{e.style.opacity=0;e.style.transform="translate(-50%,12px)"},ms)}
+function openBook(){if(S.mode==="menu")return;S.book=true;S.mode="book";document.getElementById("book").classList.remove("hidden");document.getElementById("bookState").textContent="Открыта";renderBook()}
+function closeBook(){S.book=false;if(S.mode==="book")S.mode="play";document.getElementById("book").classList.add("hidden");document.getElementById("bookState").textContent="Закрыта"}
+function renderBook(){const l=document.getElementById("leftPage"),r=document.getElementById("rightPage"),ch=document.getElementById("bookChoices");if(!S.named){l.innerHTML="«НАЗОВИ ТОГО, КТО ВОШЁЛ».<br><br><span class='sig'>РЕН</span><br><br>Первое имя записано.";S.named=true;r.textContent="На рисунке — знак двери храма. Под ним пустой круг.";if(!S.chose)ch.classList.remove("hidden")}else if(!S.chose){l.innerHTML="«КОГО ТЫ ИЩЕШЬ?»";ch.classList.remove("hidden")}else if(!S.wallSolved){l.innerHTML="МИРА — поиск не завершён.";r.innerHTML="«Порог узнаёт знак, но не человека».<br><br>Замочная скважина повторяет этот знак.";ch.classList.add("hidden")}else{l.innerHTML="«МИРА БЫЛА ЗДЕСЬ 11 МИНУТ ПОСЛЕ ТЕБЯ».<br><br><span class='sig'>11 ЛЕТ</span>";r.innerHTML="Запись меняется сама.<br><br><em>«Я не записывала это имя».</em>";ch.classList.add("hidden")}}
+function choose(which){S.chose=true;document.getElementById("bookChoices").classList.add("hidden");document.getElementById("objective").textContent="Найди след Миры и открой символическую дверь.";S.objective="Найди след Миры и открой символическую дверь.";renderBook();closeBook();toast(which==="mira"?"Имя принято: МИРА":"Ты выбрал искать себя");}
+document.getElementById("bookBtn").onclick=openBook;document.getElementById("closeBook").onclick=closeBook;
+document.querySelectorAll("[data-choice]").forEach(b=>b.onclick=()=>choose(b.dataset.choice));
+function start(){S.mode="play";document.getElementById("start").classList.add("hidden");toast("Сумка Миры лежит впереди.",1200)}
+document.getElementById("startBtn").onclick=start;
+document.getElementById("mOk").onclick=()=>document.getElementById("modal").classList.add("hidden");
+function jump(){if(S.mode!=="play")return;const p=S.p;if(p.ground){p.vy=-600;p.ground=false;p.jumps=1}else if(p.jumps<2){p.vy=-520;p.jumps=2}}
+function interact(){if(S.mode!=="play")return;const p=S.p;if(Math.abs(p.x-(world.bag.x+25))<100){S.named=true;S.mode="play";toast("Книга без названия. Открой её кнопкой КНИГА.",2200);document.getElementById("objective").textContent="Открой Книгу Порога.";return}
+if(Math.abs(p.x-world.door.x)<105){S.wallSolved=true;document.getElementById("objective").textContent="Страница книги изменилась. Следуй глубже.";renderBook();toast("Замок узнал символ.",1300);return}
+if(Math.abs(p.x-world.wall.x)<95&&!S.wallSolved){S.miraSeen=true;toast("На стене следы заканчиваются…",1000);openBook();return}
+toast("Здесь ничего нет.",600)}
+function attack(){toast("Рядом пока нет врага.",650)}
+addEventListener("keydown",e=>{const k=e.key.toLowerCase();S.keys[k]=1;if(k==="e")interact();if(k===" ")jump();if(k==="b")openBook();if(["arrowleft","arrowright","arrowup","arrowdown","a","d","w","s"," ","b"].includes(k))e.preventDefault()});
+addEventListener("keyup",e=>S.keys[e.key.toLowerCase()]=0);
+document.querySelectorAll(".pad button").forEach(b=>{const k=b.dataset.k;b.onpointerdown=e=>{e.preventDefault();if(k==="left"||k==="right")S.touch[k]=1};b.onpointerup=b.onpointercancel=b.onpointerleave=e=>{e.preventDefault();if(k==="left"||k==="right")S.touch[k]=0};});
+document.querySelectorAll(".acts button").forEach(b=>b.onpointerdown=e=>{e.preventDefault();const a=b.dataset.a;if(a==="jump")jump();else if(a==="attack")attack();else interact()});
+function update(dt){if(S.mode!=="play")return;const p=S.p,l=S.keys.arrowleft||S.keys.a||S.touch.left,r=S.keys.arrowright||S.keys.d||S.touch.right;p.vx=(r?1:0)-(l?1:0);if(p.vx)p.dir=p.vx;p.x+=p.vx*230*dt;p.x=Math.max(25,Math.min(1340,p.x));const old=p.y+p.h;p.vy+=1150*dt;p.y+=p.vy*dt;p.ground=false;if(old<=world.ground.y&&p.y+p.h>=world.ground.y){p.y=world.ground.y-p.h;p.vy=0;p.ground=true;p.jumps=0}
+if(S.wallSolved&&p.x>1280&&Math.abs(p.y-400)<120){document.getElementById("mTitle").textContent="Мира";document.getElementById("mBody").textContent="Из глубины храма слышен голос: «Рен». Никого нет. Книга сама открывается.";document.getElementById("modal").classList.remove("hidden");S.wallSolved=false}
 }
-addEventListener("resize",resize);resize();
-
-function toast(msg,ms=1500){
- const e=document.getElementById("toast");e.textContent=msg;e.style.opacity="1";e.style.transform="translate(-50%,0)";
- clearTimeout(toast.t);toast.t=setTimeout(()=>{e.style.opacity="0";e.style.transform="translate(-50%,16px)"},ms);
-}
-function save(){
- localStorage.setItem("tlt_slice05",JSON.stringify({
-  shards:state.shards,checkpoint:state.checkpoint,gate:state.gate,spawn:state.spawn,
-  crystals:state.crystals.map(q=>q.taken),enemyDead:state.enemy.dead
- }));
-}
-function loadSave(){
- try{
-  const s=JSON.parse(localStorage.getItem("tlt_slice05")||"null");
-  if(!s)return false;
-  state.shards=s.shards||0;state.checkpoint=!!s.checkpoint;state.gate=!!s.gate;
-  state.spawn=s.spawn||state.spawn;state.p.x=state.spawn.x;state.p.y=state.spawn.y;
-  state.crystals.forEach((q,i)=>q.taken=!!(s.crystals&&s.crystals[i]));
-  state.enemy.dead=!!s.enemyDead;
-  state.enemy.hp=state.enemy.dead?0:100;
-  return true;
- }catch(e){return false}
-}
-function resetGame(){
- localStorage.removeItem("tlt_slice05");
- location.reload();
-}
-function startGame(){
- state.mode="play";document.getElementById("menu").classList.add("hidden");
- toast("Спуск продолжается…",1100);updateHud();
-}
-function showModal(title,body){
- document.getElementById("modalTitle").textContent=title;
- document.getElementById("modalBody").innerHTML=body;
- document.getElementById("modal").classList.remove("hidden");
- state.mode="modal";
-}
-function closeModal(){document.getElementById("modal").classList.add("hidden");state.mode="play"}
-document.getElementById("start").onclick=startGame;
-document.getElementById("load").onclick=()=>{if(loadSave()){startGame();toast("Сохранение восстановлено",1200)}else toast("Сохранения нет",1200)};
-document.getElementById("resume").onclick=()=>{document.getElementById("pause").classList.add("hidden");state.mode="play"};
-document.getElementById("reset").onclick=resetGame;
-document.getElementById("ok").onclick=closeModal;
-
-addEventListener("keydown",e=>{
- const k=e.key.toLowerCase();state.keys[k]=true;
- if(["arrowleft","arrowright","arrowup","arrowdown"," ","w","a","s","d","e","shift"].includes(k))e.preventDefault();
- if(k==="e")interact(); else if(k==="shift")attack(); else if(k===" ")jump();
- if(k==="escape"&&state.mode==="play"){state.mode="pause";document.getElementById("pause").classList.remove("hidden")}
- if(k==="escape"&&state.mode==="pause"){state.mode="play";document.getElementById("pause").classList.add("hidden")}
-});
-addEventListener("keyup",e=>{state.keys[e.key.toLowerCase()]=false});
-
-document.querySelectorAll(".pad button").forEach(b=>{
- const dir=b.dataset.dir;
- const on=e=>{e.preventDefault();state.touch[dir]=true;b.setPointerCapture?.(e.pointerId)};
- const off=e=>{e.preventDefault();state.touch[dir]=false};
- b.addEventListener("pointerdown",on);b.addEventListener("pointerup",off);b.addEventListener("pointercancel",off);b.addEventListener("pointerleave",off);
-});
-document.querySelectorAll(".actions button").forEach(b=>{
- b.addEventListener("pointerdown",e=>{
-  e.preventDefault();
-  const a=b.dataset.act;
-  if(a==="jump")jump();else if(a==="attack")attack();else interact();
- });
-});
-
-function overlap(a,b){return a.x<a.x+a.w&&a.x+b.w>b.x&&a.y<a.y+a.h&&a.y+b.h>b.y}
-function rectsOverlap(a,b){return a.x<b.x+b.w&&a.x+a.w>b.x&&a.y<b.y+b.h&&a.y+a.h>b.y}
-function near(a,b,range=95){return Math.hypot((a.x+a.w/2)-(b.x+b.w/2),(a.y+a.h/2)-(b.y+b.h/2))<range}
-function jump(){
- if(state.mode!=="play")return;
- const p=state.p;
- if(p.ground){p.vy=-585;p.ground=false;p.jumps=1;return}
- if(p.jumps<2){p.vy=-515;p.jumps=2;toast("Второй прыжок",600)}
-}
-function attack(){
- if(state.mode!=="play")return;
- const p=state.p;if(p.atk>0)return;
- p.atk=.28;
- const hit={x:p.dir>0?p.x+p.w:p.x-70,y:p.y+8,w:70,h:52};
- const e=state.enemy;
- if(!e.dead&&e.hp>0&&rectsOverlap(hit,e)){
-  e.hp-=50;e.cd=.2;state.shake=.08;toast(e.hp>0?"Существо ранено":"Существо уничтожено",900);
-  if(e.hp<=0){e.dead=true;save()}
- }else toast("Удар в пустоту",500);
-}
-function interact(){
- if(state.mode!=="play")return;
- const p=state.p;
- if(near(p,state.altar,100)&&!state.checkpoint){
-  state.checkpoint=true;state.spawn={x:state.altar.x-34,y:state.altar.y-64};
-  save();updateHud();toast("Алтарь сохранил точку возврата",1700);
-  return;
- }
- if(near(p,state.door,105)){
-  if(state.shards>=3&&state.checkpoint&&!state.gate){
-   state.gate=true;save();updateHud();
-   showModal("ИРИС","«Каэль… ты видишь то, что храм хотел забыть. Не открывай следующий порог, пока не поймёшь, что именно он хранит.»");
-   return;
-  }
-  if(!state.checkpoint)toast("Врата требуют привязки к алтарю",1100);
-  else if(state.shards<3)toast("Недостаёт осколков памяти: "+(3-state.shards),1100);
-  else toast("Врата уже открыты",900);
-  return;
- }
- for(const q of state.crystals){
-  const hit={x:q.x-28,y:q.y-32,w:56,h:64};
-  if(!q.taken&&rectsOverlap({x:p.x-12,y:p.y-12,w:p.w+24,h:p.h+24},hit)){
-   q.taken=true;state.shards++;state.flash=.35;state.shake=.06;save();updateHud();
-   toast("Осколок памяти: "+state.shards+"/3",1200);
-   if(state.shards===3)document.getElementById("objective").textContent="Три осколка собраны. Активируй алтарь и открой врата.";
-   return;
-  }
- }
- toast("Здесь нечего открывать",700);
-}
-function respawn(msg){
- const s=state.spawn;const p=state.p;
- p.x=s.x;p.y=s.y;p.vx=0;p.vy=0;p.hp=Math.max(35,p.hp);
- toast(msg,1300);
-}
-function updateHud(){
- document.getElementById("hp").textContent=Math.round(state.p.hp);
- document.getElementById("hpF").style.width=Math.max(0,state.p.hp)+"%";
- document.getElementById("shards").textContent=state.shards+" / 3";
- document.getElementById("shardF").style.width=(state.shards/3*100)+"%";
- document.getElementById("checkpoint").textContent=state.checkpoint?"Сохранено":"Не сохранено";
-}
-function update(dt){
- const p=state.p;
- const left=state.keys["arrowleft"]||state.keys["a"]||state.touch.left;
- const right=state.keys["arrowright"]||state.keys["d"]||state.touch.right;
- p.vx=(right?1:0)-(left?1:0);
- if(p.vx!==0)p.dir=p.vx;
- p.x+=p.vx*235*dt;
- p.x=Math.max(20,Math.min(1348-p.w,p.x));
- const oldBottom=p.y+p.h;
- p.vy+=1100*dt;
- p.y+=p.vy*dt;
- p.ground=false;
-
- for(const r of state.platforms){
-  const nowBottom=p.y+p.h;
-  const xOverlap=p.x+p.w>r.x&&p.x<r.x+r.w;
-  if(p.vy>=0&&xOverlap&&oldBottom<=r.y&&nowBottom>=r.y){
-   p.y=r.y-p.h;p.vy=0;p.ground=true;p.jumps=0;
-  }
- }
- if(p.y>700){p.hp=Math.max(1,p.hp-25);respawn("Темнота вернула тебя к алтарю");}
-
- if(state.trap.armed&&rectsOverlap(p,state.trap)&&p.vy>=0){
-  state.trap.armed=false;state.trap.cool=1.8;p.hp=Math.max(1,p.hp-18);p.vy=-650;state.shake=.13;toast("Ловушка! Плита под ногами ожила.",1000);
- }
- if(!state.trap.armed){state.trap.cool-=dt;if(state.trap.cool<=0)state.trap.armed=true}
-
- const e=state.enemy;
- if(!e.dead){
-  const dx=p.x-e.x;
-  e.dir=dx>=0?1:-1;
-  if(Math.abs(dx)>360){e.x+=e.dir*38*dt}
-  else if(Math.abs(dx)<155){e.x+=e.dir*42*dt}
-  e.x=Math.max(360,Math.min(920,e.x));e.cd=Math.max(0,e.cd-dt);
-  if(e.cd<=0&&Math.abs(dx)<82&&Math.abs(p.y-e.y)<70){
-   p.hp=Math.max(1,p.hp-10);p.inv=.45;e.cd=.95;state.shake=.08;toast("Существо ударило",700);
-  }
- }
- p.inv=Math.max(0,p.inv-dt);p.atk=Math.max(0,p.atk-dt);
- for(const q of state.crystals){if(!q.taken)q.b+=dt*2.5}
-
- const target=p.x-300;
- state.cameraX+=(Math.max(0,Math.min(700,target))-state.cameraX)*Math.min(1,dt*7);
- if(state.gate&&state.mode==="play"){
-  showModal("ВРАТА ПОРОГА","Камень раздвигается без звука. За ним начинается лестница, которой не было на плане храма.");
- }
- if(p.hp<=0){p.hp=100;respawn("Последний импульс памяти вернул тебя к точке возврата")}
- updateHud();
-}
-
-function draw(){
- const d=Math.min(devicePixelRatio||1,2);
- const mobile=isMobile();
- const viewW=mobile?(innerWidth<520?680:760):1400, viewH=540;
- const scale=Math.min(c.width/viewW,c.height/viewH);
- const ox=(c.width-viewW*scale)/2,oy=(c.height-viewH*scale)/2;
- ctx.setTransform(1,0,0,1,0,0);ctx.clearRect(0,0,c.width,c.height);
- ctx.setTransform(scale,0,0,scale,ox,oy);
- const cam=state.cameraX;
- const g=ctx.createLinearGradient(0,0,0,540);g.addColorStop(0,"#0f1719");g.addColorStop(1,"#030506");
- ctx.fillStyle=g;ctx.fillRect(0,0,viewW,540);
- ctx.save();ctx.translate(-cam,0);
-
- // distant chamber ribs
- for(let x=0;x<1500;x+=120){
-  ctx.fillStyle="rgba(39,48,47,.35)";
-  ctx.fillRect(x,110,16,398);
-  ctx.fillStyle="rgba(183,158,103,.10)";
-  ctx.fillRect(x+16,118,5,380);
- }
- for(let i=0;i<9;i++){
-  ctx.fillStyle=i%2?"#101718":"#0c1214";
-  ctx.fillRect(0,155+i*38,1500,22);
- }
- // mist pools
- for(let i=0;i<12;i++){
-  const x=i*130+45;
-  const grd=ctx.createRadialGradient(x,500,2,x,500,65);
-  grd.addColorStop(0,"rgba(114,138,129,.20)");grd.addColorStop(1,"rgba(114,138,129,0)");
-  ctx.fillStyle=grd;ctx.beginPath();ctx.ellipse(x,500,70,18,0,0,Math.PI*2);ctx.fill();
- }
- // platforms
- for(const r of state.platforms){
-  ctx.fillStyle="#2d3535";ctx.fillRect(r.x,r.y,r.w,r.h);
-  ctx.fillStyle="#55615e";ctx.fillRect(r.x,r.y,r.w,5);
-  ctx.strokeStyle="#151b1b";ctx.strokeRect(r.x,r.y,r.w,r.h);
- }
- // trap
- ctx.fillStyle=state.trap.armed?"#6f6250":"#3b403d";
- ctx.fillRect(state.trap.x,state.trap.y,state.trap.w,state.trap.h);
- for(let i=0;i<6;i++){
-  ctx.fillStyle=state.trap.armed?"#d1c2a0":"#555";
-  ctx.beginPath();ctx.moveTo(state.trap.x+i*11+3,state.trap.y);ctx.lineTo(state.trap.x+i*11+8,state.trap.y-19);ctx.lineTo(state.trap.x+i*11+13,state.trap.y);ctx.fill();
- }
- // altar
- const a=state.altar;
- ctx.fillStyle="#303839";ctx.fillRect(a.x,a.y,a.w,a.h);
- ctx.fillStyle="#5d6662";ctx.fillRect(a.x+4,a.y+4,a.w-8,7);
- ctx.fillStyle=state.checkpoint?"#c8ae61":"#67583e";ctx.fillRect(a.x+14,a.y+17,a.w-28,8);
- ctx.fillRect(a.x+29,a.y+29,14,20);
- ctx.strokeStyle=state.checkpoint?"#e2ca83":"#857553";ctx.lineWidth=3;ctx.beginPath();ctx.arc(a.x+36,a.y+31,15,0,Math.PI*2);ctx.stroke();
- // door
- const dr=state.door;
- ctx.fillStyle=state.gate?"#5b4638":"#222a2b";ctx.fillRect(dr.x,dr.y,dr.w,dr.h);
- ctx.strokeStyle=state.gate?"#d0b26e":"#56605e";ctx.lineWidth=4;ctx.strokeRect(dr.x+4,dr.y+4,dr.w-8,dr.h-8);
- ctx.strokeStyle="#8f8060";ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(dr.x+dr.w/2,dr.y+20);ctx.lineTo(dr.x+dr.w/2,dr.y+dr.h-20);ctx.moveTo(dr.x+14,dr.y+dr.h/2);ctx.lineTo(dr.x+dr.w-14,dr.y+dr.h/2);ctx.stroke();
- if(state.gate){ctx.fillStyle="rgba(221,186,105,.30)";ctx.fillRect(dr.x+8,dr.y+8,dr.w-16,dr.h-16)}
- // crystals
- for(const q of state.crystals)if(!q.taken){
-  const y=q.y+Math.sin(q.b)*6;
-  const glow=ctx.createRadialGradient(q.x,y,1,q.x,y,45);
-  glow.addColorStop(0,"rgba(227,207,124,.38)");glow.addColorStop(1,"rgba(227,207,124,0)");
-  ctx.fillStyle=glow;ctx.beginPath();ctx.arc(q.x,y,48,0,Math.PI*2);ctx.fill();
-  ctx.fillStyle="#d8c36f";ctx.beginPath();ctx.moveTo(q.x,y-22);ctx.lineTo(q.x+12,y);ctx.lineTo(q.x,y+22);ctx.lineTo(q.x-12,y);ctx.closePath();ctx.fill();
-  ctx.fillStyle="#fff3b7";ctx.beginPath();ctx.moveTo(q.x,y-16);ctx.lineTo(q.x+4,y-2);ctx.lineTo(q.x,y+2);ctx.lineTo(q.x-4,y-3);ctx.closePath();ctx.fill();
- }
- // enemy
- const e=state.enemy;
- if(!e.dead){
-  ctx.fillStyle="#17181b";ctx.beginPath();ctx.ellipse(e.x+24,e.y+30,28,30,0,0,Math.PI*2);ctx.fill();
-  ctx.fillStyle="#8c5b52";ctx.fillRect(e.x+10,e.y+19,8,7);ctx.fillRect(e.x+30,e.y+19,8,7);
-  ctx.fillStyle="#d5c68d";ctx.fillRect(e.x+13,e.y+21,3,3);ctx.fillRect(e.x+33,e.y+21,3,3);
-  if(e.hp<100){ctx.fillStyle="#522f2d";ctx.fillRect(e.x,e.y-12,48,5);ctx.fillStyle="#b76456";ctx.fillRect(e.x,e.y-12,48*(e.hp/100),5)}
- }
- // hero
- const p=state.p;
- ctx.save();ctx.translate(p.x+p.w/2,p.y+p.h/2);ctx.scale(p.dir,1);
- if(p.inv>0)ctx.globalAlpha=.45;
- ctx.fillStyle="#d1c4a4";ctx.beginPath();ctx.arc(0,-17,13,0,Math.PI*2);ctx.fill();
- ctx.fillStyle="#28322d";ctx.fillRect(-15,-3,30,35);
- ctx.fillStyle="#5f4938";ctx.fillRect(-12,29,9,27);ctx.fillRect(3,29,9,27);
- ctx.fillStyle="#8d7b5b";ctx.fillRect(-10,-1,20,8);
- ctx.fillStyle="#c7b77b";ctx.fillRect(15,0,4,28);
- if(p.atk>0){ctx.strokeStyle="#e1d5ad";ctx.lineWidth=6;ctx.beginPath();ctx.moveTo(18,2);ctx.lineTo(56,-22);ctx.stroke()}
- ctx.restore();
- ctx.restore();
-
- // vignette and crosshair
- const vg=ctx.createRadialGradient(viewW/2,270,120,viewW/2,270,420);
- vg.addColorStop(0,"rgba(0,0,0,0)");vg.addColorStop(1,"rgba(0,0,0,.52)");
- ctx.fillStyle=vg;ctx.fillRect(0,0,viewW,viewH);
- if(state.flash>0){ctx.fillStyle="rgba(235,212,127,"+(state.flash*.55)+")";ctx.fillRect(0,0,viewW,viewH);state.flash=Math.max(0,state.flash-.016)}
-}
-
-let raf=0;
-function loop(now){
- const dt=Math.min(.033,(now-last)/1000);last=now;
- if(state.mode==="play")update(dt);
- draw();raf=requestAnimationFrame(loop);
-}
-requestAnimationFrame(loop);
-updateHud();
+function draw(){const d=Math.min(devicePixelRatio||1,2),vw=innerWidth<700?760:1400,vh=540,sc=Math.min(c.width/vw,c.height/vh),ox=(c.width-vw*sc)/2,oy=(c.height-vh*sc)/2,cam=Math.max(0,Math.min(740,S.p.x-(innerWidth<700?260:450)));x.setTransform(1,0,0,1,0,0);x.clearRect(0,0,c.width,c.height);x.setTransform(sc,0,0,sc,ox,oy);const g=x.createLinearGradient(0,0,0,vh);g.addColorStop(0,"#172021");g.addColorStop(1,"#030506");x.fillStyle=g;x.fillRect(0,0,vw,vh);x.save();x.translate(-cam,0);
+for(let i=0;i<14;i++){x.fillStyle=i%2?"#101718":"#0d1314";x.fillRect(i*115,120,18,380);x.fillStyle="#1d2727";x.fillRect(i*115+18,125,5,375)}
+x.fillStyle="#2b3333";x.fillRect(world.ground.x,world.ground.y,world.ground.w,world.ground.h);x.fillStyle="#58615d";x.fillRect(0,500,1500,5);
+for(let i=0;i<9;i++){x.fillStyle="#252d2c";x.fillRect(80+i*170,430-(i%3)*35,130,16)}
+// bag
+x.fillStyle="#4d3b2a";x.fillRect(world.bag.x,world.bag.y,world.bag.w,world.bag.h);x.fillStyle="#b59c67";x.fillRect(world.bag.x+8,world.bag.y+12,world.bag.w-16,6);
+// door
+x.fillStyle="#202828";x.fillRect(world.door.x,world.door.y,world.door.w,world.door.h);x.strokeStyle="#847354";x.lineWidth=4;x.strokeRect(world.door.x+4,world.door.y+4,world.door.w-8,world.door.h-8);x.font="34px Georgia";x.fillStyle="#c9b875";x.fillText("◈",world.door.x+19,world.door.y+78);
+// wall/statue
+x.fillStyle="#414846";x.fillRect(world.wall.x,world.wall.y,world.wall.w,world.wall.h);x.fillStyle="#252b2a";x.fillRect(world.wall.x-12,340,58,32);x.beginPath();x.arc(world.wall.x+8,330,24,0,Math.PI*2);x.fill();
+// hero
+const p=S.p;x.save();x.translate(p.x+p.w/2,p.y+p.h/2);x.scale(p.dir,1);x.fillStyle="#d0c09a";x.beginPath();x.arc(0,-18,13,0,Math.PI*2);x.fill();x.fillStyle="#29332f";x.fillRect(-15,-4,30,36);x.fillStyle="#634a36";x.fillRect(-12,30,9,27);x.fillRect(3,30,9,27);x.fillStyle="#bba56b";x.fillRect(-18,-2,36,7);x.restore();x.restore()}
+let last=performance.now();function loop(now){const dt=Math.min(.033,(now-last)/1000);last=now;S.t+=dt;update(dt);draw();document.getElementById("memory").textContent="0 / 3";requestAnimationFrame(loop)}requestAnimationFrame(loop);
 </script>
 </body>
 </html>
