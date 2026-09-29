@@ -1,1 +1,387 @@
-<!doctype html><html lang='ru'><head><meta charset='utf-8'><meta name='viewport' content='width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover'><title>THE LAST THRESHOLD — Slice 04.7</title><style>*{box-sizing:border-box}html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#050807;color:#eee;font-family:system-ui,sans-serif;touch-action:none;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none}#game{position:fixed;inset:0;overflow:hidden}canvas{position:absolute;inset:0;width:100%;height:100%}#hud{position:absolute;left:8px;right:8px;top:max(6px,env(safe-area-inset-top));z-index:20;display:flex;gap:7px;pointer-events:none}.card{background:#07100df3;border:1px solid #746445;border-radius:11px;padding:6px 8px;flex:1;min-width:0}.card.mem{max-width:31vw}.lab{font-size:8px;letter-spacing:.14em;color:#9ca49c}.num{font-size:13px;font-weight:900}.bar{height:6px;background:#171c19;border:1px solid #343a35;border-radius:99px;overflow:hidden;margin-top:3px}.fill{height:100%;width:100%;background:#b15f5a}.fill.st{background:#8fae83}#objective{position:absolute;left:50%;top:70px;transform:translateX(-50%);z-index:19;max-width:82vw;padding:7px 10px;background:#080e0de8;border:1px solid #5b5a49;border-radius:10px;font-size:10px;line-height:1.25;text-align:center}#controls{position:absolute;left:0;right:0;bottom:calc(env(safe-area-inset-bottom) + 8px);height:158px;z-index:50;pointer-events:none}.pad{position:absolute;left:8px;bottom:0;width:150px;height:150px;pointer-events:auto}.pad button{position:absolute;width:60px;height:60px;border:1px solid #ad9258;background:#0d1512f7;color:#f4ead3;border-radius:18px;font-size:24px;font-weight:900;box-shadow:0 7px 24px #0009;touch-action:none}.pad .up{left:45px;top:0}.pad .down{left:45px;bottom:0}.pad .left{left:0;top:45px}.pad .right{right:0;top:45px}.actions{position:absolute;right:8px;bottom:0;display:grid;grid-template-columns:98px 98px;gap:8px;width:204px;pointer-events:auto}.actions button{height:68px;border:1px solid #ad9258;background:#0d1512f7;color:#f4ead3;border-radius:18px;font-size:12px;font-weight:900;touch-action:none}.actions .wide{grid-column:1/-1;height:50px}.veil{position:absolute;inset:0;z-index:100;display:grid;place-items:center;background:#020404df;backdrop-filter:blur(6px)}.panel{width:min(660px,90vw);padding:24px;border:1px solid #d5b96f;border-radius:18px;background:#0a0f0df6}.center{text-align:center}h1{font:clamp(38px,10vw,72px) Georgia,serif;color:#e7d08f;line-height:.9;margin:0 0 8px}.sub{color:#929b94}.desc{color:#cbc7bb;line-height:1.55}.btn{width:100%;padding:14px;margin-top:9px;border:1px solid #c4a762;border-radius:12px;background:#9b8049;color:#06100c;font-weight:900}.secondary{background:#111917;color:#e2ddd0}.hidden{display:none!important}@media(max-height:700px) and (orientation:landscape){#controls{height:125px}.pad,.actions{transform:scale(.8);transform-origin:bottom left}.actions{transform-origin:bottom right}}</style></head><body><div id='game'><canvas id='c'></canvas><div id='hud'><div class='card'><div class='lab'>КАЭЛЬ</div><div>ЗДОРОВЬЕ <span id='hp' class='num'>100</span></div><div class='bar'><div id='hpF' class='fill'></div></div><div style='margin-top:4px'>ВЫНОСЛИВОСТЬ <span id='sp' class='num'>100</span></div><div class='bar'><div id='spF' class='fill st'></div></div></div><div class='card mem'><div class='lab'>ПАМЯТЬ</div><div id='shards' class='num'>ОСКОЛКИ 0/3</div></div></div><div id='objective'>Собери 3 осколка памяти и найди алтарь.</div><div id='toast'></div><div id='controls'><div class='pad'><button class='up' data-dir='up'>▲</button><button class='down' data-dir='down'>▼</button><button class='left' data-dir='left'>◀</button><button class='right' data-dir='right'>▶</button></div><div class='actions'><button data-act='jump'>ПРЫЖОК</button><button data-act='attack'>УДАР</button><button class='wide' data-act='interact'>ДЕЙСТВИЕ</button></div></div><div id='menu' class='veil'><div class='panel center'><h1>THE LAST<br>THRESHOLD</h1><div class='sub'>ПОСЛЕДНИЙ ПОРОГ · SLICE 04.7</div><p class='desc'>Усиленный прыжок, второй прыжок в воздухе и перестроенный маршрут кристаллов.</p><button id='start' class='btn'>ВОЙТИ В КАТАКОМБЫ</button><button id='load' class='btn secondary'>ЗАГРУЗИТЬ СОХРАНЕНИЕ</button></div></div><div id='pause' class='veil hidden'><div class='panel center'><h2>ПАУЗА</h2><button id='resume' class='btn'>ПРОДОЛЖИТЬ</button><button id='reset' class='btn secondary'>СБРОСИТЬ СОХРАНЕНИЕ</button></div></div><div id='modal' class='veil hidden'><div class='panel center'><h2 id='mt'></h2><div id='mb'></div><button id='ok' class='btn'>ПРОДОЛЖИТЬ</button></div></div></div><script>'use strict';const c=document.getElementById('c'),ctx=c.getContext('2d');const state={mode:'menu',t:0,keys:{},touch:{left:false,right:false,up:false,down:false},p:{x:65,y:444,w:36,h:64,vx:0,vy:0,onGround:true,jumps:0,dir:1,hp:100,sp:100,inv:0,atk:0},spawn:{x:65,y:444},shards:0,altar:false,gate:false,cameraX:0};const world={minX:20,maxX:1380,platforms:[{x:20,y:508,w:300,h:32},{x:335,y:508,w:230,h:32},{x:580,y:508,w:235,h:32},{x:830,y:508,w:210,h:32},{x:1060,y:508,w:320,h:32},{x:185,y:405,w:145,h:20},{x:385,y:345,w:150,h:20},{x:605,y:405,w:145,h:20},{x:815,y:365,w:150,h:20},{x:1035,y:305,w:170,h:20}],altar:{x:1240,y:446,w:65,h:62},door:{x:1318,y:370,w:56,h:138},trap:{x:800,y:492,w:56,h:16,armed:true},shards:[{x:255,y:355,taken:false},{x:455,y:290,taken:false},{x:1080,y:260,taken:false}]};const enemy={x:650,y:432,w:44,h:48,hp:80,dead:false,cd:0,dir:-1};function resize(){const d=Math.min(devicePixelRatio||1,2);c.width=Math.floor(innerWidth*d);c.height=Math.floor(innerHeight*d);const sc=Math.min(c.width/1400,c.height/540),ox=(c.width-1400*sc)/2,oy=(c.height-540*sc)/2;ctx.setTransform(sc,0,0,sc,ox,oy)}addEventListener('resize',resize);resize();function toast(m,ms=1300){const e=document.getElementById('toast');e.textContent=m;e.style.opacity='1';e.style.transform='translateX(-50%) translateY(0)';clearTimeout(toast.t);toast.t=setTimeout(()=>{e.style.opacity='0';e.style.transform='translateX(-50%) translateY(8px)'},ms)}function save(){localStorage.setItem('tlt_save',JSON.stringify({shards:state.shards,altar:state.altar,spawn:state.spawn,enemy:enemy.dead,gate:state.gate}))}function load(){try{const s=JSON.parse(localStorage.getItem('tlt_save')||'null');if(!s)return false;state.shards=s.shards||0;state.altar=!!s.altar;state.spawn=s.spawn||state.spawn;enemy.dead=!!s.enemy;state.gate=!!s.gate;state.p.x=state.spawn.x;state.p.y=state.spawn.y;world.shards.forEach((q,i)=>q.taken=i<state.shards);return true}catch{return false}}const menu=document.getElementById('menu'),pause=document.getElementById('pause'),modal=document.getElementById('modal');function start(){state.mode='play';menu.classList.add('hidden');toast('Прыжок усилен. Проверь верхний кристалл.',1700)}document.getElementById('start').onclick=start;document.getElementById('load').onclick=()=>load()?start():toast('Сохранения нет.');document.getElementById('resume').onclick=()=>{state.mode='play';pause.classList.add('hidden')};document.getElementById('reset').onclick=()=>{localStorage.removeItem('tlt_save');location.reload()};document.getElementById('ok').onclick=()=>modal.classList.add('hidden');addEventListener('keydown',e=>{const k=e.key.toLowerCase();state.keys[k]=1;if(k==='e')interact();if(k==='shift')attack();if(k===' ')jump();if(k==='escape'&&state.mode==='play'){state.mode='pause';pause.classList.remove('hidden')}if(k.startsWith('arrow')||k===' ')e.preventDefault()});addEventListener('keyup',e=>state.keys[e.key.toLowerCase()]=0);document.querySelectorAll('.pad button').forEach(b=>{const d=b.dataset.dir;b.addEventListener('pointerdown',e=>{e.preventDefault();state.touch[d]=1;b.setPointerCapture?.(e.pointerId)});['pointerup','pointercancel','pointerleave','lostpointercapture'].forEach(t=>b.addEventListener(t,e=>{e.preventDefault();state.touch[d]=0}))});document.querySelectorAll('.actions button').forEach(b=>b.addEventListener('pointerdown',e=>{e.preventDefault();const a=b.dataset.act;if(a==='jump')jump();else if(a==='attack')attack();else interact()}));function jump(){if(state.mode!=='play')return;const p=state.p;if(p.onGround){p.vy=-16.5;p.onGround=false;p.jumps=1;toast('ПРЫЖОК',240);return}if(p.jumps===1){p.vy=-14.5;p.jumps=2;toast('ВОЗДУШНЫЙ ПРЫЖОК',300)}}function attack(){const p=state.p;if(state.mode!=='play'||p.atk>0||p.sp<18)return;p.atk=.28;p.sp-=18;if(!enemy.dead&&Math.abs(p.x-enemy.x)<100&&Math.abs(p.y-enemy.y)<74){enemy.hp-=42;if(enemy.hp<=0){enemy.dead=true;if(state.shards<3)state.shards++;toast('Существо разрушено — осколок получен.');save()}else toast('Удар попал.')}}function interact(){if(state.mode!=='play')return;const p=state.p;if(Math.hypot(p.x-world.altar.x,p.y-world.altar.y)<105&&!state.altar){state.altar=true;state.spawn={x:1168,y:444};save();document.getElementById('objective').textContent='Алтарь активирован. Открой каменную дверь справа.';toast('ТОЧКА ПАМЯТИ СОХРАНЕНА',1800);return}if(Math.hypot(p.x-world.door.x,p.y-world.door.y)<110){if(state.shards>=3&&state.altar){state.gate=true;document.getElementById('mt').textContent='КАМЕННАЯ ДВЕРЬ';document.getElementById('mb').innerHTML='<p class="desc">Три осколка раскрывают замок.</p><p style="color:#d9bd73">«Каэль... не спускайся дальше один.»</p>';modal.classList.remove('hidden')}else toast('Нужны 3 осколка и активированный алтарь.')}}function respawn(msg){state.p.x=state.spawn.x;state.p.y=state.spawn.y;state.p.vy=0;state.p.onGround=true;state.p.jumps=0;state.p.hp=Math.max(1,state.p.hp-12);toast(msg,1200)}function update(dt){const p=state.p,left=state.keys.a||state.keys.arrowleft||state.touch.left,right=state.keys.d||state.keys.arrowright||state.touch.right;p.vx=(right?1:0)-(left?1:0);if(p.vx)p.dir=p.vx;p.x+=p.vx*190*dt;p.x=Math.max(world.minX,Math.min(world.maxX-p.w,p.x));p.vy+=30*dt;p.y+=p.vy*dt;p.onGround=false;for(const r of world.platforms){if(p.x+p.w>r.x&&p.x<r.x+r.w&&p.y+p.h>=r.y&&p.y+p.h<=r.y+30&&p.vy>=0){p.y=r.y-p.h;p.vy=0;p.onGround=true;p.jumps=0}}if(world.trap.armed&&p.x+p.w>world.trap.x&&p.x<world.trap.x+world.trap.w&&p.y+p.h>=world.trap.y){world.trap.armed=false;p.vy=-16;p.hp=Math.max(1,p.hp-18);toast('ЛОВУШКА!',900)}if(p.y>620)respawn('Возврат к последней точке памяти.');if(!enemy.dead){const dx=p.x-enemy.x;enemy.dir=dx>=0?1:-1;if(Math.abs(dx)<360)enemy.x+=enemy.dir*62*dt;enemy.x=Math.max(340,Math.min(920,enemy.x));enemy.cd=Math.max(0,enemy.cd-dt);if(Math.abs(dx)<58&&enemy.cd<=0&&p.inv<=0){p.hp=Math.max(1,p.hp-12);p.inv=.6;enemy.cd=.9;toast('Существо ранит Каэля.',900)}}for(const q of world.shards){if(!q.taken&&Math.hypot(p.x-q.x,p.y-q.y)<58){q.taken=true;state.shards=Math.min(3,state.shards+1);toast('ОСКОЛОК ПАМЯТИ '+state.shards+'/3',1000);save()}}if(p.hp<=0){p.hp=100;respawn('Память вернула Каэля.')}p.inv=Math.max(0,p.inv-dt);p.atk=Math.max(0,p.atk-dt);p.sp=Math.min(100,p.sp+(Math.abs(p.vx)<.05?36:12)*dt);state.cameraX=Math.max(0,Math.min(1080,p.x-700));document.getElementById('hp').textContent=Math.round(p.hp);document.getElementById('hpF').style.width=p.hp+'%';document.getElementById('sp').textContent=Math.round(p.sp);document.getElementById('spF').style.width=p.sp+'%';document.getElementById('shards').textContent='ОСКОЛКИ '+state.shards+'/3';if(state.shards>=3&&!state.altar)document.getElementById('objective').textContent='3 осколка собраны. Найди и активируй алтарь.';else if(state.altar)document.getElementById('objective').textContent='Алтарь активирован. Открой каменную дверь справа.'}function draw(){ctx.save();ctx.translate(-state.cameraX,0);const bg=ctx.createLinearGradient(0,0,0,540);bg.addColorStop(0,'#141b17');bg.addColorStop(1,'#030504');ctx.fillStyle=bg;ctx.fillRect(0,0,1400,540);for(let row=0;row<6;row++)for(let col=0;col<19;col++){const x=col*78-(row%2?39:0),y=150+row*52;ctx.fillStyle=(row+col)%2?'#1b231e':'#17201b';ctx.fillRect(x,y,72,44);ctx.strokeStyle='#2a332d';ctx.strokeRect(x,y,72,44)}for(let i=0;i<11;i++){const x=34+i*132;ctx.fillStyle='#111814';ctx.fillRect(x,138,30,343);ctx.fillStyle='#242d26';ctx.fillRect(x-7,130,44,10);ctx.fillRect(x-6,474,42,9)}for(const t of [{x:168,y:185},{x:505,y:205},{x:905,y:182},{x:1255,y:190}]){ctx.fillStyle='#503927';ctx.fillRect(t.x-4,t.y,8,28);const gl=ctx.createRadialGradient(t.x,t.y,1,t.x,t.y,48);gl.addColorStop(0,'rgba(240,195,100,.33)');gl.addColorStop(1,'rgba(240,195,100,0)');ctx.fillStyle=gl;ctx.beginPath();ctx.arc(t.x,t.y,48,0,7);ctx.fill();ctx.fillStyle='#dcc379';ctx.beginPath();ctx.ellipse(t.x,t.y-8,7,15,0,0,7);ctx.fill()}for(const r of world.platforms){ctx.fillStyle='#28312a';ctx.fillRect(r.x,r.y,r.w,r.h);ctx.fillStyle='#465246';ctx.fillRect(r.x,r.y,r.w,5)}if(world.trap.armed){ctx.fillStyle='#d2bb76';for(let i=0;i<6;i++){ctx.beginPath();ctx.moveTo(world.trap.x+i*10,world.trap.y);ctx.lineTo(world.trap.x+5+i*10,world.trap.y-18);ctx.lineTo(world.trap.x+10+i*10,world.trap.y);ctx.fill()}}ctx.fillStyle='#2b362f';ctx.fillRect(world.altar.x,world.altar.y,world.altar.w,world.altar.h);ctx.fillStyle='#586659';ctx.fillRect(world.altar.x+7,world.altar.y+7,world.altar.w-14,11);if(state.altar){ctx.strokeStyle='#e0ca82';ctx.lineWidth=4;ctx.beginPath();ctx.arc(world.altar.x+32,world.altar.y+28,16,0,7);ctx.stroke()}ctx.fillStyle=state.gate?'#405c4a':'#232b26';ctx.fillRect(world.door.x,world.door.y,world.door.w,world.door.h);ctx.strokeStyle='#69766c';ctx.strokeRect(world.door.x+4,world.door.y+4,world.door.w-8,world.door.h-8);for(const q of world.shards)if(!q.taken){ctx.save();ctx.translate(q.x,q.y);ctx.rotate(Math.PI/4);ctx.fillStyle='#e1ca77';ctx.shadowBlur=22;ctx.shadowColor='#e1ca77';ctx.fillRect(-11,-11,22,22);ctx.restore()}if(!enemy.dead){ctx.fillStyle='#142019';ctx.beginPath();ctx.ellipse(enemy.x+22,enemy.y+24,22,24,0,0,7);ctx.fill();ctx.fillStyle='#a8756c';ctx.fillRect(enemy.x+9,enemy.y+14,8,6);ctx.fillRect(enemy.x+27,enemy.y+14,8,6)}const p=state.p;ctx.save();ctx.translate(p.x+p.w/2,p.y+p.h/2);ctx.scale(p.dir,1);ctx.fillStyle=p.inv?'#f0e5c2':'#d4c7aa';ctx.beginPath();ctx.arc(0,-22,15,0,7);ctx.fill();ctx.fillStyle='#28312d';ctx.fillRect(-18,-4,36,38);ctx.fillStyle='#92784a';ctx.fillRect(10,-2,23,6);if(p.atk){ctx.strokeStyle='#e8d18b';ctx.lineWidth=5;ctx.beginPath();ctx.moveTo(12,0);ctx.lineTo(50,-20);ctx.stroke()}ctx.restore();ctx.fillStyle='#968b69';ctx.font='12px Georgia';ctx.fillText('ЗАЛ МЁРТВЫХ',48,118);ctx.restore()}let last=performance.now();function loop(now){const dt=Math.min(.033,(now-last)/1000);last=now;state.t+=dt;if(state.mode==='play')update(dt);draw();requestAnimationFrame(loop)}requestAnimationFrame(loop);</script></body></html>
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<title>THE LAST THRESHOLD — Slice 05</title>
+<style>
+*{box-sizing:border-box}
+html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#050806;color:#eee;font-family:system-ui,-apple-system,Segoe UI,sans-serif;touch-action:none;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none}
+#game{position:fixed;inset:0;overflow:hidden}
+canvas{position:absolute;inset:0;width:100%;height:100%;display:block}
+#hud{position:absolute;top:max(8px,env(safe-area-inset-top));left:8px;right:8px;z-index:10;display:flex;gap:7px;align-items:flex-start;pointer-events:none}
+.card{background:rgba(8,12,15,.84);border:1px solid rgba(207,191,136,.35);border-radius:12px;padding:7px 9px;backdrop-filter:blur(5px);box-shadow:0 6px 20px rgba(0,0,0,.3)}
+.label{font-size:8px;letter-spacing:.14em;color:#b3aa8b;text-transform:uppercase}
+.num{font-size:14px;font-weight:900;line-height:1.1}
+.bar{height:6px;width:110px;background:#171d1c;border:1px solid #3c4742;border-radius:99px;overflow:hidden;margin-top:4px}
+.fill{height:100%;width:100%;background:#aa554d}
+.mem .fill{background:#7fae8c}
+#objective{position:absolute;top:74px;left:50%;transform:translateX(-50%);z-index:9;max-width:min(88vw,620px);padding:7px 10px;border:1px solid rgba(215,195,143,.42);border-radius:10px;background:rgba(7,12,14,.82);font-size:10px;text-align:center;pointer-events:none}
+#toast{position:absolute;left:50%;bottom:205px;transform:translate(-50%,16px);z-index:30;opacity:0;transition:.18s;max-width:min(88vw,660px);padding:9px 13px;border-radius:10px;border:1px solid #93855d;background:rgba(8,12,14,.94);font-size:12px;text-align:center;pointer-events:none}
+#controls{position:absolute;left:0;right:0;bottom:calc(env(safe-area-inset-bottom) + 8px);height:176px;z-index:20;pointer-events:none}
+.pad{position:absolute;left:10px;bottom:0;width:172px;height:172px;pointer-events:auto}
+.pad button,.actions button{position:absolute;width:68px;height:68px;border-radius:20px;border:1px solid #8e8260;background:rgba(8,16,16,.88);color:#ece8d7;font-size:24px;font-weight:900;box-shadow:0 7px 18px rgba(0,0,0,.35)}
+.pad button:active,.actions button:active{transform:translateY(2px) scale(.97);background:rgba(37,49,46,.96)}
+.up{left:52px;top:0}.down{left:52px;bottom:0}.left{left:0;top:52px}.right{right:0;top:52px}
+.actions{position:absolute;right:10px;bottom:0;width:220px;height:172px;pointer-events:auto}
+.actions button{width:92px;height:72px;font-size:13px;letter-spacing:.02em}
+.jump{left:0;top:4px}.attack{right:0;top:4px}.interact{left:0;bottom:4px;width:212px!important}
+#menu,#modal,#pause{position:absolute;inset:0;z-index:50;display:grid;place-items:center;background:rgba(1,4,6,.72);backdrop-filter:blur(7px)}
+.panel{width:min(720px,90vw);padding:28px;border-radius:20px;border:1px solid rgba(218,198,149,.45);background:rgba(10,14,17,.94);box-shadow:0 20px 70px rgba(0,0,0,.5)}
+h1{font:700 clamp(34px,8vw,72px)/.9 Georgia,serif;margin:0 0 8px;color:#e5d18e;letter-spacing:.03em}
+h2{font:700 clamp(22px,5vw,36px) Georgia,serif;margin:0 0 12px;color:#dfcc94}
+.sub{color:#a6b0ad;line-height:1.5}
+.btn{display:block;width:100%;margin-top:14px;padding:14px;border-radius:12px;border:1px solid #9d8d62;background:#17211e;color:#f1ead4;font-size:15px;font-weight:900}
+.btn.alt{background:#111716}
+.hidden{display:none!important}
+@media (min-width:800px){#controls{height:130px}.pad{width:132px;height:132px;transform:scale(.8);transform-origin:bottom left}.actions{height:132px;transform:scale(.8);transform-origin:bottom right}#objective{top:78px;font-size:12px}}
+@media (max-width:700px) and (orientation:portrait){#objective{top:112px;font-size:10px}.card{padding:6px 8px}.bar{width:82px}.num{font-size:12px}}
+</style>
+</head>
+<body>
+<div id="game">
+<canvas id="c"></canvas>
+<div id="hud">
+  <div class="card"><div class="label">Состояние</div><div>HP <span class="num" id="hp">100</span></div><div class="bar"><div class="fill" id="hpF"></div></div></div>
+  <div class="card mem"><div class="label">Память</div><div class="num" id="shards">0 / 3</div><div class="bar"><div class="fill" id="shardF"></div></div></div>
+  <div class="card"><div class="label">Контроль</div><div class="num" id="checkpoint">Не сохранено</div></div>
+</div>
+<div id="objective">Найди 3 осколка памяти. Алтарь сохранит точку возврата. Затем открой врата.</div>
+<div id="toast"></div>
+<div id="controls">
+  <div class="pad">
+    <button class="up" data-dir="up">▲</button>
+    <button class="down" data-dir="down">▼</button>
+    <button class="left" data-dir="left">◀</button>
+    <button class="right" data-dir="right">▶</button>
+  </div>
+  <div class="actions">
+    <button class="jump" data-act="jump">ПРЫЖОК</button>
+    <button class="attack" data-act="attack">УДАР</button>
+    <button class="interact" data-act="interact">ВЗАИМОДЕЙСТВИЕ</button>
+  </div>
+</div>
+<div id="menu">
+  <div class="panel">
+    <div class="label">THE LAST THRESHOLD</div>
+    <h1>ЗАЛ ИСПЫТАНИЯ</h1>
+    <p class="sub">Каэль спускается глубже. Осколки памяти реагируют на живого человека, а существо в темноте уже знает его имя.</p>
+    <button class="btn" id="start">Начать испытание</button>
+    <button class="btn alt" id="load">Продолжить</button>
+  </div>
+</div>
+<div id="pause" class="hidden"><div class="panel"><h2>Пауза</h2><p class="sub">Игра остановлена.</p><button class="btn" id="resume">Продолжить</button><button class="btn alt" id="reset">Начать заново</button></div></div>
+<div id="modal" class="hidden"><div class="panel"><h2 id="modalTitle"></h2><div class="sub" id="modalBody"></div><button class="btn" id="ok">Продолжить</button></div></div>
+</div>
+<script>
+"use strict";
+const c=document.getElementById("c"),ctx=c.getContext("2d");
+const state={
+ mode:"menu",time:0,shards:0,checkpoint:false,gate:false,
+ keys:Object.create(null),touch:{left:false,right:false,up:false,down:false},
+ flash:0,shake:0,
+ p:{x:72,y:444,w:42,h:64,vx:0,vy:0,ground:false,jumps:0,dir:1,hp:100,inv:0,atk:0},
+ spawn:{x:72,y:444},
+ enemy:{x:670,y:436,w:48,h:56,hp:100,dead:false,dir:-1,cd:0},
+ trap:{x:790,y:492,w:66,h:16,armed:true,cool:0},
+ altar:{x:1236,y:446,w:72,h:62},
+ door:{x:1320,y:368,w:58,h:140},
+ crystals:[{x:250,y:330,taken:false,b:0},{x:450,y:270,taken:false,b:0},{x:1080,y:230,taken:false,b:0}],
+ platforms:[
+  {x:20,y:508,w:300,h:32},{x:335,y:508,w:230,h:32},{x:580,y:508,w:235,h:32},{x:830,y:508,w:210,h:32},{x:1060,y:508,w:320,h:32},
+  {x:185,y:405,w:145,h:20},{x:385,y:345,w:150,h:20},{x:605,y:405,w:150,h:20},{x:805,y:365,w:155,h:20},{x:1028,y:305,w:180,h:20}
+ ],
+ cameraX:0
+};
+let last=performance.now();
+
+function isMobile(){return matchMedia("(max-width:700px)").matches}
+function resize(){
+ const d=Math.min(devicePixelRatio||1,2);
+ c.width=Math.floor(innerWidth*d);c.height=Math.floor(innerHeight*d);
+}
+addEventListener("resize",resize);resize();
+
+function toast(msg,ms=1500){
+ const e=document.getElementById("toast");e.textContent=msg;e.style.opacity="1";e.style.transform="translate(-50%,0)";
+ clearTimeout(toast.t);toast.t=setTimeout(()=>{e.style.opacity="0";e.style.transform="translate(-50%,16px)"},ms);
+}
+function save(){
+ localStorage.setItem("tlt_slice05",JSON.stringify({
+  shards:state.shards,checkpoint:state.checkpoint,gate:state.gate,spawn:state.spawn,
+  crystals:state.crystals.map(q=>q.taken),enemyDead:state.enemy.dead
+ }));
+}
+function loadSave(){
+ try{
+  const s=JSON.parse(localStorage.getItem("tlt_slice05")||"null");
+  if(!s)return false;
+  state.shards=s.shards||0;state.checkpoint=!!s.checkpoint;state.gate=!!s.gate;
+  state.spawn=s.spawn||state.spawn;state.p.x=state.spawn.x;state.p.y=state.spawn.y;
+  state.crystals.forEach((q,i)=>q.taken=!!(s.crystals&&s.crystals[i]));
+  state.enemy.dead=!!s.enemyDead;
+  state.enemy.hp=state.enemy.dead?0:100;
+  return true;
+ }catch(e){return false}
+}
+function resetGame(){
+ localStorage.removeItem("tlt_slice05");
+ location.reload();
+}
+function startGame(){
+ state.mode="play";document.getElementById("menu").classList.add("hidden");
+ toast("Спуск продолжается…",1100);updateHud();
+}
+function showModal(title,body){
+ document.getElementById("modalTitle").textContent=title;
+ document.getElementById("modalBody").innerHTML=body;
+ document.getElementById("modal").classList.remove("hidden");
+ state.mode="modal";
+}
+function closeModal(){document.getElementById("modal").classList.add("hidden");state.mode="play"}
+document.getElementById("start").onclick=startGame;
+document.getElementById("load").onclick=()=>{if(loadSave()){startGame();toast("Сохранение восстановлено",1200)}else toast("Сохранения нет",1200)};
+document.getElementById("resume").onclick=()=>{document.getElementById("pause").classList.add("hidden");state.mode="play"};
+document.getElementById("reset").onclick=resetGame;
+document.getElementById("ok").onclick=closeModal;
+
+addEventListener("keydown",e=>{
+ const k=e.key.toLowerCase();state.keys[k]=true;
+ if(["arrowleft","arrowright","arrowup","arrowdown"," ","w","a","s","d","e","shift"].includes(k))e.preventDefault();
+ if(k==="e")interact(); else if(k==="shift")attack(); else if(k===" ")jump();
+ if(k==="escape"&&state.mode==="play"){state.mode="pause";document.getElementById("pause").classList.remove("hidden")}
+ if(k==="escape"&&state.mode==="pause"){state.mode="play";document.getElementById("pause").classList.add("hidden")}
+});
+addEventListener("keyup",e=>{state.keys[e.key.toLowerCase()]=false});
+
+document.querySelectorAll(".pad button").forEach(b=>{
+ const dir=b.dataset.dir;
+ const on=e=>{e.preventDefault();state.touch[dir]=true;b.setPointerCapture?.(e.pointerId)};
+ const off=e=>{e.preventDefault();state.touch[dir]=false};
+ b.addEventListener("pointerdown",on);b.addEventListener("pointerup",off);b.addEventListener("pointercancel",off);b.addEventListener("pointerleave",off);
+});
+document.querySelectorAll(".actions button").forEach(b=>{
+ b.addEventListener("pointerdown",e=>{
+  e.preventDefault();
+  const a=b.dataset.act;
+  if(a==="jump")jump();else if(a==="attack")attack();else interact();
+ });
+});
+
+function overlap(a,b){return a.x<a.x+a.w&&a.x+b.w>b.x&&a.y<a.y+a.h&&a.y+b.h>b.y}
+function rectsOverlap(a,b){return a.x<b.x+b.w&&a.x+a.w>b.x&&a.y<b.y+b.h&&a.y+a.h>b.y}
+function near(a,b,range=95){return Math.hypot((a.x+a.w/2)-(b.x+b.w/2),(a.y+a.h/2)-(b.y+b.h/2))<range}
+function jump(){
+ if(state.mode!=="play")return;
+ const p=state.p;
+ if(p.ground){p.vy=-585;p.ground=false;p.jumps=1;return}
+ if(p.jumps<2){p.vy=-515;p.jumps=2;toast("Второй прыжок",600)}
+}
+function attack(){
+ if(state.mode!=="play")return;
+ const p=state.p;if(p.atk>0)return;
+ p.atk=.28;
+ const hit={x:p.dir>0?p.x+p.w:p.x-70,y:p.y+8,w:70,h:52};
+ const e=state.enemy;
+ if(!e.dead&&e.hp>0&&rectsOverlap(hit,e)){
+  e.hp-=50;e.cd=.2;state.shake=.08;toast(e.hp>0?"Существо ранено":"Существо уничтожено",900);
+  if(e.hp<=0){e.dead=true;save()}
+ }else toast("Удар в пустоту",500);
+}
+function interact(){
+ if(state.mode!=="play")return;
+ const p=state.p;
+ if(near(p,state.altar,100)&&!state.checkpoint){
+  state.checkpoint=true;state.spawn={x:state.altar.x-34,y:state.altar.y-64};
+  save();updateHud();toast("Алтарь сохранил точку возврата",1700);
+  return;
+ }
+ if(near(p,state.door,105)){
+  if(state.shards>=3&&state.checkpoint&&!state.gate){
+   state.gate=true;save();updateHud();
+   showModal("ИРИС","«Каэль… ты видишь то, что храм хотел забыть. Не открывай следующий порог, пока не поймёшь, что именно он хранит.»");
+   return;
+  }
+  if(!state.checkpoint)toast("Врата требуют привязки к алтарю",1100);
+  else if(state.shards<3)toast("Недостаёт осколков памяти: "+(3-state.shards),1100);
+  else toast("Врата уже открыты",900);
+  return;
+ }
+ for(const q of state.crystals){
+  const hit={x:q.x-28,y:q.y-32,w:56,h:64};
+  if(!q.taken&&rectsOverlap({x:p.x-12,y:p.y-12,w:p.w+24,h:p.h+24},hit)){
+   q.taken=true;state.shards++;state.flash=.35;state.shake=.06;save();updateHud();
+   toast("Осколок памяти: "+state.shards+"/3",1200);
+   if(state.shards===3)document.getElementById("objective").textContent="Три осколка собраны. Активируй алтарь и открой врата.";
+   return;
+  }
+ }
+ toast("Здесь нечего открывать",700);
+}
+function respawn(msg){
+ const s=state.spawn;const p=state.p;
+ p.x=s.x;p.y=s.y;p.vx=0;p.vy=0;p.hp=Math.max(35,p.hp);
+ toast(msg,1300);
+}
+function updateHud(){
+ document.getElementById("hp").textContent=Math.round(state.p.hp);
+ document.getElementById("hpF").style.width=Math.max(0,state.p.hp)+"%";
+ document.getElementById("shards").textContent=state.shards+" / 3";
+ document.getElementById("shardF").style.width=(state.shards/3*100)+"%";
+ document.getElementById("checkpoint").textContent=state.checkpoint?"Сохранено":"Не сохранено";
+}
+function update(dt){
+ const p=state.p;
+ const left=state.keys["arrowleft"]||state.keys["a"]||state.touch.left;
+ const right=state.keys["arrowright"]||state.keys["d"]||state.touch.right;
+ p.vx=(right?1:0)-(left?1:0);
+ if(p.vx!==0)p.dir=p.vx;
+ p.x+=p.vx*235*dt;
+ p.x=Math.max(20,Math.min(1348-p.w,p.x));
+ const oldBottom=p.y+p.h;
+ p.vy+=1100*dt;
+ p.y+=p.vy*dt;
+ p.ground=false;
+
+ for(const r of state.platforms){
+  const nowBottom=p.y+p.h;
+  const xOverlap=p.x+p.w>r.x&&p.x<r.x+r.w;
+  if(p.vy>=0&&xOverlap&&oldBottom<=r.y&&nowBottom>=r.y){
+   p.y=r.y-p.h;p.vy=0;p.ground=true;p.jumps=0;
+  }
+ }
+ if(p.y>700){p.hp=Math.max(1,p.hp-25);respawn("Темнота вернула тебя к алтарю");}
+
+ if(state.trap.armed&&rectsOverlap(p,state.trap)&&p.vy>=0){
+  state.trap.armed=false;state.trap.cool=1.8;p.hp=Math.max(1,p.hp-18);p.vy=-650;state.shake=.13;toast("Ловушка! Плита под ногами ожила.",1000);
+ }
+ if(!state.trap.armed){state.trap.cool-=dt;if(state.trap.cool<=0)state.trap.armed=true}
+
+ const e=state.enemy;
+ if(!e.dead){
+  const dx=p.x-e.x;
+  e.dir=dx>=0?1:-1;
+  if(Math.abs(dx)>360){e.x+=e.dir*38*dt}
+  else if(Math.abs(dx)<155){e.x+=e.dir*42*dt}
+  e.x=Math.max(360,Math.min(920,e.x));e.cd=Math.max(0,e.cd-dt);
+  if(e.cd<=0&&Math.abs(dx)<82&&Math.abs(p.y-e.y)<70){
+   p.hp=Math.max(1,p.hp-10);p.inv=.45;e.cd=.95;state.shake=.08;toast("Существо ударило",700);
+  }
+ }
+ p.inv=Math.max(0,p.inv-dt);p.atk=Math.max(0,p.atk-dt);
+ for(const q of state.crystals){if(!q.taken)q.b+=dt*2.5}
+
+ const target=p.x-300;
+ state.cameraX+=(Math.max(0,Math.min(700,target))-state.cameraX)*Math.min(1,dt*7);
+ if(state.gate&&state.mode==="play"){
+  showModal("ВРАТА ПОРОГА","Камень раздвигается без звука. За ним начинается лестница, которой не было на плане храма.");
+ }
+ if(p.hp<=0){p.hp=100;respawn("Последний импульс памяти вернул тебя к точке возврата")}
+ updateHud();
+}
+
+function draw(){
+ const d=Math.min(devicePixelRatio||1,2);
+ const mobile=isMobile();
+ const viewW=mobile?(innerWidth<520?680:760):1400, viewH=540;
+ const scale=Math.min(c.width/viewW,c.height/viewH);
+ const ox=(c.width-viewW*scale)/2,oy=(c.height-viewH*scale)/2;
+ ctx.setTransform(1,0,0,1,0,0);ctx.clearRect(0,0,c.width,c.height);
+ ctx.setTransform(scale,0,0,scale,ox,oy);
+ const cam=state.cameraX;
+ const g=ctx.createLinearGradient(0,0,0,540);g.addColorStop(0,"#0f1719");g.addColorStop(1,"#030506");
+ ctx.fillStyle=g;ctx.fillRect(0,0,viewW,540);
+ ctx.save();ctx.translate(-cam,0);
+
+ // distant chamber ribs
+ for(let x=0;x<1500;x+=120){
+  ctx.fillStyle="rgba(39,48,47,.35)";
+  ctx.fillRect(x,110,16,398);
+  ctx.fillStyle="rgba(183,158,103,.10)";
+  ctx.fillRect(x+16,118,5,380);
+ }
+ for(let i=0;i<9;i++){
+  ctx.fillStyle=i%2?"#101718":"#0c1214";
+  ctx.fillRect(0,155+i*38,1500,22);
+ }
+ // mist pools
+ for(let i=0;i<12;i++){
+  const x=i*130+45;
+  const grd=ctx.createRadialGradient(x,500,2,x,500,65);
+  grd.addColorStop(0,"rgba(114,138,129,.20)");grd.addColorStop(1,"rgba(114,138,129,0)");
+  ctx.fillStyle=grd;ctx.beginPath();ctx.ellipse(x,500,70,18,0,0,Math.PI*2);ctx.fill();
+ }
+ // platforms
+ for(const r of state.platforms){
+  ctx.fillStyle="#2d3535";ctx.fillRect(r.x,r.y,r.w,r.h);
+  ctx.fillStyle="#55615e";ctx.fillRect(r.x,r.y,r.w,5);
+  ctx.strokeStyle="#151b1b";ctx.strokeRect(r.x,r.y,r.w,r.h);
+ }
+ // trap
+ ctx.fillStyle=state.trap.armed?"#6f6250":"#3b403d";
+ ctx.fillRect(state.trap.x,state.trap.y,state.trap.w,state.trap.h);
+ for(let i=0;i<6;i++){
+  ctx.fillStyle=state.trap.armed?"#d1c2a0":"#555";
+  ctx.beginPath();ctx.moveTo(state.trap.x+i*11+3,state.trap.y);ctx.lineTo(state.trap.x+i*11+8,state.trap.y-19);ctx.lineTo(state.trap.x+i*11+13,state.trap.y);ctx.fill();
+ }
+ // altar
+ const a=state.altar;
+ ctx.fillStyle="#303839";ctx.fillRect(a.x,a.y,a.w,a.h);
+ ctx.fillStyle="#5d6662";ctx.fillRect(a.x+4,a.y+4,a.w-8,7);
+ ctx.fillStyle=state.checkpoint?"#c8ae61":"#67583e";ctx.fillRect(a.x+14,a.y+17,a.w-28,8);
+ ctx.fillRect(a.x+29,a.y+29,14,20);
+ ctx.strokeStyle=state.checkpoint?"#e2ca83":"#857553";ctx.lineWidth=3;ctx.beginPath();ctx.arc(a.x+36,a.y+31,15,0,Math.PI*2);ctx.stroke();
+ // door
+ const dr=state.door;
+ ctx.fillStyle=state.gate?"#5b4638":"#222a2b";ctx.fillRect(dr.x,dr.y,dr.w,dr.h);
+ ctx.strokeStyle=state.gate?"#d0b26e":"#56605e";ctx.lineWidth=4;ctx.strokeRect(dr.x+4,dr.y+4,dr.w-8,dr.h-8);
+ ctx.strokeStyle="#8f8060";ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(dr.x+dr.w/2,dr.y+20);ctx.lineTo(dr.x+dr.w/2,dr.y+dr.h-20);ctx.moveTo(dr.x+14,dr.y+dr.h/2);ctx.lineTo(dr.x+dr.w-14,dr.y+dr.h/2);ctx.stroke();
+ if(state.gate){ctx.fillStyle="rgba(221,186,105,.30)";ctx.fillRect(dr.x+8,dr.y+8,dr.w-16,dr.h-16)}
+ // crystals
+ for(const q of state.crystals)if(!q.taken){
+  const y=q.y+Math.sin(q.b)*6;
+  const glow=ctx.createRadialGradient(q.x,y,1,q.x,y,45);
+  glow.addColorStop(0,"rgba(227,207,124,.38)");glow.addColorStop(1,"rgba(227,207,124,0)");
+  ctx.fillStyle=glow;ctx.beginPath();ctx.arc(q.x,y,48,0,Math.PI*2);ctx.fill();
+  ctx.fillStyle="#d8c36f";ctx.beginPath();ctx.moveTo(q.x,y-22);ctx.lineTo(q.x+12,y);ctx.lineTo(q.x,y+22);ctx.lineTo(q.x-12,y);ctx.closePath();ctx.fill();
+  ctx.fillStyle="#fff3b7";ctx.beginPath();ctx.moveTo(q.x,y-16);ctx.lineTo(q.x+4,y-2);ctx.lineTo(q.x,y+2);ctx.lineTo(q.x-4,y-3);ctx.closePath();ctx.fill();
+ }
+ // enemy
+ const e=state.enemy;
+ if(!e.dead){
+  ctx.fillStyle="#17181b";ctx.beginPath();ctx.ellipse(e.x+24,e.y+30,28,30,0,0,Math.PI*2);ctx.fill();
+  ctx.fillStyle="#8c5b52";ctx.fillRect(e.x+10,e.y+19,8,7);ctx.fillRect(e.x+30,e.y+19,8,7);
+  ctx.fillStyle="#d5c68d";ctx.fillRect(e.x+13,e.y+21,3,3);ctx.fillRect(e.x+33,e.y+21,3,3);
+  if(e.hp<100){ctx.fillStyle="#522f2d";ctx.fillRect(e.x,e.y-12,48,5);ctx.fillStyle="#b76456";ctx.fillRect(e.x,e.y-12,48*(e.hp/100),5)}
+ }
+ // hero
+ const p=state.p;
+ ctx.save();ctx.translate(p.x+p.w/2,p.y+p.h/2);ctx.scale(p.dir,1);
+ if(p.inv>0)ctx.globalAlpha=.45;
+ ctx.fillStyle="#d1c4a4";ctx.beginPath();ctx.arc(0,-17,13,0,Math.PI*2);ctx.fill();
+ ctx.fillStyle="#28322d";ctx.fillRect(-15,-3,30,35);
+ ctx.fillStyle="#5f4938";ctx.fillRect(-12,29,9,27);ctx.fillRect(3,29,9,27);
+ ctx.fillStyle="#8d7b5b";ctx.fillRect(-10,-1,20,8);
+ ctx.fillStyle="#c7b77b";ctx.fillRect(15,0,4,28);
+ if(p.atk>0){ctx.strokeStyle="#e1d5ad";ctx.lineWidth=6;ctx.beginPath();ctx.moveTo(18,2);ctx.lineTo(56,-22);ctx.stroke()}
+ ctx.restore();
+ ctx.restore();
+
+ // vignette and crosshair
+ const vg=ctx.createRadialGradient(viewW/2,270,120,viewW/2,270,420);
+ vg.addColorStop(0,"rgba(0,0,0,0)");vg.addColorStop(1,"rgba(0,0,0,.52)");
+ ctx.fillStyle=vg;ctx.fillRect(0,0,viewW,viewH);
+ if(state.flash>0){ctx.fillStyle="rgba(235,212,127,"+(state.flash*.55)+")";ctx.fillRect(0,0,viewW,viewH);state.flash=Math.max(0,state.flash-.016)}
+}
+
+let raf=0;
+function loop(now){
+ const dt=Math.min(.033,(now-last)/1000);last=now;
+ if(state.mode==="play")update(dt);
+ draw();raf=requestAnimationFrame(loop);
+}
+requestAnimationFrame(loop);
+updateHud();
+</script>
+</body>
+</html>
