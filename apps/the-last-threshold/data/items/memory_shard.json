@@ -1,0 +1,1 @@
+{"id":"memory_shard","name":"Осколок памяти","type":"story_item","countTarget":3,"onCollect":["book_page","memory_echo"]}
