@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
-<title>Книга Порога — Vertical Slice 02</title>
+<title>Книга Порога — Vertical Slice 03</title>
 <style>
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#030606;color:#eee;font-family:system-ui,-apple-system,Segoe UI,sans-serif;touch-action:none;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none}
@@ -33,7 +33,7 @@ h1,h2,h3{font-family:Georgia,serif;color:#dfc783;margin:0 0 12px}.title{font-siz
 <div id="objective">Найди сумку Миры у входа в храм.</div>
 <button id="bookBtn">КНИГА</button><div id="hint">← → движение · SPACE прыжок · E взаимодействие · B книга · SHIFT удар</div><div id="toast"></div>
 <div id="controls"><div class="pad"><button class="up" data-dir="up">▲</button><button class="down" data-dir="down">▼</button><button class="left" data-dir="left">◀</button><button class="right" data-dir="right">▶</button></div><div class="acts"><button class="jump" data-act="jump">ПРЫЖОК</button><button class="attack" data-act="attack">УДАР</button><button class="interact" data-act="interact">ВЗАИМОДЕЙСТВИЕ</button></div></div>
-<div id="start" class="overlay"><div class="panel"><div class="lab">VERTICAL SLICE 02</div><h1 class="title">КНИГА<br>ПОРОГА</h1><p class="sub">Это уже не прогулка по экрану. Это первый игровой срез: свободное движение, вертикальные маршруты, ловушки, враг, книга, механизм, мини-игра, способность, секреты и путь к первым воспоминаниям.</p><button class="btn" id="startBtn">Начать</button><button class="btn alt" id="loadBtn">Продолжить сохранение</button></div></div>
+<div id="start" class="overlay"><div class="panel"><div class="lab">VERTICAL SLICE 03</div><h1 class="title">КНИГА<br>ПОРОГА</h1><p class="sub">Это уже не прогулка по экрану. Это первый игровой срез: свободное движение, вертикальные маршруты, ловушки, враг, книга, механизм, мини-игра, способность, секреты и путь к первым воспоминаниям.</p><button class="btn" id="startBtn">Начать</button><button class="btn alt" id="loadBtn">Продолжить сохранение</button></div></div>
 <div id="book" class="overlay hidden"><div class="panel book"><div style="display:flex;justify-content:space-between;align-items:center"><h2>Книга Порога</h2><button class="btn" id="closeBook" style="width:auto;margin:0">Закрыть</button></div><div class="pages"><div class="page"><h3>ПАМЯТЬ</h3><div class="rune">◈</div><div id="pageLeft">Страница пуста.</div></div><div class="page"><h3>НАБЛЮДЕНИЯ</h3><div id="pageRight">Здесь будут появляться только вещи, которые Рен действительно обнаружил.</div></div></div></div></div>
 <div id="puzzle" class="overlay hidden"><div class="panel puzzle"><h2>Слияние Печатей</h2><p class="sub">Старая машина не реагирует на обычный ключ. Сведи одинаковые руны и создай Печать III.</p><div class="grid" id="grid"></div><p class="sub" style="font-size:11px">Выбери руну, затем соседнюю такую же. Слияние усиливает её. Получив III, механизм раскроет верхний проход.</p><button class="btn alt" id="closePuzzle">Отойти</button></div></div>
 <div id="modal" class="overlay hidden"><div class="panel"><h2 id="mTitle"></h2><p class="sub" id="mBody"></p><button class="btn" id="mOk">Продолжить</button></div></div>
@@ -41,6 +41,21 @@ h1,h2,h3{font-family:Georgia,serif;color:#dfc783;margin:0 0 12px}.title{font-siz
 <script>
 "use strict";
 const c=document.getElementById("c"),ctx=c.getContext("2d");
+const ASSET={};
+function loadAsset(key,path){const im=new Image();im.src=path;im.onload=()=>ASSET[key]=im;return im}
+loadAsset("renIdle","../art/characters/ren/REN_IDLE_v01.svg");
+loadAsset("renRun","../art/characters/ren/REN_RUN_v01.svg");
+loadAsset("renJump","../art/characters/ren/REN_JUMP_v01.svg");
+loadAsset("guardianIdle","../art/creatures/guardian/GUARDIAN_IDLE_v01.svg");
+loadAsset("guardianAttack","../art/creatures/guardian/GUARDIAN_ATTACK_v01.svg");
+loadAsset("guardianHurt","../art/creatures/guardian/GUARDIAN_HURT_v01.svg");
+loadAsset("miraEcho","../art/characters/mira/MIRA_ECHO_v01.svg");
+loadAsset("altar","../art/props/altar/ALTAR_MEMORY_v01.svg");
+loadAsset("seal","../art/props/mechanism/SEAL_DEVICE_v01.svg");
+loadAsset("bag","../art/items/MEMORY_SHARD_GOLD_v01.svg");
+loadAsset("torch","../art/environments/temple/TORCH_WALL_v01.svg");
+loadAsset("spikes","../art/props/trap/TRAP_SPIKES_v01.svg");
+loadAsset("gate","../art/environments/temple/TEMPLE_GATE_MEMORY_v01.svg");
 const S={mode:"menu",t:0,bookFound:false,bookPages:0,puzzleSolved:false,doubleJump:false,checkpoint:false,shards:0,story:{miraWhisper:false},keys:Object.create(null),touch:{left:false,right:false,down:false},jumpBuffer:0,spawn:{x:110,y:406},p:{x:110,y:406,w:44,h:70,vx:0,vy:0,ground:false,jumps:0,maxJumps:1,coyote:0,dir:1,hp:100,inv:0,atk:0},enemy:{x:1845,y:418,w:52,h:58,hp:120,dead:false,dir:-1,cd:0},altar:{x:3370,y:412,w:78,h:64,used:false},bag:{x:365,y:428,w:58,h:48},mechanism:{x:1040,y:295,w:92,h:70},barrier:{x:1195,y:305,w:52,h:171},miraEcho:{x:2580,y:382,seen:false},finalGate:{x:4690,y:280,w:82,h:196},moving:{x:1485,y:380,w:145,h:18,baseY:380,phase:0},cameraX:0};
 const plats=[
 {x:0,y:476,w:610,h:44},{x:670,y:476,w:235,h:44},{x:980,y:476,w:210,h:44},{x:1245,y:476,w:230,h:44},{x:1510,y:476,w:205,h:44},{x:1760,y:476,w:285,h:44},{x:2080,y:476,w:225,h:44},{x:2350,y:476,w:215,h:44},{x:2610,y:476,w:230,h:44},{x:2895,y:476,w:225,h:44},{x:3170,y:476,w:230,h:44},{x:3440,y:476,w:235,h:44},{x:3720,y:476,w:300,h:44},{x:4070,y:476,w:260,h:44},{x:4380,y:476,w:350,h:44},
@@ -76,7 +91,7 @@ function puzClick(i){if(!puzzle[i])return;if(selected<0){selected=i;buildPuzzle(
 function closePuzzle(){document.getElementById("puzzle").classList.add("hidden");S.mode="play";selected=-1}
 document.getElementById("startBtn").onclick=start;document.getElementById("loadBtn").onclick=()=>{if(load()){start();toast("Сохранение восстановлено",1200)}else toast("Сохранения нет",1000)};document.getElementById("bookBtn").onclick=openBook;document.getElementById("closeBook").onclick=closeBook;document.getElementById("closePuzzle").onclick=closePuzzle;document.getElementById("mOk").onclick=()=>{document.getElementById("modal").classList.add("hidden");S.mode="play"};
 addEventListener("keydown",e=>{const k=e.key.toLowerCase();S.keys[k]=true;if(k==="e")interact();else if(k==="b")openBook();else if(k===" ")jump();else if(k==="shift")attack();else if(k==="escape"&&S.mode==="play")showModal("Пауза","Игра приостановлена.");if(["arrowleft","arrowright","arrowup","arrowdown","a","d","w","s","e","b"," ","shift","escape"].includes(k))e.preventDefault()});
-addEventListener("keyup",e=>S.keys[e.key.toLowerCase()]=false);
+addEventListener("keyup",e=>{const k=e.key.toLowerCase();S.keys[k]=false;if(k===" "&&S.p.vy<-180)S.p.vy*=.52});
 document.querySelectorAll(".pad button").forEach(b=>{const d=b.dataset.dir;b.addEventListener("pointerdown",e=>{e.preventDefault();if(d==="up")jump();if(d==="left"||d==="right")S.touch[d]=true;if(d==="down")S.touch.down=true});["pointerup","pointercancel","pointerleave"].forEach(t=>b.addEventListener(t,e=>{e.preventDefault();if(d==="left"||d==="right")S.touch[d]=false;if(d==="down")S.touch.down=false}) )});
 document.querySelectorAll(".acts button").forEach(b=>b.addEventListener("pointerdown",e=>{e.preventDefault();const a=b.dataset.act;if(a==="jump")jump();else if(a==="attack")attack();else interact()}));
 function rect(a,b){return a.x<b.x+b.w&&a.x+a.w>b.x&&a.y<b.y+b.h&&a.y+a.h>b.y}
@@ -88,7 +103,7 @@ function platformUpdate(dt){
  const oldBottom=p.y+p.h;p.vy+=1850*dt;p.y+=p.vy*dt;p.ground=false;
  if(S.moving){S.moving.phase+=dt;S.moving.y=S.moving.baseY+Math.sin(S.moving.phase*1.25)*58}
  const candidates=plats.concat([{x:S.moving.x,y:S.moving.y,w:S.moving.w,h:S.moving.h}]);
- if(!S.touch.down)for(const r of candidates){const now=p.y+p.h;if(p.vy>=0&&p.x+p.w>r.x&&p.x<r.x+r.w&&oldBottom<=r.y&&now>=r.y){p.y=r.y-p.h;p.vy=0;p.ground=true;p.jumps=0;p.coyote=.12;break}}
+ if(!S.touch.down)for(const r of candidates){const now=p.y+p.h;if(p.vy>=0&&p.x+p.w>r.x&&p.x<r.x+r.w&&oldBottom<=r.y&&now>=r.y){const wasMoving=r===S.moving;p.y=r.y-p.h;p.vy=0;p.ground=true;p.jumps=0;p.coyote=.12;if(wasMoving)p.x+=Math.sin(S.moving.phase*1.25)*58*dt;break}}
  if(S.touch.down&&p.ground){p.y+=8;p.ground=false}
  if(p.coyote>0)p.coyote-=dt;if(p.jumpBuffer>0)p.jumpBuffer-=dt;
  if(p.ground&&p.jumpBuffer>0){p.jumpBuffer=0;p.vy=-690;p.ground=false;p.jumps=1}
@@ -115,23 +130,23 @@ function draw(){
  // moving platform visual
  ctx.strokeStyle="#c1a767";ctx.setLineDash([7,7]);ctx.beginPath();ctx.moveTo(S.moving.x+8,360);ctx.lineTo(S.moving.x+8,S.moving.y);ctx.stroke();ctx.setLineDash([]);
  // bag
- ctx.fillStyle="#4d3b2a";ctx.fillRect(S.bag.x,S.bag.y,S.bag.w,S.bag.h);ctx.fillStyle="#c0a263";ctx.fillRect(S.bag.x+8,S.bag.y+12,S.bag.w-16,7);ctx.fillStyle="#e6d596";ctx.font="12px Georgia";ctx.fillText("МИРА",S.bag.x+8,S.bag.y+38);
+ if(ASSET.bag)ctx.drawImage(ASSET.bag,S.bag.x-4,S.bag.y-10,S.bag.w+8,S.bag.h+18);else{ctx.fillStyle="#4d3b2a";ctx.fillRect(S.bag.x,S.bag.y,S.bag.w,S.bag.h);ctx.fillStyle="#c0a263";ctx.fillRect(S.bag.x+8,S.bag.y+12,S.bag.w-16,7);ctx.fillStyle="#e6d596";ctx.font="12px Georgia";ctx.fillText("МИРА",S.bag.x+8,S.bag.y+38)}
  // mechanism
  const m=S.mechanism;ctx.fillStyle="#252e2c";ctx.fillRect(m.x,m.y,m.w,m.h);ctx.strokeStyle=S.puzzleSolved?"#dcc47c":"#806e4d";ctx.lineWidth=4;ctx.strokeRect(m.x+4,m.y+4,m.w-8,m.h-8);ctx.fillStyle="#d2ba71";ctx.font="38px Georgia";ctx.fillText("◈",m.x+25,m.y+49);
  // barrier
  if(!S.puzzleSolved){ctx.fillStyle="#17201f";ctx.fillRect(S.barrier.x,S.barrier.y,S.barrier.w,S.barrier.h);ctx.strokeStyle="#9e8759";ctx.strokeRect(S.barrier.x+4,S.barrier.y+4,S.barrier.w-8,S.barrier.h-8)}
  // altar
- const a=S.altar;ctx.fillStyle="#303937";ctx.fillRect(a.x,a.y,a.w,a.h);ctx.fillStyle="#65706a";ctx.fillRect(a.x+4,a.y+4,a.w-8,8);ctx.strokeStyle=S.checkpoint?"#dfcb82":"#76694d";ctx.lineWidth=3;ctx.beginPath();ctx.arc(a.x+39,a.y+32,17,0,Math.PI*2);ctx.stroke();ctx.fillStyle=S.checkpoint?"#d7bb6b":"#514734";ctx.fillRect(a.x+19,a.y+19,40,8);
+ const a=S.altar;if(ASSET.altar)ctx.drawImage(ASSET.altar,a.x-8,a.y-22,a.w+16,a.h+28);ctx.fillStyle="#303937";ctx.fillRect(a.x,a.y,a.w,a.h);ctx.fillStyle="#65706a";ctx.fillRect(a.x+4,a.y+4,a.w-8,8);ctx.strokeStyle=S.checkpoint?"#dfcb82":"#76694d";ctx.lineWidth=3;ctx.beginPath();ctx.arc(a.x+39,a.y+32,17,0,Math.PI*2);ctx.stroke();ctx.fillStyle=S.checkpoint?"#d7bb6b":"#514734";ctx.fillRect(a.x+19,a.y+19,40,8);
  // crystals
  for(const q of S.crystals)if(!q.taken){const yy=q.y+Math.sin(q.b)*7,g=ctx.createRadialGradient(q.x,yy,2,q.x,yy,58);g.addColorStop(0,"rgba(244,215,126,.44)");g.addColorStop(1,"rgba(244,215,126,0)");ctx.fillStyle=g;ctx.beginPath();ctx.arc(q.x,yy,58,0,Math.PI*2);ctx.fill();ctx.fillStyle="#e7cf79";ctx.beginPath();ctx.moveTo(q.x,yy-27);ctx.lineTo(q.x+15,yy);ctx.lineTo(q.x,yy+27);ctx.lineTo(q.x-15,yy);ctx.closePath();ctx.fill();ctx.fillStyle="#fff4b9";ctx.beginPath();ctx.moveTo(q.x,yy-20);ctx.lineTo(q.x+5,yy);ctx.lineTo(q.x,yy+5);ctx.lineTo(q.x-5,yy);ctx.closePath();ctx.fill()}
  // Mira echo
- if(!S.miraEcho.seen&&Math.abs(S.p.x-S.miraEcho.x)<330){const alpha=.24+.1*Math.sin(S.t*2);ctx.fillStyle="rgba(214,205,174,"+alpha+")";ctx.beginPath();ctx.ellipse(S.miraEcho.x,S.miraEcho.y,34,70,0,0,Math.PI*2);ctx.fill();ctx.strokeStyle="rgba(220,205,157,.55)";ctx.lineWidth=2;ctx.beginPath();ctx.ellipse(S.miraEcho.x,S.miraEcho.y,36,72,0,0,Math.PI*2);ctx.stroke();ctx.fillStyle="#d7c9a6";ctx.font="14px Georgia";ctx.fillText("…",S.miraEcho.x-5,S.miraEcho.y-88)}
+ if(!S.miraEcho.seen&&Math.abs(S.p.x-S.miraEcho.x)<330){const alpha=.24+.1*Math.sin(S.t*2);ctx.globalAlpha=alpha;if(ASSET.miraEcho)ctx.drawImage(ASSET.miraEcho,S.miraEcho.x-38,S.miraEcho.y-78,76,156);else{ctx.fillStyle="rgba(214,205,174,1)";ctx.beginPath();ctx.ellipse(S.miraEcho.x,S.miraEcho.y,34,70,0,0,Math.PI*2);ctx.fill()}ctx.globalAlpha=1;ctx.fillStyle="#d7c9a6";ctx.font="14px Georgia";ctx.fillText("…",S.miraEcho.x-5,S.miraEcho.y-88)}
  // final gate
  const fg=S.finalGate;ctx.fillStyle="#202726";ctx.fillRect(fg.x,fg.y,fg.w,fg.h);ctx.strokeStyle=S.shards>=3&&S.checkpoint?"#d2bc78":"#76705e";ctx.lineWidth=4;ctx.strokeRect(fg.x+4,fg.y+4,fg.w-8,fg.h-8);ctx.fillStyle="#c4aa67";ctx.font="43px Georgia";ctx.fillText("◈",fg.x+22,fg.y+83);
  // guardian
- const e=S.enemy;if(!e.dead){ctx.fillStyle="#171b1c";ctx.beginPath();ctx.ellipse(e.x+26,e.y+31,31,31,0,0,Math.PI*2);ctx.fill();ctx.fillStyle="#9e6557";ctx.fillRect(e.x+10,e.y+18,9,7);ctx.fillRect(e.x+34,e.y+18,9,7);ctx.fillStyle="#e4cf92";ctx.fillRect(e.x+13,e.y+20,3,3);ctx.fillRect(e.x+37,e.y+20,3,3);if(e.hp<120){ctx.fillStyle="#4c302e";ctx.fillRect(e.x,e.y-12,52,5);ctx.fillStyle="#b96558";ctx.fillRect(e.x,e.y-12,52*(e.hp/120),5)}}
+ const e=S.enemy;if(!e.dead){const ga=e.cd>0&&Math.abs(S.p.x-e.x)<78?ASSET.guardianAttack:(e.hp<120?ASSET.guardianHurt:ASSET.guardianIdle);if(ga)ctx.drawImage(ga,e.x-8,e.y-18,68,92);else{ctx.fillStyle="#171b1c";ctx.beginPath();ctx.ellipse(e.x+26,e.y+31,31,31,0,0,Math.PI*2);ctx.fill();}if(!ga){ctx.fillStyle="#9e6557";ctx.fillRect(e.x+10,e.y+18,9,7);ctx.fillRect(e.x+34,e.y+18,9,7);ctx.fillStyle="#e4cf92";ctx.fillRect(e.x+13,e.y+20,3,3);ctx.fillRect(e.x+37,e.y+20,3,3)}if(e.hp<120){ctx.fillStyle="#4c302e";ctx.fillRect(e.x,e.y-12,52,5);ctx.fillStyle="#b96558";ctx.fillRect(e.x,e.y-12,52*(e.hp/120),5)}}
  // hero
- const p=S.p;ctx.save();ctx.translate(p.x+p.w/2,p.y+p.h/2);ctx.scale(p.dir,1);if(p.inv>0)ctx.globalAlpha=.45;ctx.fillStyle="#d4c5a2";ctx.beginPath();ctx.arc(0,-20,14,0,Math.PI*2);ctx.fill();ctx.fillStyle="#29342f";ctx.fillRect(-16,-5,32,39);ctx.fillStyle="#624b38";ctx.fillRect(-13,32,10,29);ctx.fillRect(3,32,10,29);ctx.fillStyle="#bfa970";ctx.fillRect(-18,-3,36,8);ctx.fillStyle="#9d8558";ctx.fillRect(16,0,5,30);if(p.atk>0){ctx.strokeStyle="#eee2b8";ctx.lineWidth=6;ctx.beginPath();ctx.moveTo(18,0);ctx.lineTo(58,-22);ctx.stroke()}ctx.restore();
+ const p=S.p;ctx.save();ctx.translate(p.x+p.w/2,p.y+p.h/2);ctx.scale(p.dir,1);if(p.inv>0)ctx.globalAlpha=.45;const heroAsset=p.ground?(Math.abs(p.vx)>35?ASSET.renRun:ASSET.renIdle):ASSET.renJump;if(heroAsset){ctx.globalAlpha*=.98;ctx.drawImage(heroAsset,-32,-48,64,96)}if(!heroAsset){ctx.fillStyle="#d4c5a2";ctx.beginPath();ctx.arc(0,-20,14,0,Math.PI*2);ctx.fill();ctx.fillStyle="#29342f";ctx.fillRect(-16,-5,32,39);ctx.fillStyle="#624b38";ctx.fillRect(-13,32,10,29);ctx.fillRect(3,32,10,29);ctx.fillStyle="#bfa970";ctx.fillRect(-18,-3,36,8);ctx.fillStyle="#9d8558";ctx.fillRect(16,0,5,30)}if(p.atk>0){ctx.strokeStyle="#eee2b8";ctx.lineWidth=6;ctx.beginPath();ctx.moveTo(18,0);ctx.lineTo(58,-22);ctx.stroke()}ctx.restore();
  ctx.restore();
  const vg=ctx.createRadialGradient(vw/2,270,110,vw/2,270,445);vg.addColorStop(0,"rgba(0,0,0,0)");vg.addColorStop(1,"rgba(0,0,0,.56)");ctx.fillStyle=vg;ctx.fillRect(0,0,vw,vh);if(S.flash>0){ctx.fillStyle="rgba(240,216,132,"+(S.flash*.42)+")";ctx.fillRect(0,0,vw,vh);S.flash=Math.max(0,S.flash-.012)}
 }
