@@ -1,0 +1,7 @@
+{
+  "characters":["art/characters/ren/REN_IDLE_v01.svg","art/characters/mira/MIRA_ECHO_v01.svg"],
+  "creatures":["art/creatures/guardian/GUARDIAN_IDLE_v01.svg","art/creatures/guardian/GUARDIAN_ATTACK_v01.svg"],
+  "props":["art/props/altar/ALTAR_MEMORY_v01.svg","art/props/mechanism/SEAL_DEVICE_v01.svg","art/props/trap/TRAP_SPIKES_v01.svg"],
+  "items":["art/items/MEMORY_SHARD_GOLD_v01.svg"],
+  "environment":["art/environments/temple/TORCH_WALL_v01.svg","art/environments/temple/TEMPLE_GATE_MEMORY_v01.svg"]
+}
