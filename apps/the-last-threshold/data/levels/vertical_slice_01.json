@@ -1,0 +1,11 @@
+{
+  "id":"vertical_slice_01",
+  "title":"Вход и Зал Печатей",
+  "start":"temple_entrance",
+  "length":4180,
+  "primaryRoute":["entrance","gallery","seal_hall","guardian_pass","memory_chamber","altar","threshold_gate"],
+  "abilities":{"start":["jump","attack","interact"],"afterSeal":["double_jump"]},
+  "criticalObjects":["mira_bag","seal_device","guardian","memory_shard_01","memory_shard_02","memory_shard_03","altar","threshold_gate"],
+  "designRules":{"mainGameplayShare":0.8,"minigameShare":0.2,"minimumSecretCount":3,"returnPaths":2},
+  "mobileCamera":{"viewWidth":820,"viewHeight":560}
+}
