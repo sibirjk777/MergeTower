@@ -1,0 +1,1 @@
+{"id":"guardian","name":"Страж Памяти","hp":120,"speed":75,"attackDamage":12,"weakness":"memory_light","behavior":"patrol_and_lunge","reward":"guardian_fragment"}
