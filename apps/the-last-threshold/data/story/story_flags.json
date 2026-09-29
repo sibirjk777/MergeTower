@@ -1,0 +1,13 @@
+{
+  "book_found":false,
+  "ren_name_recorded":false,
+  "seal_device_solved":false,
+  "double_jump_unlocked":false,
+  "guardian_defeated":false,
+  "memory_shard_01":false,
+  "memory_shard_02":false,
+  "memory_shard_03":false,
+  "altar_bound":false,
+  "mira_echo_seen":false,
+  "threshold_gate_reached":false
+}
