@@ -10,11 +10,11 @@ html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#030606;col
 #game,#c{position:fixed;inset:0;width:100%;height:100%;display:block}#ui{position:fixed;inset:0;pointer-events:none}
 #hud{position:absolute;left:8px;right:8px;top:max(8px,env(safe-area-inset-top));display:flex;gap:7px;z-index:3}.card{background:rgba(7,11,12,.82);border:1px solid rgba(204,184,128,.42);border-radius:11px;padding:7px 9px;backdrop-filter:blur(6px);box-shadow:0 7px 20px #0008}.lab{font-size:8px;letter-spacing:.15em;color:#b8ab8a;text-transform:uppercase}.num{font-size:14px;font-weight:900}.bar{width:96px;height:6px;margin-top:4px;border-radius:99px;background:#171d1b;border:1px solid #38423e;overflow:hidden}.fill{height:100%;background:#ac5e58;width:100%}
 #objective{position:absolute;top:78px;left:50%;transform:translateX(-50%);z-index:3;max-width:min(88vw,720px);padding:7px 12px;border:1px solid rgba(206,184,126,.42);background:rgba(6,10,11,.8);border-radius:10px;text-align:center;font-size:11px}
-#bookBtn{position:absolute;z-index:4;right:10px;top:calc(env(safe-area-inset-top) + 76px);width:72px;height:72px;border-radius:18px;border:1px solid #b59c60;background:#1b1710ef;color:#f2dc99;font-weight:900;box-shadow:0 8px 24px #0009;pointer-events:auto}
+
 #toast{position:absolute;z-index:20;left:50%;bottom:195px;transform:translate(-50%,14px);opacity:0;transition:.18s;max-width:88vw;padding:9px 13px;border:1px solid #96845b;border-radius:11px;background:#080d0ef2;font-size:12px;text-align:center}
 #hint{position:absolute;left:50%;bottom:177px;transform:translateX(-50%);z-index:3;padding:5px 9px;border-radius:9px;background:rgba(7,11,12,.65);color:#d6cfba;font-size:10px;opacity:.92}
 #controls{position:absolute;left:0;right:0;bottom:calc(env(safe-area-inset-bottom) + 8px);height:172px;z-index:10}.pad,.acts{position:absolute;bottom:0;pointer-events:auto}.pad{left:8px;width:172px;height:172px}.acts{right:8px;width:225px;height:172px}
-.pad button,.acts button{position:absolute;border:1px solid #96835b;background:#08100ff0;color:#eee5ce;border-radius:20px;box-shadow:0 7px 18px #0009;font-weight:900;touch-action:none}.pad button{width:66px;height:66px;font-size:23px}.up{left:53px}.down{left:53px;bottom:0}.left{left:0;top:53px}.right{right:0;top:53px}.acts button{width:94px;height:70px;font-size:12px}.jump{left:0;top:0}.attack{right:0;top:0}.interact{left:0;bottom:0;width:217px!important}
+.pad button,.acts button{position:absolute;border:1px solid #96835b;background:#08100ff0;color:#eee5ce;border-radius:20px;box-shadow:0 7px 18px #0009;font-weight:900;touch-action:none;transition:opacity .12s,transform .12s,filter .12s,box-shadow .12s,border-color .12s}.pad button{width:66px;height:66px;font-size:23px}.up{left:53px}.down{left:53px;bottom:0}.left{left:0;top:53px}.right{right:0;top:53px}.acts button{width:94px;height:70px;font-size:12px}.jump{left:0;top:0}.attack{right:0;top:0}.interact{left:0;bottom:0;width:217px!important}.acts .context-hidden{display:none}.acts .context-active{display:flex;align-items:center;justify-content:center;border-color:#d9bd70;box-shadow:0 0 0 2px rgba(217,189,112,.16),0 0 24px rgba(217,189,112,.22),0 7px 18px #0009;animation:contextPulse 1.15s ease-in-out infinite}@keyframes contextPulse{0%,100%{filter:brightness(1)}50%{filter:brightness(1.22)}}.acts .context-attack{border-color:#b96558;box-shadow:0 0 0 2px rgba(185,101,88,.18),0 0 26px rgba(185,101,88,.28),0 7px 18px #0009}.acts .context-interact{border-color:#d9bd70}
 .overlay{position:absolute;inset:0;z-index:50;display:grid;place-items:center;background:#020505de;backdrop-filter:blur(8px);pointer-events:auto}.panel{width:min(760px,92vw);max-height:90vh;overflow:auto;padding:26px;border:1px solid #907f57;border-radius:20px;background:#0b1010f7;box-shadow:0 22px 80px #000b}
 h1,h2,h3{font-family:Georgia,serif;color:#dfc783;margin:0 0 12px}.title{font-size:clamp(42px,9vw,84px);line-height:.88}.sub{color:#b8c0bd;line-height:1.55}.btn{width:100%;margin-top:12px;padding:14px;border:1px solid #a28f61;border-radius:11px;background:#19221f;color:#f0e7d0;font-size:14px;font-weight:900}.btn.alt{background:#111817}
 .hidden{display:none!important}.book{height:min(730px,90vh);display:flex;flex-direction:column}.pages{display:flex;gap:12px;min-height:350px;flex:1}.page{flex:1;background:#d9cba3;color:#2b281f;border:1px solid #8d7b50;border-radius:8px;padding:20px;font:16px/1.55 Georgia,serif;box-shadow:inset 0 0 45px #5e4b241f}.page h3{color:#4e4027}.rune{font-size:64px;text-align:center;color:#6d5b35;margin:14px}.sig{font-size:24px;font-weight:900;letter-spacing:.08em}
@@ -31,8 +31,8 @@ h1,h2,h3{font-family:Georgia,serif;color:#dfc783;margin:0 0 12px}.title{font-siz
 <div class="card"><div class="lab">Способность</div><div class="num" id="ability">Прыжок</div></div>
 </div>
 <div id="objective">Найди сумку Миры у входа в храм.</div>
-<button id="bookBtn">КНИГА</button><div id="hint">← → движение · SPACE прыжок · E взаимодействие · B книга · SHIFT удар</div><div id="toast"></div>
-<div id="controls"><div class="pad"><button class="up" data-dir="up">▲</button><button class="down" data-dir="down">▼</button><button class="left" data-dir="left">◀</button><button class="right" data-dir="right">▶</button></div><div class="acts"><button class="jump" data-act="jump">ПРЫЖОК</button><button class="attack" data-act="attack">УДАР</button><button class="interact" data-act="interact">ВЗАИМОДЕЙСТВИЕ</button></div></div>
+<div id="hint">← → движение · SPACE прыжок · B книга · SHIFT удар</div><div id="toast"></div>
+<div id="controls"><div class="pad"><button class="up" data-dir="up">▲</button><button class="down" data-dir="down">▼</button><button class="left" data-dir="left">◀</button><button class="right" data-dir="right">▶</button></div><div class="acts"><button class="jump" data-act="jump">ПРЫЖОК</button><button class="attack context-hidden" data-act="attack" aria-label="Удар">УДАР</button><button class="interact context-hidden" data-act="interact" aria-label="Взаимодействие">ВЗАИМОДЕЙСТВИЕ</button></div></div>
 <div id="start" class="overlay"><div class="panel"><div class="lab">VERTICAL SLICE 07</div><h1 class="title">КНИГА<br>ПОРОГА</h1><p class="sub">Это уже не прогулка по экрану. Это первый игровой срез: свободное движение, вертикальные маршруты, ловушки, враг, книга, механизм, мини-игра, способность, секреты и путь к первым воспоминаниям.</p><button class="btn" id="startBtn">Начать</button><button class="btn alt" id="loadBtn">Продолжить сохранение</button></div></div>
 <div id="book" class="overlay hidden"><div class="panel book"><div style="display:flex;justify-content:space-between;align-items:center"><h2>Книга Порога</h2><button class="btn" id="closeBook" style="width:auto;margin:0">Закрыть</button></div><div class="pages"><div class="page"><h3>ПАМЯТЬ</h3><div class="rune">◈</div><div id="pageLeft">Страница пуста.</div></div><div class="page"><h3>НАБЛЮДЕНИЯ</h3><div id="pageRight">Здесь будут появляться только вещи, которые Рен действительно обнаружил.</div></div></div></div></div>
 <div id="puzzle" class="overlay hidden"><div class="panel puzzle"><h2>Слияние Печатей</h2><p class="sub">Старая машина не реагирует на обычный ключ. Сведи одинаковые руны и создай Печать III.</p><div class="grid" id="grid"></div><p class="sub" style="font-size:11px">Выбери руну, затем соседнюю такую же. Слияние усиливает её. Получив III, механизм раскроет верхний проход.</p><button class="btn alt" id="closePuzzle">Отойти</button></div></div>
@@ -69,15 +69,15 @@ function hud(){document.getElementById("hp").textContent=Math.max(0,Math.round(S
 function save(){localStorage.setItem("tlt_v02",JSON.stringify({bookFound:S.bookFound,bookPages:S.bookPages,puzzleSolved:S.puzzleSolved,doubleJump:S.doubleJump,checkpoint:S.checkpoint,shards:S.shards,story:S.story,spawn:S.spawn,crystals:S.crystals,enemyDead:S.enemy.dead,secrets:S.secrets,secretFound:S.secret.found,questSigns:S.questSigns,signs:S.signs,totemUsed:S.totem.used,cacheOpened:S.cache.opened}))}
 function load(){try{const q=JSON.parse(localStorage.getItem("tlt_v02")||"null");if(!q)return false;S.bookFound=!!q.bookFound;S.bookPages=q.bookPages||0;S.puzzleSolved=!!q.puzzleSolved;S.doubleJump=!!q.doubleJump;S.p.maxJumps=S.doubleJump?2:1;S.checkpoint=!!q.checkpoint;S.shards=q.shards||0;S.questSigns=q.questSigns||0;S.signs=S.signs||[{x:2390,y:260,found:false},{x:2940,y:235,found:false},{x:3860,y:240,found:false}];S.signs.forEach((z,i)=>z.found=!!(q.signs&&q.signs[i]));S.secrets=q.secrets||0;S.story=q.story||S.story;S.spawn=q.spawn||S.spawn;S.p.x=S.spawn.x;S.p.y=S.spawn.y;S.enemy.dead=!!q.enemyDead;S.enemy.hp=S.enemy.dead?0:120;if(q.crystals)S.crystals=q.crystals;hud();return true}catch(e){return false}}
 S.crystals=[{x:2310,y:275,taken:false,b:0},{x:2818,y:245,taken:false,b:1.7},{x:3555,y:290,taken:false,b:3}];
-function start(){S.mode="play";document.getElementById("start").classList.add("hidden");toast("Иди вправо. Сумка Миры впереди.",1300);hud()}
+function start(){S.mode="play";document.getElementById("start").classList.add("hidden");toast("Иди вправо. Сумка Миры впереди.",1300);hud();updateContextButtons()}
 function reset(){localStorage.removeItem("tlt_v02");location.reload()}
-function openBook(){if(!S.bookFound||S.mode==="menu")return;S.mode="book";document.getElementById("book").classList.remove("hidden");renderBook()}
-function closeBook(){if(S.mode==="book")S.mode="play";document.getElementById("book").classList.add("hidden")}
+function openBook(){if(!S.bookFound||S.mode==="menu")return;S.mode="book";document.getElementById("book").classList.remove("hidden");updateContextButtons();renderBook()}
+function closeBook(){if(S.mode==="book")S.mode="play";document.getElementById("book").classList.add("hidden");updateContextButtons()}
 function renderBook(){document.getElementById("pageLeft").innerHTML="<span class='sig'>РЕН</span><br><br>«Первое имя записано».<br><br>"+(S.shards?"Найдено осколков: "+S.shards:"Память пока молчит.")+(S.story.miraWhisper?"<br><br><em>Запись появилась сама: «МИРА БЫЛА ЗДЕСЬ».</em>":"");document.getElementById("pageRight").innerHTML=S.puzzleSolved?"Печать III открыла верхний маршрут.<br><br>Новая способность: <b>двойной прыжок</b>.<br><br>"+(S.shards?"Некоторые страницы реагируют на осколки памяти.":""):(S.bookFound?"На книге тот же знак, что и на древней машине.<br><br>Книга не даёт готового решения. Она заставляет тебя заметить связь.":"Книга без названия.")}
 function showModal(t,b){document.getElementById("mTitle").textContent=t;document.getElementById("mBody").textContent=b;document.getElementById("modal").classList.remove("hidden");S.mode="modal"}
 function jump(){if(S.mode!=="play")return;S.jumpBuffer=.14;const p=S.p;if(p.ground||p.coyote>0){p.vy=-690;p.ground=false;p.coyote=0;p.jumps=1;return}if(S.doubleJump&&p.jumps<p.maxJumps){p.vy=-610;p.jumps++;toast("Второй прыжок",500)}}
-function burst(x,y,n=8,type="dust"){for(let i=0;i<n;i++){const a=Math.random()*Math.PI*2,v=type==="hit"?70+Math.random()*150:35+Math.random()*90;S.particles.push({x,y,vx:Math.cos(a)*v,vy:Math.sin(a)*v-25,life:.35+.25*Math.random(),max:.6,type})}}\nfunction attack(){if(S.mode!=="play")return;const p=S.p;if(p.atk>0)return;p.atk=.24;p.atkHit=false;burst(p.x+p.w/2,p.y+p.h-8,5,"dust");const h={x:p.dir>0?p.x+p.w:p.x-80,y:p.y+10,w:80,h:52};const e=S.enemy;if(!e.dead&&rect(h,e)){e.hp-=60;e.cd=.35;e.hit=.18;S.flash=.12;S.shake=.12;burst(e.x+26,e.y+28,12,"hit");toast(e.hp>0?"Страж ранен":"Страж повержен",750);if(e.hp<=0){e.dead=true;S.bookPages++;save()}}}
-function interact(){if(S.mode!=="play")return;const p=S.p;\nif(rect(p,{x:S.miraEcho.x-110,y:S.miraEcho.y-115,w:220,h:230})&&!S.miraEcho.seen){S.miraEcho.seen=true;S.story.miraWhisper=true;S.bookPages++;startQuickQuest();objective("Мира оставила испытание. Ищи три знака.");save();return}\nfor(const z of S.signs){if(!z.found&&rect(p,{x:z.x-70,y:z.y-80,w:70+140,h:70+160})){z.found=true;S.questSigns++;S.bookPages++;S.flash=.16;burst(z.x+20,z.y+25,10,"hit");toast("Знак найден: "+S.questSigns+"/3",1000);checkSigns();save();return}}\nif(rect(p,{x:S.secret.x-65,y:S.secret.y-85,w:S.secret.w+130,h:S.secret.h+170})&&!S.secret.found){S.secret.found=true;S.secrets++;S.bookPages++;S.flash=.22;S.shake=.12;burst(S.secret.x+35,S.secret.y+35,18,"hit");toast("Секретная ниша: найден Знак Памяти.",1800);objective("Секрет найден. Храм хранит больше, чем показывает.");save();return}\nif(rect(p,{x:S.totem.x-85,y:S.totem.y-95,w:S.totem.w+170,h:S.totem.h+190})&&!S.totem.used){S.totem.used=true;S.doubleJump=true;S.p.maxJumps=2;S.bookPages++;S.flash=.18;burst(S.totem.x+25,S.totem.y+30,14,"hit");toast("Тотем пробудил второй прыжок.",1500);objective("Способность получена. Ищи скрытые верхние маршруты.");save();return}\nif(rect(p,{x:S.cache.x-90,y:S.cache.y-90,w:S.cache.w+180,h:S.cache.h+180})&&!S.cache.opened){S.cache.opened=true;S.shards=Math.min(3,S.shards+1);S.bookPages++;S.flash=.25;burst(S.cache.x+32,S.cache.y+32,16,"hit");toast("Скрытый тайник: осколок памяти.",1600);objective(S.shards<3?"Осколков памяти: "+S.shards+"/3":"Три осколка собраны. Вернись к алтарю.");save();return}
+function burst(x,y,n=8,type="dust"){for(let i=0;i<n;i++){const a=Math.random()*Math.PI*2,v=type==="hit"?70+Math.random()*150:35+Math.random()*90;S.particles.push({x,y,vx:Math.cos(a)*v,vy:Math.sin(a)*v-25,life:.35+.25*Math.random(),max:.6,type})}}\nfunction attack(){if(S.mode!=="play"||getContextAction()!=="attack")return;const p=S.p;if(p.atk>0)return;p.atk=.24;p.atkHit=false;burst(p.x+p.w/2,p.y+p.h-8,5,"dust");const h={x:p.dir>0?p.x+p.w:p.x-80,y:p.y+10,w:80,h:52};const e=S.enemy;if(!e.dead&&rect(h,e)){e.hp-=60;e.cd=.35;e.hit=.18;S.flash=.12;S.shake=.12;burst(e.x+26,e.y+28,12,"hit");toast(e.hp>0?"Страж ранен":"Страж повержен",750);if(e.hp<=0){e.dead=true;S.bookPages++;save()}}}
+function interact(){if(S.mode!=="play"||getContextAction()!=="interact")return;const p=S.p;\nif(rect(p,{x:S.miraEcho.x-110,y:S.miraEcho.y-115,w:220,h:230})&&!S.miraEcho.seen){S.miraEcho.seen=true;S.story.miraWhisper=true;S.bookPages++;startQuickQuest();objective("Мира оставила испытание. Ищи три знака.");save();return}\nfor(const z of S.signs){if(!z.found&&rect(p,{x:z.x-70,y:z.y-80,w:70+140,h:70+160})){z.found=true;S.questSigns++;S.bookPages++;S.flash=.16;burst(z.x+20,z.y+25,10,"hit");toast("Знак найден: "+S.questSigns+"/3",1000);checkSigns();save();return}}\nif(rect(p,{x:S.secret.x-65,y:S.secret.y-85,w:S.secret.w+130,h:S.secret.h+170})&&!S.secret.found){S.secret.found=true;S.secrets++;S.bookPages++;S.flash=.22;S.shake=.12;burst(S.secret.x+35,S.secret.y+35,18,"hit");toast("Секретная ниша: найден Знак Памяти.",1800);objective("Секрет найден. Храм хранит больше, чем показывает.");save();return}\nif(rect(p,{x:S.totem.x-85,y:S.totem.y-95,w:S.totem.w+170,h:S.totem.h+190})&&!S.totem.used){S.totem.used=true;S.doubleJump=true;S.p.maxJumps=2;S.bookPages++;S.flash=.18;burst(S.totem.x+25,S.totem.y+30,14,"hit");toast("Тотем пробудил второй прыжок.",1500);objective("Способность получена. Ищи скрытые верхние маршруты.");save();return}\nif(rect(p,{x:S.cache.x-90,y:S.cache.y-90,w:S.cache.w+180,h:S.cache.h+180})&&!S.cache.opened){S.cache.opened=true;S.shards=Math.min(3,S.shards+1);S.bookPages++;S.flash=.25;burst(S.cache.x+32,S.cache.y+32,16,"hit");toast("Скрытый тайник: осколок памяти.",1600);objective(S.shards<3?"Осколков памяти: "+S.shards+"/3":"Три осколка собраны. Вернись к алтарю.");save();return}
 if(rect(p,{x:S.bag.x-60,y:S.bag.y-80,w:S.bag.w+120,h:S.bag.h+160})&&!S.bookFound){S.bookFound=true;S.bookPages=1;objective("Открой Книгу Порога.");toast("Книга найдена. Она записывает твоё имя.",1800);hud();save();return}
 if(S.bookFound&&!S.puzzleSolved&&rect(p,{x:S.mechanism.x-95,y:S.mechanism.y-95,w:S.mechanism.w+190,h:S.mechanism.h+190})){openPuzzle();return}
 if(rect(p,{x:S.altar.x-110,y:S.altar.y-105,w:S.altar.w+220,h:S.altar.h+190})){if(!S.checkpoint){S.checkpoint=true;S.spawn={x:S.altar.x-35,y:S.altar.y-70};save();objective(S.shards<3?"Собери три осколка памяти.":"Дойди до последних врат.");toast("Алтарь связал твою память с храмом.",1700)}else toast("Точка возврата уже сохранена.",750);return}
@@ -85,6 +85,50 @@ if(rect(p,{x:S.miraEcho.x-110,y:S.miraEcho.y-115,w:220,h:230})&&!S.miraEcho.seen
 if(rect(p,{x:S.finalGate.x-115,y:S.finalGate.y-110,w:S.finalGate.w+230,h:S.finalGate.h+220})&&S.shards>=3&&S.checkpoint){showModal("МИРА","«Рен… не верь тому, что книга называет прошлым. Иногда Порог пишет то, что ещё не случилось.»");return}
 toast("Ничего не происходит.",650)}
 function interactPrompt(kind){toast(kind,900)}
+function distanceTo(a,b){const ax=a.x+a.w/2,ay=a.y+a.h/2,bx=b.x+b.w/2,by=b.y+b.h/2;return Math.hypot(ax-bx,ay-by)}
+function contextRect(target,paddingX=70,paddingY=80){return {x:target.x-paddingX,y:target.y-paddingY,w:target.w+paddingX*2,h:target.h+paddingY*2}}
+function getContextAction(){
+ const p=S.p;
+ const e=S.enemy;
+ const attackBox={x:p.dir>0?p.x+p.w:p.x-86,y:p.y+8,w:86,h:58};
+ if(!e.dead&&e.hp>0&&rect(attackBox,e)&&Math.abs(p.y-e.y)<78)return "attack";
+ const candidates=[];
+ const push=(target,enabled=true)=>{if(enabled&&rect(p,contextRect(target)))candidates.push(distanceTo(p,target))};
+ push(S.bag,!S.bookFound);
+ push(S.mechanism,S.bookFound&&!S.puzzleSolved);
+ push({x:S.miraEcho.x-38,y:S.miraEcho.y-78,w:76,h:156},!S.miraEcho.seen);
+ for(const z of S.signs)push({x:z.x,y:z.y,w:44,h:44},!z.found);
+ push(S.secret,!S.secret.found);
+ push(S.totem,!S.totem.used);
+ push(S.cache,!S.cache.opened);
+ push(S.altar,!S.checkpoint);
+ push(S.finalGate,S.shards>=3&&S.checkpoint);
+ return candidates.length?"interact":null;
+}
+function updateContextButtons(){
+ const attackBtn=document.querySelector('.acts .attack');
+ const interactBtn=document.querySelector('.acts .interact');
+ const hint=document.getElementById("hint");
+ if(S.mode!=="play"){attackBtn.classList.add("context-hidden");interactBtn.classList.add("context-hidden");return}
+ const action=getContextAction();
+ attackBtn.classList.remove("context-active","context-attack");
+ interactBtn.classList.remove("context-active","context-interact");
+ if(action==="attack"){
+   attackBtn.classList.remove("context-hidden");attackBtn.classList.add("context-active","context-attack");
+   interactBtn.classList.add("context-hidden");
+   attackBtn.textContent="УДАР";
+   hint.textContent="УДАР — враг в зоне атаки";
+ }else if(action==="interact"){
+   attackBtn.classList.add("context-hidden");
+   interactBtn.classList.remove("context-hidden");interactBtn.classList.add("context-active","context-interact");
+   interactBtn.textContent="ВЗАИМОДЕЙСТВИЕ";
+   hint.textContent="ВЗАИМОДЕЙСТВИЕ — рядом важный объект";
+ }else{
+   attackBtn.classList.add("context-hidden");
+   interactBtn.classList.add("context-hidden");
+   hint.textContent="← → движение · SPACE прыжок · B книга · SHIFT удар";
+ }
+}
 function checkSigns(){
  if(S.questSigns>=3){objective("Испытание Миры завершено. Книга получила новую запись.");S.bookPages++;S.story.miraWhisper=true;save();toast("Три знака найдены. Книга изменилась.",1700)}
 }
@@ -94,7 +138,7 @@ function buildPuzzle(){const g=document.getElementById("grid");g.innerHTML="";pu
 function adjacent(a,b){return Math.abs(a%4-b%4)+Math.abs(Math.floor(a/4)-Math.floor(b/4))===1}
 function puzClick(i){if(!puzzle[i])return;if(selected<0){selected=i;buildPuzzle();return}if(i===selected){selected=-1;buildPuzzle();return}if(adjacent(selected,i)&&puzzle[selected]===puzzle[i]){puzzle[selected]++;puzzle[i]=0;const v=puzzle[selected];selected=-1;buildPuzzle();if(v>=3){S.puzzleSolved=true;S.doubleJump=true;S.p.maxJumps=2;objective("Печать III разбудила механизм. Пройди верхний маршрут.");toast("Новая способность: ДВОЙНОЙ ПРЫЖОК",1900);save();setTimeout(closePuzzle,500)}else toast("Печать усилилась",500)}else{selected=i;buildPuzzle()}}
 function closePuzzle(){document.getElementById("puzzle").classList.add("hidden");S.mode="play";selected=-1}
-document.getElementById("startBtn").onclick=start;document.getElementById("loadBtn").onclick=()=>{if(load()){start();toast("Сохранение восстановлено",1200)}else toast("Сохранения нет",1000)};document.getElementById("bookBtn").onclick=openBook;document.getElementById("closeBook").onclick=closeBook;document.getElementById("closePuzzle").onclick=closePuzzle;document.getElementById("mOk").onclick=()=>{document.getElementById("modal").classList.add("hidden");S.mode="play"};
+document.getElementById("startBtn").onclick=start;document.getElementById("loadBtn").onclick=()=>{if(load()){start();toast("Сохранение восстановлено",1200)}else toast("Сохранения нет",1000)};document.getElementById("closeBook").onclick=closeBook;document.getElementById("closePuzzle").onclick=closePuzzle;document.getElementById("mOk").onclick=()=>{document.getElementById("modal").classList.add("hidden");S.mode="play"};
 addEventListener("keydown",e=>{const k=e.key.toLowerCase();S.keys[k]=true;if(k==="e")interact();else if(k==="b")openBook();else if(k===" ")jump();else if(k==="shift")attack();else if(k==="escape"&&S.mode==="play")showModal("Пауза","Игра приостановлена.");if(["arrowleft","arrowright","arrowup","arrowdown","a","d","w","s","e","b"," ","shift","escape"].includes(k))e.preventDefault()});
 addEventListener("keyup",e=>{const k=e.key.toLowerCase();S.keys[k]=false;if(k===" "&&S.p.vy<-180)S.p.vy*=.52});
 document.querySelectorAll(".pad button").forEach(b=>{const d=b.dataset.dir;b.addEventListener("pointerdown",e=>{e.preventDefault();if(d==="up")jump();if(d==="left"||d==="right")S.touch[d]=true;if(d==="down")S.touch.down=true});["pointerup","pointercancel","pointerleave"].forEach(t=>b.addEventListener(t,e=>{e.preventDefault();if(d==="left"||d==="right")S.touch[d]=false;if(d==="down")S.touch.down=false}) )});
@@ -155,7 +199,7 @@ function draw(){
  ctx.restore();
  const vg=ctx.createRadialGradient(vw/2,270,110,vw/2,270,445);vg.addColorStop(0,"rgba(0,0,0,0)");vg.addColorStop(1,"rgba(0,0,0,.56)");ctx.fillStyle=vg;ctx.fillRect(0,0,vw,vh);if(S.flash>0){ctx.fillStyle="rgba(240,216,132,"+(S.flash*.42)+")";ctx.fillRect(0,0,vw,vh);S.flash=Math.max(0,S.flash-.012)}
 }
-let last=performance.now();function loop(now){const dt=Math.min(.025,(now-last)/1000);last=now;S.t+=dt;if(S.mode==="play")platformUpdate(dt);draw();requestAnimationFrame(loop)}requestAnimationFrame(loop);hud();
+let last=performance.now();function loop(now){const dt=Math.min(.025,(now-last)/1000);last=now;S.t+=dt;if(S.mode==="play")platformUpdate(dt);draw();updateContextButtons();requestAnimationFrame(loop)}requestAnimationFrame(loop);hud();
 </script>
 </body>
 </html>
