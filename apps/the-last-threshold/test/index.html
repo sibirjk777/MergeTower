@@ -56,6 +56,8 @@ loadAsset("bag","../art/items/MEMORY_SHARD_GOLD_v01.svg");
 loadAsset("torch","../art/environments/temple/TORCH_WALL_v01.svg");
 loadAsset("spikes","../art/props/trap/TRAP_SPIKES_v01.svg");
 loadAsset("gate","../art/environments/temple/TEMPLE_GATE_MEMORY_v01.svg");
+const contextAttackButton=document.querySelector(".acts .attack");
+const contextInteractButton=document.querySelector(".acts .interact");
 const S={mode:"menu",t:0,bookFound:false,bookPages:0,puzzleSolved:false,doubleJump:false,checkpoint:false,shards:0,secrets:0,story:{miraWhisper:false},keys:Object.create(null),touch:{left:false,right:false,down:false},jumpBuffer:0,spawn:{x:110,y:406},p:{x:110,y:406,w:44,h:70,vx:0,vy:0,ground:false,jumps:0,maxJumps:1,coyote:0,dir:1,hp:100,inv:0,atk:0,atkHit:false,land:0},enemy:{x:1845,y:418,w:52,h:58,hp:120,dead:false,dir:-1,cd:0,hit:0},altar:{x:3370,y:412,w:78,h:64,used:false},bag:{x:365,y:428,w:58,h:48},mechanism:{x:1040,y:295,w:92,h:70},barrier:{x:1195,y:305,w:52,h:171},miraEcho:{x:2580,y:382,seen:false},finalGate:{x:4690,y:280,w:82,h:196},secret:{x:2200,y:245,w:70,h:70,found:false},signs:[{x:2390,y:260,found:false},{x:2940,y:235,found:false},{x:3860,y:240,found:false}],questSigns:0,totem:{x:3070,y:265,w:55,h:65,used:false},cache:{x:3980,y:290,w:65,h:65,opened:false},moving:{x:1485,y:380,w:145,h:18,baseY:380,phase:0,prevY:380},particles:[],shake:0,cameraX:0};
 const plats=[
 {x:0,y:476,w:610,h:44},{x:670,y:476,w:235,h:44},{x:980,y:476,w:210,h:44},{x:1245,y:476,w:230,h:44},{x:1510,y:476,w:205,h:44},{x:1760,y:476,w:285,h:44},{x:2080,y:476,w:225,h:44},{x:2350,y:476,w:215,h:44},{x:2610,y:476,w:230,h:44},{x:2895,y:476,w:225,h:44},{x:3170,y:476,w:230,h:44},{x:3440,y:476,w:235,h:44},{x:3720,y:476,w:300,h:44},{x:4070,y:476,w:260,h:44},{x:4380,y:476,w:350,h:44},
@@ -93,21 +95,21 @@ function getContextAction(){
  const attackBox={x:p.dir>0?p.x+p.w:p.x-86,y:p.y+8,w:86,h:58};
  if(!e.dead&&e.hp>0&&rect(attackBox,e)&&Math.abs(p.y-e.y)<78)return "attack";
  const candidates=[];
- const push=(target,enabled=true)=>{if(enabled&&rect(p,contextRect(target)))candidates.push(distanceTo(p,target))};
- push(S.bag,!S.bookFound);
- push(S.mechanism,S.bookFound&&!S.puzzleSolved);
- push({x:S.miraEcho.x-38,y:S.miraEcho.y-78,w:76,h:156},!S.miraEcho.seen);
- for(const z of S.signs)push({x:z.x,y:z.y,w:44,h:44},!z.found);
- push(S.secret,!S.secret.found);
- push(S.totem,!S.totem.used);
- push(S.cache,!S.cache.opened);
- push(S.altar,!S.checkpoint);
- push(S.finalGate,S.shards>=3&&S.checkpoint);
+ const pushRect=(target,enabled=true)=>{if(enabled&&rect(p,target))candidates.push(distanceTo(p,target))};
+ pushRect({x:S.bag.x-60,y:S.bag.y-80,w:S.bag.w+120,h:S.bag.h+160},!S.bookFound);
+ pushRect({x:S.mechanism.x-95,y:S.mechanism.y-95,w:S.mechanism.w+190,h:S.mechanism.h+190},S.bookFound&&!S.puzzleSolved);
+ pushRect({x:S.miraEcho.x-110,y:S.miraEcho.y-115,w:220,h:230},!S.miraEcho.seen);
+ for(const z of S.signs)pushRect({x:z.x-70,y:z.y-80,w:210,h:230},!z.found);
+ pushRect({x:S.secret.x-65,y:S.secret.y-85,w:S.secret.w+130,h:S.secret.h+170},!S.secret.found);
+ pushRect({x:S.totem.x-85,y:S.totem.y-95,w:S.totem.w+170,h:S.totem.h+190},!S.totem.used);
+ pushRect({x:S.cache.x-90,y:S.cache.y-90,w:S.cache.w+180,h:S.cache.h+180},!S.cache.opened);
+ pushRect({x:S.altar.x-110,y:S.altar.y-105,w:S.altar.w+220,h:S.altar.h+190},!S.checkpoint);
+ pushRect({x:S.finalGate.x-115,y:S.finalGate.y-110,w:S.finalGate.w+230,h:S.finalGate.h+220},S.shards>=3&&S.checkpoint);
  return candidates.length?"interact":null;
 }
 function updateContextButtons(){
- const attackBtn=document.querySelector('.acts .attack');
- const interactBtn=document.querySelector('.acts .interact');
+ const attackBtn=contextAttackButton;
+ const interactBtn=contextInteractButton;
  const hint=document.getElementById("hint");
  if(S.mode!=="play"){attackBtn.classList.add("context-hidden");interactBtn.classList.add("context-hidden");return}
  const action=getContextAction();
@@ -195,7 +197,7 @@ function draw(){
  // guardian
  const e=S.enemy;if(!e.dead){const ga=e.cd>0&&Math.abs(S.p.x-e.x)<78?ASSET.guardianAttack:(e.hp<120?ASSET.guardianHurt:ASSET.guardianIdle);if(ga)ctx.drawImage(ga,e.x-8,e.y-18,68,92);else{ctx.fillStyle="#171b1c";ctx.beginPath();ctx.ellipse(e.x+26,e.y+31,31,31,0,0,Math.PI*2);ctx.fill();}if(!ga){ctx.fillStyle="#9e6557";ctx.fillRect(e.x+10,e.y+18,9,7);ctx.fillRect(e.x+34,e.y+18,9,7);ctx.fillStyle="#e4cf92";ctx.fillRect(e.x+13,e.y+20,3,3);ctx.fillRect(e.x+37,e.y+20,3,3)}if(e.hp<120){ctx.fillStyle="#4c302e";ctx.fillRect(e.x,e.y-12,52,5);ctx.fillStyle="#b96558";ctx.fillRect(e.x,e.y-12,52*(e.hp/120),5)}}
  // hero
- const p=S.p;const nearBag=!S.bookFound&&rect(p,{x:S.bag.x-60,y:S.bag.y-80,w:S.bag.w+120,h:S.bag.h+160});const nearMechanism=S.bookFound&&!S.puzzleSolved&&rect(p,{x:S.mechanism.x-95,y:S.mechanism.y-95,w:S.mechanism.w+190,h:S.mechanism.h+190});const nearAltar=rect(p,{x:S.altar.x-110,y:S.altar.y-105,w:S.altar.w+220,h:S.altar.h+190});const nearMira=!S.miraEcho.seen&&rect(p,{x:S.miraEcho.x-110,y:S.miraEcho.y-115,w:220,h:230});const nearGate=rect(p,{x:S.finalGate.x-115,y:S.finalGate.y-110,w:S.finalGate.w+230,h:S.finalGate.h+220});document.getElementById("hint").textContent=(nearBag||nearMechanism||nearAltar||nearMira||nearGate)?"E / ВЗАИМОДЕЙСТВИЕ":"← → движение · SPACE прыжок · SHIFT удар · B книга";ctx.save();ctx.translate(p.x+p.w/2,p.y+p.h/2);ctx.scale(p.dir,1);if(p.inv>0)ctx.globalAlpha=.45;const heroAsset=p.ground?(Math.abs(p.vx)>35?ASSET.renRun:ASSET.renIdle):ASSET.renJump;if(heroAsset){ctx.globalAlpha*=.98;ctx.drawImage(heroAsset,-32,-48,64,96)}if(!heroAsset){ctx.fillStyle="#d4c5a2";ctx.beginPath();ctx.arc(0,-20,14,0,Math.PI*2);ctx.fill();ctx.fillStyle="#29342f";ctx.fillRect(-16,-5,32,39);ctx.fillStyle="#624b38";ctx.fillRect(-13,32,10,29);ctx.fillRect(3,32,10,29);ctx.fillStyle="#bfa970";ctx.fillRect(-18,-3,36,8);ctx.fillStyle="#9d8558";ctx.fillRect(16,0,5,30)}if(p.atk>0){ctx.strokeStyle="#eee2b8";ctx.lineWidth=6;ctx.beginPath();ctx.moveTo(18,0);ctx.lineTo(58,-22);ctx.stroke()}ctx.restore();
+ const p=S.p;ctx.save();ctx.translate(p.x+p.w/2,p.y+p.h/2);ctx.scale(p.dir,1);if(p.inv>0)ctx.globalAlpha=.45;const heroAsset=p.ground?(Math.abs(p.vx)>35?ASSET.renRun:ASSET.renIdle):ASSET.renJump;if(heroAsset){ctx.globalAlpha*=.98;ctx.drawImage(heroAsset,-32,-48,64,96)}if(!heroAsset){ctx.fillStyle="#d4c5a2";ctx.beginPath();ctx.arc(0,-20,14,0,Math.PI*2);ctx.fill();ctx.fillStyle="#29342f";ctx.fillRect(-16,-5,32,39);ctx.fillStyle="#624b38";ctx.fillRect(-13,32,10,29);ctx.fillRect(3,32,10,29);ctx.fillStyle="#bfa970";ctx.fillRect(-18,-3,36,8);ctx.fillStyle="#9d8558";ctx.fillRect(16,0,5,30)}if(p.atk>0){ctx.strokeStyle="#eee2b8";ctx.lineWidth=6;ctx.beginPath();ctx.moveTo(18,0);ctx.lineTo(58,-22);ctx.stroke()}ctx.restore();
  ctx.restore();
  const vg=ctx.createRadialGradient(vw/2,270,110,vw/2,270,445);vg.addColorStop(0,"rgba(0,0,0,0)");vg.addColorStop(1,"rgba(0,0,0,.56)");ctx.fillStyle=vg;ctx.fillRect(0,0,vw,vh);if(S.flash>0){ctx.fillStyle="rgba(240,216,132,"+(S.flash*.42)+")";ctx.fillRect(0,0,vw,vh);S.flash=Math.max(0,S.flash-.012)}
 }
