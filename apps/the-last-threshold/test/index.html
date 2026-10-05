@@ -96,9 +96,10 @@ function legacyInteract(targetId){
  if(targetId==="gate"&&S.shards>=3&&S.checkpoint){showModal("МИРА","«Рен… не верь тому, что книга называет прошлым. Иногда Порог пишет то, что ещё не случилось.»");return true}
  return false;
 }
+let coreInteractionsRegistered=false;
 function ensureCoreInteractions(){
  const api=window.ThresholdCoreAPI;
- if(!api||api._interactionsRegistered)return;
+ if(!api||coreInteractionsRegistered)return;
  api.registerInteractionTargets([
    {id:"bag",label:"Взаимодействие",priority:80,once:true,bounds:()=>contextRect(S.bag,60,80),enabled:()=>!S.bookFound,execute:()=>legacyInteract("bag")},
    {id:"mechanism",label:"Взаимодействие",priority:80,once:false,bounds:()=>contextRect(S.mechanism,95,95),enabled:()=>S.bookFound&&!S.puzzleSolved,execute:()=>legacyInteract("mechanism")},
@@ -110,7 +111,7 @@ function ensureCoreInteractions(){
    {id:"altar",label:"Взаимодействие",priority:60,once:false,bounds:()=>contextRect(S.altar,110,105),enabled:()=>true,execute:()=>legacyInteract("altar")},
    {id:"gate",label:"Взаимодействие",priority:100,once:false,bounds:()=>contextRect(S.finalGate,115,110),enabled:()=>S.shards>=3&&S.checkpoint,execute:()=>legacyInteract("gate")}
  ]);
- api._interactionsRegistered=true;
+ coreInteractionsRegistered=true;
 }
 function interact(){
  if(S.mode!=="play")return;
