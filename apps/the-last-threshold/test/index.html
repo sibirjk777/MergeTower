@@ -94,19 +94,30 @@ function getContextAction(){
  const p=S.p;
  const e=S.enemy;
  const attackBox={x:p.dir>0?p.x+p.w:p.x-86,y:p.y+8,w:86,h:58};
- if(!e.dead&&e.hp>0&&rect(attackBox,e)&&Math.abs(p.y-e.y)<78)return "attack";
- const candidates=[];
- const pushRect=(target,enabled=true)=>{if(enabled&&rect(p,target))candidates.push(distanceTo(p,target))};
- pushRect({x:S.bag.x-60,y:S.bag.y-80,w:S.bag.w+120,h:S.bag.h+160},!S.bookFound);
- pushRect({x:S.mechanism.x-95,y:S.mechanism.y-95,w:S.mechanism.w+190,h:S.mechanism.h+190},S.bookFound&&!S.puzzleSolved);
- pushRect({x:S.miraEcho.x-110,y:S.miraEcho.y-115,w:220,h:230},!S.miraEcho.seen);
- for(const z of S.signs)pushRect({x:z.x-70,y:z.y-80,w:210,h:230},!z.found);
- pushRect({x:S.secret.x-65,y:S.secret.y-85,w:S.secret.w+130,h:S.secret.h+170},!S.secret.found);
- pushRect({x:S.totem.x-85,y:S.totem.y-95,w:S.totem.w+170,h:S.totem.h+190},!S.totem.used);
- pushRect({x:S.cache.x-90,y:S.cache.y-90,w:S.cache.w+180,h:S.cache.h+180},!S.cache.opened);
- pushRect({x:S.altar.x-110,y:S.altar.y-105,w:S.altar.w+220,h:S.altar.h+190},!S.checkpoint);
- pushRect({x:S.finalGate.x-115,y:S.finalGate.y-110,w:S.finalGate.w+230,h:S.finalGate.h+220},S.shards>=3&&S.checkpoint);
- return candidates.length?"interact":null;
+ const enemyInRange=!e.dead&&e.hp>0&&rect(attackBox,e)&&Math.abs(p.y-e.y)<78;
+ const interactionTargets=[
+   {x:S.bag.x-60,y:S.bag.y-80,w:S.bag.w+120,h:S.bag.h+160,enabled:!S.bookFound},
+   {x:S.mechanism.x-95,y:S.mechanism.y-95,w:S.mechanism.w+190,h:S.mechanism.h+190,enabled:S.bookFound&&!S.puzzleSolved},
+   {x:S.miraEcho.x-110,y:S.miraEcho.y-115,w:220,h:230,enabled:!S.miraEcho.seen},
+   ...S.signs.map(z=>({x:z.x-70,y:z.y-80,w:210,h:230,enabled:!z.found})),
+   {x:S.secret.x-65,y:S.secret.y-85,w:S.secret.w+130,h:S.secret.h+170,enabled:!S.secret.found},
+   {x:S.totem.x-85,y:S.totem.y-95,w:S.totem.w+170,h:S.totem.h+190,enabled:!S.totem.used},
+   {x:S.cache.x-90,y:S.cache.y-90,w:S.cache.w+180,h:S.cache.h+180,enabled:!S.cache.opened},
+   {x:S.altar.x-110,y:S.altar.y-105,w:S.altar.w+220,h:S.altar.h+190,enabled:!S.checkpoint},
+   {x:S.finalGate.x-115,y:S.finalGate.y-110,w:S.finalGate.w+230,h:S.finalGate.h+220,enabled:S.shards>=3&&S.checkpoint}
+ ];
+ const interactionAvailable=interactionTargets.some(t=>t.enabled&&rect(p,t));
+ const coreApi=window.ThresholdCoreAPI;
+ if(coreApi){
+   const result=coreApi.resolveContext({
+     enemyInRange,
+     canAttack:p.atk<=0,
+     interactionAvailable,
+     pickupAvailable:false
+   });
+   return result.active==="attack"?"attack":result.active==="interact"?"interact":null;
+ }
+ return enemyInRange?"attack":interactionAvailable?"interact":null;
 }
 function updateContextButtons(){
  const attackBtn=contextAttackButton;
