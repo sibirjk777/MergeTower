@@ -1,4 +1,4 @@
-import { createCore, ActionType } from './core_systems.js';
+import { createCore, ActionType, InteractionTarget } from './core_systems.js';
 
 const core = createCore({
   game: 'the-last-threshold',
@@ -33,5 +33,29 @@ window.ThresholdCoreAPI = Object.freeze({
   },
   worldSnapshot() {
     return core.worldState.snapshot();
+  },
+  registerInteractionTargets(definitions = []) {
+    for (const definition of definitions) {
+      const bounds = typeof definition.bounds === 'function' ? definition.bounds() : definition.bounds;
+      const target = new InteractionTarget({
+        id: definition.id,
+        label: definition.label,
+        action: ActionType.INTERACT,
+        x: bounds.x,
+        y: bounds.y,
+        width: bounds.w ?? bounds.width,
+        height: bounds.h ?? bounds.height,
+        priority: definition.priority ?? 0,
+        once: Boolean(definition.once),
+        condition: definition.enabled || definition.condition || (() => true),
+        execute: definition.execute || (() => true)
+      });
+      core.interaction.register(target);
+    }
+    return true;
+  },
+  executeInteraction(context = {}) {
+    core.interaction.update(context);
+    return core.interaction.executeCurrent(context);
   }
 });
