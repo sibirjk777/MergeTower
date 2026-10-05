@@ -65,14 +65,43 @@ const plats=[
 {x:355,y:370,w:155,h:18},{x:545,y:310,w:145,h:18},{x:770,y:380,w:150,h:18},{x:900,y:350,w:175,h:18},{x:1260,y:355,w:150,h:18},{x:1515,y:325,w:150,h:18},{x:1725,y:350,w:160,h:18},{x:2050,y:345,w:170,h:18},{x:2295,y:310,w:150,h:18},{x:2540,y:342,w:150,h:18},{x:2765,y:285,w:155,h:18},{x:3020,y:330,w:160,h:18},{x:3260,y:285,w:165,h:18},{x:3510,y:330,w:155,h:18},{x:3760,y:290,w:170,h:18},{x:4005,y:350,w:160,h:18},{x:4250,y:300,w:165,h:18}
 ];
 const puzzle=[2,1,1,0,0,0,2,0,1,0,0,2,0,1,0,0];let selected=-1;
+const CORE_ARTIFACTS={
+  memoryMark:{name:"Знак Памяти",description:"След древнего хранителя. Усиливает связь Рена с Порогом."},
+  secondJump:{name:"Искра Второго Прыжка",description:"Позволяет выполнять второй прыжок в воздухе."},
+  memoryShard:{name:"Осколок Памяти",description:"Фрагмент памяти, необходимый для открытия последних врат."}
+};
 function resize(){const d=Math.min(devicePixelRatio||1,2);c.width=Math.floor(innerWidth*d);c.height=Math.floor(innerHeight*d)}addEventListener("resize",resize);resize();
 function toast(m,ms=1500){const e=document.getElementById("toast");e.textContent=m;e.style.opacity=1;e.style.transform="translate(-50%,0)";clearTimeout(toast.t);toast.t=setTimeout(()=>{e.style.opacity=0;e.style.transform="translate(-50%,14px)"},ms)}
 function objective(t){S.objective=t;document.getElementById("objective").textContent=t}
 function hud(){document.getElementById("hp").textContent=Math.max(0,Math.round(S.p.hp));document.getElementById("hpFill").style.width=Math.max(0,S.p.hp)+"%";document.getElementById("shards").textContent=S.shards+" / 3";document.getElementById("ability").textContent=S.doubleJump?"Двойной прыжок":"Прыжок"}
-function save(){localStorage.setItem("tlt_v02",JSON.stringify({bookFound:S.bookFound,bookPages:S.bookPages,puzzleSolved:S.puzzleSolved,doubleJump:S.doubleJump,checkpoint:S.checkpoint,shards:S.shards,story:S.story,spawn:S.spawn,crystals:S.crystals,enemyDead:S.enemy.dead,secrets:S.secrets,secretFound:S.secret.found,questSigns:S.questSigns,signs:S.signs,totemUsed:S.totem.used,cacheOpened:S.cache.opened}))}
+function save(){syncCoreWorld();localStorage.setItem("tlt_v02",JSON.stringify({bookFound:S.bookFound,bookPages:S.bookPages,puzzleSolved:S.puzzleSolved,doubleJump:S.doubleJump,checkpoint:S.checkpoint,shards:S.shards,story:S.story,spawn:S.spawn,crystals:S.crystals,enemyDead:S.enemy.dead,secrets:S.secrets,secretFound:S.secret.found,questSigns:S.questSigns,signs:S.signs,totemUsed:S.totem.used,cacheOpened:S.cache.opened}))}
 function load(){try{const q=JSON.parse(localStorage.getItem("tlt_v02")||"null");if(!q)return false;S.bookFound=!!q.bookFound;S.bookPages=q.bookPages||0;S.puzzleSolved=!!q.puzzleSolved;S.doubleJump=!!q.doubleJump;S.p.maxJumps=S.doubleJump?2:1;S.checkpoint=!!q.checkpoint;S.shards=q.shards||0;S.questSigns=q.questSigns||0;S.signs=S.signs||[{x:2390,y:260,found:false},{x:2940,y:235,found:false},{x:3860,y:240,found:false}];S.signs.forEach((z,i)=>z.found=!!(q.signs&&q.signs[i]));S.secrets=q.secrets||0;S.story=q.story||S.story;S.spawn=q.spawn||S.spawn;S.p.x=S.spawn.x;S.p.y=S.spawn.y;S.enemy.dead=!!q.enemyDead;S.enemy.hp=S.enemy.dead?0:120;if(q.crystals)S.crystals=q.crystals;hud();return true}catch(e){return false}}
 S.crystals=[{x:2310,y:275,taken:false,b:0},{x:2818,y:245,taken:false,b:1.7},{x:3555,y:290,taken:false,b:3}];
-function start(){S.mode="play";document.getElementById("start").classList.add("hidden");toast("Иди вправо. Сумка Миры впереди.",1300);hud();updateContextButtons()}
+function syncCoreWorld(){
+ const core=window.ThresholdCore;
+ if(!core)return;
+ core.worldState.update({
+   playerHealth:S.p.hp,
+   memoryShards:S.shards,
+   checkpointActive:S.checkpoint,
+   bookFound:S.bookFound,
+   upperRouteOpen:S.puzzleSolved
+ });
+}
+function acquireCoreArtifact(id){
+ const core=window.ThresholdCore;
+ if(!core||!core.artifacts.has(id))return false;
+ return core.artifacts.acquire(id,{state:S});
+}
+function registerCoreArtifacts(){
+ const core=window.ThresholdCore;
+ if(!core||core._artifactsRegistered)return;
+ core.artifacts.register({id:"memoryMark",...CORE_ARTIFACTS.memoryMark});
+ core.artifacts.register({id:"secondJump",...CORE_ARTIFACTS.secondJump,effect:()=>{S.doubleJump=true;S.p.maxJumps=2}});
+ core.artifacts.register({id:"memoryShard",...CORE_ARTIFACTS.memoryShard});
+ core._artifactsRegistered=true;
+}
+function start(){registerCoreArtifacts();syncCoreWorld();S.mode="play";document.getElementById("start").classList.add("hidden");toast("Иди вправо. Сумка Миры впереди.",1300);hud();updateContextButtons()}
 function reset(){localStorage.removeItem("tlt_v02");location.reload()}
 function openBook(){if(!S.bookFound||S.mode==="menu")return;S.mode="book";document.getElementById("book").classList.remove("hidden");updateContextButtons();renderBook()}
 function closeBook(){if(S.mode==="book")S.mode="play";document.getElementById("book").classList.add("hidden");updateContextButtons()}
