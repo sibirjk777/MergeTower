@@ -1246,7 +1246,7 @@ crystals:[{x:2310,y:275,t:0,taken:false},{x:2818,y:245,t:1.7,taken:false},{x:355
 secretBox:{x:2200,y:245,found:false},cache:{x:3980,y:290,open:false},mira:{x:2580,y:382,seen:false},
 altar:{x:3370,y:412},gate:{x:4690,y:280},moving:{x:1485,y:380,base:380,phase:0,prev:380},
 lift3:{x:1510,y:410,min:250,max:410,phase:0,prev:410,w:190,h:18,paused:true,used:false,dockTimer:0},
-flash:0,shake:0,particles:[],keys:{},touch:{left:false,right:false},bridgeTune:false,thresholdChoice:"",chapter3Done:false,ending:"",focus:null,upperCheckpoint:false,bridgeCheckpoint:false,branchChoice:"",branchReward:"",branchRewardClaimed:false,branchEnemy:{x:3715,y:418,w:52,h:58,hp:100,dead:false,cd:0,hit:0},branchRelic:{x:4120,y:250,w:62,h:62,claimed:false}};
+flash:0,shake:0,particles:[],keys:{},touch:{left:false,right:false},bridgeTune:false,thresholdChoice:"",chapter3Done:false,ending:"",focus:null,upperCheckpoint:false,bridgeCheckpoint:false,branchChoice:"",branchReward:"",branchRewardClaimed:false,branchEnemy:{x:3715,y:418,w:52,h:58,hp:100,dead:false,cd:0,hit:0},branchRelic:{x:4120,y:250,w:62,h:62,claimed:false},endingExitOpen:false};
 const P=[
 [0,476,610,44],[670,476,235,44],[980,476,210,44],[1245,476,230,44],[1510,476,205,44],[1760,476,285,44],[2080,476,225,44],[2350,476,215,44],[2610,476,230,44],[2895,476,225,44],[3170,476,230,44],[3440,476,235,44],[3720,476,300,44],[4070,476,260,44],[4380,476,350,44],
 [355,370,155,18],[545,310,145,18],[770,380,150,18],[900,350,175,18],[1260,355,150,18],[1515,325,150,18],[1725,350,160,18],[2050,345,170,18],[2295,310,150,18],[2540,342,150,18],[2765,285,155,18],[3020,330,160,18],[3260,285,165,18],[3510,330,155,18],[3760,290,170,18],[4005,350,160,18],[4250,300,165,18]];
@@ -1264,7 +1264,7 @@ const P3=[
 [0,476,500,44],[580,476,220,44],[900,476,260,44],[1320,476,190,44],
 [1650,476,250,44],[2050,476,190,44],[2340,476,260,44],[2740,476,210,44],
 [3040,476,220,44],[3370,476,180,44],[3660,476,240,44],[3980,476,220,44],
-[4300,476,330,44],
+[4300,476,330,44],[4630,476,420,44],
 [120,360,160,18],[430,300,160,18],[650,380,150,18],[840,320,180,18],
 [1080,240,180,18],[1260,330,160,18],[1450,250,170,18],[1680,340,150,18],
 [1900,270,180,18],[2110,360,160,18],[2300,290,170,18],[2530,220,180,18],
@@ -1367,7 +1367,7 @@ function clearSave(){
   }catch(e){}
 }
 function save(){
-  return writeSave({level:S.level,book:S.book,checkpoint:S.checkpoint,spawn:S.spawn,shards:S.shards,double:S.double,secret:S.secret,signs:S.signs,archiveKeys:S.archiveKeys,archiveA:S.archiveA,archiveB:S.archiveB,threshold:S.threshold,bridge:S.bridge,upperCheckpoint:S.upperCheckpoint,bridgeCheckpoint:S.bridgeCheckpoint,thresholdChoice:S.thresholdChoice,chapter3Done:S.chapter3Done,ending:S.ending||"",liftUsed:S.lift3.used,liftPaused:S.lift3.paused,deadEnemy:S.enemy.dead,crystals:S.crystals,cache:S.cache.open,mira:S.mira.seen,branchChoice:S.branchChoice,branchReward:S.branchReward,branchRewardClaimed:S.branchRewardClaimed,branchEnemyDead:S.branchEnemy.dead,branchRelicClaimed:S.branchRelic.claimed});
+  return writeSave({level:S.level,book:S.book,checkpoint:S.checkpoint,spawn:S.spawn,shards:S.shards,double:S.double,secret:S.secret,signs:S.signs,archiveKeys:S.archiveKeys,archiveA:S.archiveA,archiveB:S.archiveB,threshold:S.threshold,bridge:S.bridge,upperCheckpoint:S.upperCheckpoint,bridgeCheckpoint:S.bridgeCheckpoint,thresholdChoice:S.thresholdChoice,chapter3Done:S.chapter3Done,ending:S.ending||"",liftUsed:S.lift3.used,liftPaused:S.lift3.paused,deadEnemy:S.enemy.dead,crystals:S.crystals,cache:S.cache.open,mira:S.mira.seen,branchChoice:S.branchChoice,branchReward:S.branchReward,branchRewardClaimed:S.branchRewardClaimed,branchEnemyDead:S.branchEnemy.dead,branchRelicClaimed:S.branchRelic.claimed,endingExitOpen:S.endingExitOpen});
 }
 function setLevelGeometry(level){
   S.level=Math.max(1,Math.min(3,Number(level)||1));
@@ -1414,7 +1414,7 @@ function load(){
     Object.assign(S,{book:!!q.book,checkpoint:!!q.checkpoint,shards:Number(q.shards)||0,double:!!q.double,secret:!!q.secret,signs:Number(q.signs)||0,archiveKeys:Number(q.archiveKeys)||0,archiveA:!!q.archiveA,archiveB:!!q.archiveB,threshold:!!q.threshold,bridge:!!q.bridge,thresholdChoice:q.thresholdChoice||"",chapter3Done:!!q.chapter3Done,ending:q.ending||"",upperCheckpoint:!!q.upperCheckpoint,bridgeCheckpoint:!!q.bridgeCheckpoint,branchChoice:q.branchChoice||"",branchReward:q.branchReward||"",branchRewardClaimed:!!q.branchRewardClaimed});
     const sx=Number(q.spawn?.x), sy=Number(q.spawn?.y);
     S.lift3.used=!!q.liftUsed; S.lift3.paused=!!q.liftPaused; S.lift3.dockTimer=0;
-    S.branchEnemy.dead=!!q.branchEnemyDead;S.branchEnemy.hp=S.branchEnemy.dead?0:100;S.branchEnemy.cd=0;S.branchRelic.claimed=!!q.branchRelicClaimed;S.branchRewardClaimed=!!q.branchRewardClaimed;
+    S.branchEnemy.dead=!!q.branchEnemyDead;S.branchEnemy.hp=S.branchEnemy.dead?0:100;S.branchEnemy.cd=0;S.branchRelic.claimed=!!q.branchRelicClaimed;S.branchRewardClaimed=!!q.branchRewardClaimed;S.endingExitOpen=!!q.endingExitOpen;
     S.spawn=validSpawn(sx,sy)?{x:sx,y:sy}:{x:90,y:390};
     resetPhysics(S.spawn.x,S.spawn.y);
     S.p.hp=100;
@@ -1426,7 +1426,7 @@ function load(){
 }
 function newGame(){
   clearSave();
-  S.level=1;S.book=false;S.checkpoint=false;S.shards=0;S.double=false;S.secret=false;S.signs=0;S.archiveKeys=0;S.archiveA=false;S.archiveB=false;S.threshold=false;S.bridge=false;S.upperCheckpoint=false;S.bridgeCheckpoint=false;S.thresholdChoice="";S.chapter3Done=false;S.ending="";S.branchChoice="";S.branchReward="";S.branchRewardClaimed=false;
+  S.level=1;S.book=false;S.checkpoint=false;S.shards=0;S.double=false;S.secret=false;S.signs=0;S.archiveKeys=0;S.archiveA=false;S.archiveB=false;S.threshold=false;S.bridge=false;S.upperCheckpoint=false;S.bridgeCheckpoint=false;S.thresholdChoice="";S.chapter3Done=false;S.ending="";S.branchChoice="";S.branchReward="";S.branchRewardClaimed=false;S.endingExitOpen=false;
   S.deadEnemy=false;S.cache.open=false;S.mira.seen=false;S.upperCheckpoint=false;S.bridgeCheckpoint=false;S.cam=0;S.mode="play";S.crystals.forEach(q=>q.taken=false);S.enemy.dead=false;S.enemy.hp=120;S.branchEnemy.dead=false;S.branchEnemy.hp=100;S.branchEnemy.cd=0;S.branchRelic.claimed=false;S.branchRewardClaimed=false;
   S.spawn={x:90,y:390};setLevelGeometry(1);resetPhysics(90,390);S.p.hp=100;
   document.body.classList.remove("menu");
@@ -1441,7 +1441,7 @@ S.archiveKeys=0;S.archiveA=false;S.archiveB=false;
 }
 function beginLevel3(){
   S.mode="play";S.cam=0;S.spawn={x:90,y:390};setLevelGeometry(3);resetPhysics(90,390);S.p.hp=100;S.threshold=false;
-S.bridge=false;S.thresholdChoice="";S.chapter3Done=false;S.ending="";S.branchChoice="";S.branchReward="";S.branchRewardClaimed=false;S.branchEnemy.dead=false;S.branchEnemy.hp=100;S.branchEnemy.cd=0;S.branchRelic.claimed=false;S.lift3.y=S.lift3.max;S.lift3.prev=S.lift3.y;S.lift3.phase=0;S.lift3.paused=true;S.lift3.used=false;S.lift3.dockTimer=0;
+S.bridge=false;S.thresholdChoice="";S.chapter3Done=false;S.ending="";S.branchChoice="";S.branchReward="";S.branchRewardClaimed=false;S.endingExitOpen=false;S.branchEnemy.dead=false;S.branchEnemy.hp=100;S.branchEnemy.cd=0;S.branchRelic.claimed=false;S.lift3.y=S.lift3.max;S.lift3.prev=S.lift3.y;S.lift3.phase=0;S.lift3.paused=true;S.lift3.used=false;S.lift3.dockTimer=0;
   $("#modal").classList.add("hidden");syncControls();
   obj("Глава III — Зал Порога. Активируй подъёмник, доберись до верхнего яруса и восстанови мост.");
   toast("ГЛАВА III: ЗАЛ ПОРОГА",1800);save();hud();
@@ -1498,7 +1498,18 @@ function interact(){
     case "bridge_mechanism":
       if(!S.upperCheckpoint){obj("Механизм моста не отвечает. Сначала доберись до верхнего яруса и активируй узел памяти.");toast("Сначала доберись до верхнего яруса.",1100);return;}
       if(!S.bridge)openBridgePuzzle(); else {toast("Переход уже восстановлен.",900);obj("Переход восстановлен. Перейди через центральную галерею и доберись до Сердца Порога.");} return;
-    case "branch_relic": if(S.branchChoice!=="upper")return;S.branchRelic.claimed=true;S.branchReward="silence";toast("ОСКОЛОК ТИШИНЫ ПРИНЯТ",1200);obj("Ты прошёл верхним путём. В Сердце Порога откроется иной ответ.");save();return;case "branch_cache": if(S.branchChoice!=="lower"||!S.branchEnemy.dead)return;S.branchReward="dark";S.shards=Math.min(3,S.shards+1);S.branchRewardClaimed=true;toast("ОСКОЛОК ТЬМЫ · "+S.shards+"/3",1200);obj("Нижний путь дал силу. Сердце Порога почувствует её.");save();hud();return;case "threshold":
+    case "branch_relic": if(S.branchChoice!=="upper")return;S.branchRelic.claimed=true;S.branchReward="silence";toast("ОСКОЛОК ТИШИНЫ ПРИНЯТ",1200);obj("Ты прошёл верхним путём. В Сердце Порога откроется иной ответ.");save();return;case "branch_cache": if(S.branchChoice!=="lower"||!S.branchEnemy.dead)return;S.branchReward="dark";S.shards=Math.min(3,S.shards+1);S.branchRewardClaimed=true;toast("ОСКОЛОК ТЬМЫ · "+S.shards+"/3",1200);obj("Нижний путь дал силу. Сердце Порога почувствует её.");save();hud();return;case "ending_exit":
+      if(!S.chapter3Done)return;
+      if(!S.endingExitOpen){
+        S.endingExitOpen=true;
+        const text={silent_mira:"Дверь отвечает на голос Миры. За ней — холодный воздух.",silent_self:"Тихая дверь открывается без звука. Рен больше не чувствует хватки Порога.",dark_mira:"Выход открывается, но тёмная память цепляется за Рена.",dark_self:"Чёрный проход принимает Рена. За спиной Сердце закрывает путь."};
+        obj(text[S.ending]||"Выход открыт."); toast("ВЫХОД ОТКРЫТ",1200); burst(4780,390,22); save();
+      }else{
+        modal("ЭПИЛОГ · "+(S.ending||"ПОРОГ"),{silent_mira:"За дверью слышен настоящий голос Миры. История ещё не закончена.",silent_self:"За дверью впервые нет шёпота Порога. Рен выходит один.",dark_mira:"Рен выходит с потерянным фрагментом памяти, но имя Миры остаётся с ним.",dark_self:"Рен выходит. Где-то далеко книга сама перелистывает пустую страницу."}[S.ending]||"Порог отпустил тебя.");
+        obj("Эпилог завершён. Этот мир запомнил твой выбор.");
+      }
+      return;
+    case "threshold":
       if(!S.bridge){obj("Сердце закрыто. Восстанови мост в центральной галерее.");toast("Сначала восстанови путь.",1100);return;}
       if(!S.threshold){S.threshold=true;save();obj("Сердце Порога открыто. Книга ждёт твоего ответа.");startThresholdRitual();return;}
       if(!S.thresholdChoice){startThresholdRitual();return;}
@@ -1572,6 +1583,19 @@ function startThresholdRitual(){
     c.textContent="Пока не отвечать";
   },850);
 }
+function activateEndingWorld(){
+  S.endingExitOpen=false;
+  const texts={
+    silent_mira:"Мира оставила след за стеной. Ищи тонкую дверь дальше от Сердца.",
+    silent_self:"Сердце отпустило Рена. Впереди открывается тихий выход.",
+    dark_mira:"Порог взял часть памяти. Чёрные искры теперь ведут к выходу.",
+    dark_self:"Сердце запечатало путь Миры. Тёмный выход признал Рена."
+  };
+  obj(texts[S.ending]||"Порог изменился. Найди выход из Зала.");
+  toast("МИР ПОСЛЕ РЕШЕНИЯ · "+(S.ending||"ПРОДОЛЖЕНИЕ"),1500);
+  burst(4525,380,18);
+  save();
+}
 function finishThresholdRitual(){
   S.chapter3Done=true;
   const mira=S.thresholdChoice==="mira";
@@ -1594,7 +1618,7 @@ function finishThresholdRitual(){
   $("#mt").textContent=result[0];
   $("#mb").textContent=result[1];
   $("#mok").textContent="Остаться у Сердца";
-  $("#mok").onclick=()=>{ $("#modal").classList.add("hidden"); S.mode="play"; syncControls(); };
+  $("#mok").onclick=()=>{ $("#modal").classList.add("hidden"); S.mode="play"; activateEndingWorld(); syncControls(); };
   $("#modal").classList.remove("hidden");
   syncControls();
   toast(result[0],1800);
@@ -1989,7 +2013,7 @@ function getInteractionTarget(){
   }else if(S.level===3){
     const lf=S.lift3;if(liftInteractionNear(p))candidates.push({id:"lift",type:"interact",label:!lf.used?"⚙ АКТИВИРОВАТЬ ПОДЪЁМНИК":(lf.paused?"▶ ПРОДОЛЖИТЬ ПОДЪЁМ":"Ⅱ ОСТАНОВИТЬ ПОДЪЁМ"),zone:{x:lf.x-80,y:lf.y-90,w:lf.w+160,h:lf.h+180},priority:70});
     add("bridge_mechanism",S.lift3.used?"⚙ ВОССТАНОВИТЬ МОСТ":"◈ МЕХАНИЗМ НЕАКТИВЕН",{x:2850,y:300,w:210,h:190,pad:65},60);
-    add("threshold",!S.bridge?"◈ СЕРДЦЕ ЗАКРЫТО":"✦ ОТКРЫТЬ СЕРДЦЕ",{x:4380,y:220,w:260,h:270,pad:70},55);if(S.branchChoice==="upper"&&!S.branchRelic.claimed)add("branch_relic","✦ ЗАБРАТЬ ОСКОЛОК ТИШИНЫ",{x:S.branchRelic.x-80,y:S.branchRelic.y-80,w:220,h:220,pad:65},68);if(S.branchChoice==="lower"&&S.branchEnemy.dead&&!S.branchRewardClaimed)add("branch_cache","◈ ЗАБРАТЬ ОСКОЛОК ТЬМЫ",{x:4010,y:370,w:160,h:110,pad:65},68);
+    add("threshold",!S.bridge?"◈ СЕРДЦЕ ЗАКРЫТО":"✦ ОТКРЫТЬ СЕРДЦЕ",{x:4380,y:220,w:260,h:270,pad:70},55);if(S.chapter3Done)add("ending_exit",S.endingExitOpen?"✦ ПРОЙТИ ЧЕРЕЗ ВЫХОД":"✦ ИДТИ К ВЫХОДУ",{x:4700,y:300,w:220,h:170,pad:70},78);if(S.branchChoice==="upper"&&!S.branchRelic.claimed)add("branch_relic","✦ ЗАБРАТЬ ОСКОЛОК ТИШИНЫ",{x:S.branchRelic.x-80,y:S.branchRelic.y-80,w:220,h:220,pad:65},68);if(S.branchChoice==="lower"&&S.branchEnemy.dead&&!S.branchRewardClaimed)add("branch_cache","◈ ЗАБРАТЬ ОСКОЛОК ТЬМЫ",{x:4010,y:370,w:160,h:110,pad:65},68);
   }
   if(!candidates.length)return null;
   candidates.sort((a,b)=>b.priority-a.priority||interactionTargetDistance(a)-interactionTargetDistance(b));
@@ -2209,6 +2233,7 @@ function getFocusVisualRect(t){
   if(id==="lift")return {x:S.lift3.x,y:S.lift3.y,w:S.lift3.w,h:S.lift3.h};
   if(id==="bridge_mechanism")return {x:2850,y:300,w:210,h:190};
   if(id==="threshold")return {x:4380,y:220,w:260,h:270};
+  if(id==="ending_exit")return {x:4740,y:320,w:82,h:156};
   if(id==="guardian")return {x:S.enemy.x,y:S.enemy.y,w:S.enemy.w,h:S.enemy.h};
   return t.zone;
 }
@@ -2305,6 +2330,35 @@ if(S.level===2){
 }
 if(S.level===3){
   let pulse=.5+.5*Math.sin(S.t*2.2);
+  if(S.chapter3Done){
+    const ep=.5+.5*Math.sin(S.t*(S.ending&&S.ending.startsWith("dark")?5.4:2.8));
+    const dark=S.ending&&S.ending.startsWith("dark");
+    x.save();
+    x.fillStyle=dark?`rgba(36,9,15,${.28+.16*ep})`:`rgba(201,185,112,${.12+.10*ep})`;
+    x.fillRect(4380,180,280,296);
+    x.strokeStyle=dark?`rgba(157,59,67,${.65+.25*ep})`:`rgba(215,198,125,${.55+.25*ep})`;
+    x.lineWidth=4;x.strokeRect(4465,210,120,261);
+    x.lineWidth=1;
+    if(S.ending==="silent_mira"){
+      x.strokeStyle=`rgba(218,211,184,${.35+.35*ep})`;x.setLineDash([3,9]);x.beginPath();x.moveTo(4540,410);x.quadraticCurveTo(4630,330,4770,390);x.stroke();x.setLineDash([]);
+      x.fillStyle=`rgba(225,218,192,${.28+.25*ep})`;x.beginPath();x.ellipse(4780,350,18+5*ep,46,0,0,6.28);x.fill();
+    }else if(S.ending==="silent_self"){
+      x.fillStyle=`rgba(225,214,157,${.20+.25*ep})`;x.beginPath();x.moveTo(4740,430);x.lineTo(4780,320);x.lineTo(4820,430);x.closePath();x.fill();
+      x.strokeStyle=`rgba(233,218,159,${.45+.25*ep})`;x.beginPath();x.arc(4780,380,42+8*ep,0,6.28);x.stroke();
+    }else if(S.ending==="dark_mira"){
+      for(let i=0;i<7;i++){const yy=235+i*35+Math.sin(S.t*3+i)*8;x.fillStyle=`rgba(129,48,60,${.25+.12*ep})`;x.fillRect(4560+i*22,yy,5,28);}
+      x.fillStyle=`rgba(168,64,74,${.22+.18*ep})`;x.beginPath();x.arc(4780,370,45+10*ep,0,6.28);x.fill();
+    }else if(S.ending==="dark_self"){
+      x.strokeStyle=`rgba(108,91,124,${.35+.25*ep})`;x.lineWidth=6;x.beginPath();x.moveTo(4720,440);x.lineTo(4780,310);x.lineTo(4840,440);x.stroke();x.lineWidth=1;
+      x.fillStyle=`rgba(53,44,69,${.35+.18*ep})`;x.beginPath();x.arc(4780,370,38+9*ep,0,6.28);x.fill();
+    }
+    if(S.endingExitOpen){
+      x.fillStyle=dark?"#1a080c":"#e6d99d";x.fillRect(4742,315,76,150);
+      x.fillStyle=dark?"#6d2935":"#f4edc4";x.fillRect(4750,323,60,134);
+      x.fillStyle=dark?"#d07b86":"#7d714c";x.font="10px system-ui";x.textAlign="center";x.fillText("ВЫХОД",4780,304);x.textAlign="left";
+    }
+    x.restore();
+  }
   x.fillStyle="#1b2028";x.fillRect(4460,205,130,271);
   x.strokeStyle=`rgba(225,205,130,${.65+.3*pulse})`;x.lineWidth=5;x.strokeRect(4465,210,120,261);x.lineWidth=1;
   x.fillStyle="#e2cf88";x.font="20px Georgia";x.fillText("ПОРОГ",4481,340);
@@ -2326,19 +2380,3 @@ drawFocusTarget();
     if(S.bridgeCheckpoint){x.fillStyle="#d8c77d";x.font="700 11px system-ui";x.textAlign="center";x.fillText("ПУТЬ ОТКРЫТ",3150,325);}
     x.restore();
   }
-let e=S.enemy;if(!e.dead){x.fillStyle="#151a1a";x.beginPath();x.ellipse(e.x+26,e.y+30,31,31,0,0,6.28);x.fill();x.fillStyle="#d3b65d";x.fillRect(e.x+11,e.y+18,8,7);x.fillRect(e.x+34,e.y+18,8,7);if(e.hp<120){x.fillStyle="#4a2928";x.fillRect(e.x,e.y-12,52,5);x.fillStyle="#b55d53";x.fillRect(e.x,e.y-12,52*e.hp/120,5)}}
-if(S.level===3&&S.branchChoice==="lower"&&!S.branchEnemy.dead){const e=S.branchEnemy;x.fillStyle="#17151a";x.beginPath();x.ellipse(e.x+26,e.y+31,34,30,0,0,6.28);x.fill();x.fillStyle="#c47b62";x.fillRect(e.x+10,e.y+16,8,7);x.fillRect(e.x+35,e.y+16,8,7);x.fillStyle="#51292a";x.fillRect(e.x,e.y-12,52,5);x.fillStyle="#b85f57";x.fillRect(e.x,e.y-12,52*Math.max(0,e.hp)/100,5);}if(S.level===3&&S.branchChoice==="upper"){const r=S.branchRelic,pulse=.5+.5*Math.sin(S.t*4);if(!r.claimed){x.save();x.globalAlpha=.65+.25*pulse;x.strokeStyle="#b9d8d0";x.lineWidth=2;x.strokeRect(r.x,r.y,r.w,r.h);x.fillStyle="#bce0d7";x.beginPath();x.arc(r.x+r.w/2,r.y+r.h/2,25+7*pulse,0,6.28);x.fill();x.fillStyle="#d6eee5";x.font="26px Georgia";x.textAlign="center";x.fillText("◇",r.x+r.w/2,r.y+40);x.textAlign="left";x.restore();}}if(S.level===3&&S.branchChoice==="lower"&&S.branchEnemy.dead&&!S.branchRewardClaimed){x.fillStyle="#4a3828";x.fillRect(4010,405,62,52);x.strokeStyle="#c5a85d";x.strokeRect(4013,408,56,46);x.fillStyle="#d8c47e";x.font="24px Georgia";x.fillText("◈",4029,440);}let p=S.p;x.save();x.translate(p.x+21,p.y+33);x.scale(p.dir,1);x.globalAlpha=p.inv>0?.45:1;x.fillStyle="#d4c5a2";x.beginPath();x.arc(0,-19,14,0,6.28);x.fill();x.fillStyle="#29342f";x.fillRect(-16,-5,32,38);x.fillStyle="#654a36";x.fillRect(-13,4,10,29);x.fillRect(3,4,10,29);if(p.atk){x.strokeStyle="#eee2b8";x.lineWidth=6;x.beginPath();x.moveTo(16,0);x.lineTo(58,-22);x.stroke()}x.restore();x.restore();
-let vg=x.createRadialGradient(vw/2,270,100,vw/2,270,450);vg.addColorStop(0,"transparent");vg.addColorStop(1,"#0009");x.fillStyle=vg;x.fillRect(0,0,vw,vh);if(S.flash){x.fillStyle="#f2d98255";x.fillRect(0,0,vw,vh)}}
-let last=performance.now();function loop(now){let dt=Math.min(.025,(now-last)/1000);last=now;S.t+=dt;if(S.mode==="play")update(dt);draw();requestAnimationFrame(loop)}requestAnimationFrame(loop);hud();
-</script>
-
-
-<script>
-document.addEventListener("click",function(e){
-  var t=e.target&&e.target.closest?e.target.closest("#startBtn,#loadBtn"):null;
-  if(!t)return;
-  e.preventDefault(); e.stopImmediatePropagation();
-  if(t.id==="startBtn")window.__T_START(); else window.__T_CONTINUE();
-},true);
-</script>
-</body></html>
