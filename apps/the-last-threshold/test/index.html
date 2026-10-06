@@ -64,7 +64,7 @@ const plats=[
 {x:0,y:476,w:610,h:44},{x:670,y:476,w:235,h:44},{x:980,y:476,w:210,h:44},{x:1245,y:476,w:230,h:44},{x:1510,y:476,w:205,h:44},{x:1760,y:476,w:285,h:44},{x:2080,y:476,w:225,h:44},{x:2350,y:476,w:215,h:44},{x:2610,y:476,w:230,h:44},{x:2895,y:476,w:225,h:44},{x:3170,y:476,w:230,h:44},{x:3440,y:476,w:235,h:44},{x:3720,y:476,w:300,h:44},{x:4070,y:476,w:260,h:44},{x:4380,y:476,w:350,h:44},
 {x:355,y:370,w:155,h:18},{x:545,y:310,w:145,h:18},{x:770,y:380,w:150,h:18},{x:900,y:350,w:175,h:18},{x:1260,y:355,w:150,h:18},{x:1515,y:325,w:150,h:18},{x:1725,y:350,w:160,h:18},{x:2050,y:345,w:170,h:18},{x:2295,y:310,w:150,h:18},{x:2540,y:342,w:150,h:18},{x:2765,y:285,w:155,h:18},{x:3020,y:330,w:160,h:18},{x:3260,y:285,w:165,h:18},{x:3510,y:330,w:155,h:18},{x:3760,y:290,w:170,h:18},{x:4005,y:350,w:160,h:18},{x:4250,y:300,w:165,h:18}
 ];
-const puzzle=[2,1,1,0,0,0,2,0,1,0,0,2,0,1,0,0];let selected=-1;
+const puzzle=[2,1,1,0,0,0,2,0,1,0,0,2,0,1,0,0];let selected=-1;let sealMergeSession=null;
 const CORE_ARTIFACTS={
   memoryMark:{name:"Знак Памяти",description:"След древнего хранителя. Усиливает связь Рена с Порогом."},
   secondJump:{name:"Искра Второго Прыжка",description:"Позволяет выполнять второй прыжок в воздухе."},
@@ -238,6 +238,8 @@ function registerMiniGames(){
 }
 function openPuzzle(){
  registerMiniGames();
+ const api=window.ThresholdCoreAPI;
+ sealMergeSession=api?api.createMiniGame("seal_merge",{state:puzzle}):null;
  S.mode="puzzle";
  document.getElementById("puzzle").classList.remove("hidden");
  selected=-1;
@@ -262,7 +264,7 @@ function puzClick(i){
  const api=window.ThresholdCoreAPI;
  let outcome={ok:false};
  if(api){
-   const game=api.createMiniGame("seal_merge",{state:puzzle});
+   const game=sealMergeSession||(sealMergeSession=api.createMiniGame("seal_merge",{state:puzzle}));
    outcome=game.merge(selected,i);
  }else if(adjacent(selected,i)&&puzzle[selected]===puzzle[i]){
    puzzle[selected]++;
@@ -276,6 +278,7 @@ function puzClick(i){
    toast(outcome.solved?"ПЕЧАТЬ III — МЕХАНИЗМ ПРОСНУЛСЯ":"Печать усилилась",outcome.solved?1100:500);
    if(outcome.solved){
      S.puzzleSolved=true;
+     if(api&&sealMergeSession)api.completeMiniGame("seal_merge",sealMergeSession,{moves:sealMergeSession.moves,solved:true});
      acquireCoreArtifact("secondJump");
      objective("Печать III разбудила механизм. Пройди верхний маршрут.");
      save();
@@ -287,7 +290,7 @@ function puzClick(i){
    if(outcome.reason==="not_mergeable")toast("Эти руны не сливаются",650);
  }
 }
-function closePuzzle(){document.getElementById("puzzle").classList.add("hidden");S.mode="play";selected=-1}
+function closePuzzle(){document.getElementById("puzzle").classList.add("hidden");S.mode="play";selected=-1;sealMergeSession=null}
 
 document.getElementById("startBtn").onclick=start;document.getElementById("loadBtn").onclick=()=>{if(load()){start();toast("Сохранение восстановлено",1200)}else toast("Сохранения нет",1000)};document.getElementById("closeBook").onclick=closeBook;document.getElementById("closePuzzle").onclick=closePuzzle;document.getElementById("mOk").onclick=()=>{document.getElementById("modal").classList.add("hidden");S.mode="play"};
 addEventListener("keydown",e=>{const k=e.key.toLowerCase();S.keys[k]=true;if(k==="e")interact();else if(k==="b")openBook();else if(k===" ")jump();else if(k==="shift")attack();else if(k==="escape"&&S.mode==="play")showModal("Пауза","Игра приостановлена.");if(["arrowleft","arrowright","arrowup","arrowdown","a","d","w","s","e","b"," ","shift","escape"].includes(k))e.preventDefault()});
