@@ -49,3 +49,10 @@ Legacy-логика сохранена только как исполняемы�
 `MiniGameRegistry` теперь поддерживает события `minigame:registered`, `minigame:started` и `minigame:completed`. `Слияние Печатей` использует persistent session на время испытания и завершает её через Core.
 
 Это создаёт единый контракт для будущих мини-игр: запуск → игровая сессия → результат → награда → изменение мира → VFX/аудио.
+
+
+## World Mutation System 1.0
+
+Добавлен `WorldMutationSystem`: игровые события теперь могут менять мир через именованные мутации и публиковать `world:mutated`.
+
+Первая связка: `seal_merge` → `seal_open_upper_route` → `upperRouteOpen / mechanismAwakened / barrierState=open`. Финальные врата используют `memory_gate_awaken`, создавая отдельное состояние пробуждённого Порога.
