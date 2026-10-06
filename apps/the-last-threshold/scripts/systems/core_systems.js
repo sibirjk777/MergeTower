@@ -253,18 +253,31 @@ export class ArtifactSystem {
 }
 
 export class MiniGameRegistry {
-  constructor() { this.entries = new Map(); }
+  constructor(eventBus = new EventBus()) {
+    this.entries = new Map();
+    this.eventBus = eventBus;
+  }
 
   register(id, factory) {
     if (typeof id !== 'string' || id.length === 0) throw new TypeError('Mini-game id is required');
     if (typeof factory !== 'function') throw new TypeError('Mini-game factory must be a function');
     this.entries.set(id, factory);
+    this.eventBus.emit('minigame:registered', { id });
+    return this;
   }
 
-  create(id, context) {
+  create(id, context = {}) {
     const factory = this.entries.get(id);
     if (!factory) throw new Error('Unknown mini-game: ' + id);
-    return factory(context);
+    const session = factory(context);
+    this.eventBus.emit('minigame:started', { id, session, context });
+    return session;
+  }
+
+  complete(id, session, result = {}) {
+    if (!this.entries.has(id)) throw new Error('Unknown mini-game: ' + id);
+    this.eventBus.emit('minigame:completed', { id, session, result });
+    return result;
   }
 
   has(id) { return this.entries.has(id); }
@@ -276,7 +289,7 @@ export function createCore(initialState = {}) {
   const interaction = new InteractionSystem(eventBus);
   const contextActions = new ContextActionSystem();
   const artifacts = new ArtifactSystem(worldState);
-  const miniGames = new MiniGameRegistry();
+  const miniGames = new MiniGameRegistry(eventBus);
 
   return Object.freeze({ eventBus, worldState, interaction, contextActions, artifacts, miniGames });
 }
