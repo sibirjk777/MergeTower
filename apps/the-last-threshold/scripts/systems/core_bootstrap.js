@@ -57,5 +57,12 @@ window.ThresholdCoreAPI = Object.freeze({
   executeInteraction(context = {}) {
     core.interaction.update(context);
     return core.interaction.executeCurrent(context);
+  },
+  registerMiniGame(id, factory) {
+    core.miniGames.register(id, factory);
+    return true;
+  },
+  createMiniGame(id, context = {}) {
+    return core.miniGames.create(id, context);
   }
 });
