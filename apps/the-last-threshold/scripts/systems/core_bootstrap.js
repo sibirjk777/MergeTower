@@ -64,5 +64,8 @@ window.ThresholdCoreAPI = Object.freeze({
   },
   createMiniGame(id, context = {}) {
     return core.miniGames.create(id, context);
+  },
+  completeMiniGame(id, session, result = {}) {
+    return core.miniGames.complete(id, session, result);
   }
 });
