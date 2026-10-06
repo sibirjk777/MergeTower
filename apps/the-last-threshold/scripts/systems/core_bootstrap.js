@@ -67,5 +67,12 @@ window.ThresholdCoreAPI = Object.freeze({
   },
   completeMiniGame(id, session, result = {}) {
     return core.miniGames.complete(id, session, result);
+  },
+  registerWorldMutation(id, mutation) {
+    core.mutations.register(id, mutation);
+    return true;
+  },
+  applyWorldMutation(id, context = {}) {
+    return core.mutations.apply(id, context);
   }
 });
