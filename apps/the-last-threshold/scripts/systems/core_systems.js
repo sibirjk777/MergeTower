@@ -252,6 +252,34 @@ export class ArtifactSystem {
   }
 }
 
+export class WorldMutationSystem {
+  constructor(worldState, eventBus = worldState.eventBus) {
+    if (!(worldState instanceof WorldState)) throw new TypeError('WorldMutationSystem requires WorldState');
+    this.worldState = worldState;
+    this.eventBus = eventBus;
+    this.mutations = new Map();
+  }
+
+  register(id, mutation) {
+    if (typeof id !== 'string' || !id) throw new TypeError('Mutation id is required');
+    if (typeof mutation !== 'function') throw new TypeError('Mutation must be a function');
+    this.mutations.set(id, mutation);
+    return this;
+  }
+
+  apply(id, context = {}) {
+    const mutation = this.mutations.get(id);
+    if (!mutation) throw new Error('Unknown world mutation: ' + id);
+    const previous = this.worldState.snapshot();
+    const result = mutation({ world: this.worldState, context, previous });
+    const current = this.worldState.snapshot();
+    this.eventBus.emit('world:mutated', { id, previous, current, result });
+    return result;
+  }
+
+  has(id) { return this.mutations.has(id); }
+}
+
 export class MiniGameRegistry {
   constructor(eventBus = new EventBus()) {
     this.entries = new Map();
@@ -289,7 +317,8 @@ export function createCore(initialState = {}) {
   const interaction = new InteractionSystem(eventBus);
   const contextActions = new ContextActionSystem();
   const artifacts = new ArtifactSystem(worldState);
+  const mutations = new WorldMutationSystem(worldState, eventBus);
   const miniGames = new MiniGameRegistry(eventBus);
 
-  return Object.freeze({ eventBus, worldState, interaction, contextActions, artifacts, miniGames });
+  return Object.freeze({ eventBus, worldState, interaction, contextActions, artifacts, mutations, miniGames });
 }
