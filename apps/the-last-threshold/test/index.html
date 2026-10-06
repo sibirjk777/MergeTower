@@ -334,7 +334,7 @@ function platformUpdate(dt){
  p.x+=p.vx*dt;p.x=Math.max(18,Math.min(4930-p.w,p.x));
  const oldBottom=p.y+p.h;p.vy+=1850*dt;p.y+=p.vy*dt;p.ground=false;
  if(S.moving){S.moving.prevY=S.moving.y;S.moving.phase+=dt;S.moving.y=S.moving.baseY+Math.sin(S.moving.phase*1.25)*58}
- const candidates=plats.concat([{x:S.moving.x,y:S.moving.y,w:S.moving.w,h:S.moving.h}]);
+ const candidates=plats.concat([{x:S.moving.x,y:S.moving.y,w:S.moving.w,h:S.moving.h}]);if(S.awakenedBridge.active)candidates.push(S.awakenedBridge);
  if(!S.touch.down)for(const r of candidates){const now=p.y+p.h;if(p.vy>=0&&p.x+p.w>r.x&&p.x<r.x+r.w&&oldBottom<=r.y&&now>=r.y){const wasMoving=r===S.moving;p.y=r.y-p.h;p.vy=0;p.ground=true;p.jumps=0;p.coyote=.12;if(wasMoving)p.x+=S.moving.y-S.moving.prevY;S.p.land=.16;burst(p.x+p.w/2,r.y,7,"dust");break}}
  if(S.touch.down&&p.ground){p.y+=8;p.ground=false}
  if(p.coyote>0)p.coyote-=dt;if(p.jumpBuffer>0)p.jumpBuffer-=dt;
