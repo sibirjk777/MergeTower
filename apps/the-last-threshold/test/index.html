@@ -221,15 +221,17 @@ function registerMiniGames(){
    name:"Слияние Печатей",
    state,
    solved:false,
+   moves:0,
    select(index){return {index}},
    merge(a,b){
-     if(!Number.isInteger(a)||!Number.isInteger(b))return false;
-     if(a<0||b<0||a>=this.state.length||b>=this.state.length)return false;
-     if(!this.state[a]||this.state[a]!==this.state[b]||!adjacent(a,b))return false;
+     if(!Number.isInteger(a)||!Number.isInteger(b))return {ok:false,reason:"invalid"};
+     if(a<0||b<0||a>=this.state.length||b>=this.state.length)return {ok:false,reason:"bounds"};
+     if(!this.state[a]||this.state[a]!==this.state[b]||!adjacent(a,b))return {ok:false,reason:"not_mergeable"};
      this.state[a]++;
      this.state[b]=0;
+     this.moves++;
      this.solved=this.state[a]>=3;
-     return true;
+     return {ok:true,solved:this.solved,moves:this.moves};
    }
  }));
  window.__tltMiniGamesRegistered=true;
@@ -258,30 +260,31 @@ function puzClick(i){
  if(selected<0){selected=i;buildPuzzle();return}
  if(i===selected){selected=-1;buildPuzzle();return}
  const api=window.ThresholdCoreAPI;
- let merged=false;
+ let outcome={ok:false};
  if(api){
    const game=api.createMiniGame("seal_merge",{state:puzzle});
-   merged=game.merge(selected,i);
+   outcome=game.merge(selected,i);
  }else if(adjacent(selected,i)&&puzzle[selected]===puzzle[i]){
    puzzle[selected]++;
    puzzle[i]=0;
-   merged=true;
+   outcome={ok:true,solved:puzzle[selected]>=3,moves:0};
  }
- if(merged){
+ if(outcome.ok){
    const v=puzzle[selected];
    selected=-1;
    buildPuzzle();
-   if(v>=3){
+   toast(outcome.solved?"ПЕЧАТЬ III — МЕХАНИЗМ ПРОСНУЛСЯ":"Печать усилилась",outcome.solved?1100:500);
+   if(outcome.solved){
      S.puzzleSolved=true;
      acquireCoreArtifact("secondJump");
      objective("Печать III разбудила механизм. Пройди верхний маршрут.");
-     toast("Новая способность: ДВОЙНОЙ ПРЫЖОК",1900);
      save();
      setTimeout(closePuzzle,500);
-   }else toast("Печать усилилась",500);
+   }
  }else{
    selected=i;
    buildPuzzle();
+   if(outcome.reason==="not_mergeable")toast("Эти руны не сливаются",650);
  }
 }
 function closePuzzle(){document.getElementById("puzzle").classList.add("hidden");S.mode="play";selected=-1}
