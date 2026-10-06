@@ -59,7 +59,7 @@ loadAsset("spikes","../art/props/trap/TRAP_SPIKES_v01.svg");
 loadAsset("gate","../art/environments/temple/TEMPLE_GATE_MEMORY_v01.svg");
 const contextAttackButton=document.querySelector(".acts .attack");
 const contextInteractButton=document.querySelector(".acts .interact");
-const S={mode:"menu",t:0,bookFound:false,bookPages:0,puzzleSolved:false,doubleJump:false,checkpoint:false,shards:0,secrets:0,story:{miraWhisper:false},keys:Object.create(null),touch:{left:false,right:false,down:false},jumpBuffer:0,spawn:{x:110,y:406},p:{x:110,y:406,w:44,h:70,vx:0,vy:0,ground:false,jumps:0,maxJumps:1,coyote:0,dir:1,hp:100,inv:0,atk:0,atkHit:false,land:0},enemy:{x:1845,y:418,w:52,h:58,hp:120,dead:false,dir:-1,cd:0,hit:0},altar:{x:3370,y:412,w:78,h:64,used:false},bag:{x:365,y:428,w:58,h:48},mechanism:{x:1040,y:295,w:92,h:70},barrier:{x:1195,y:305,w:52,h:171},miraEcho:{x:2580,y:382,seen:false},finalGate:{x:4690,y:280,w:82,h:196},secret:{x:2200,y:245,w:70,h:70,found:false},signs:[{x:2390,y:260,found:false},{x:2940,y:235,found:false},{x:3860,y:240,found:false}],questSigns:0,totem:{x:3070,y:265,w:55,h:65,used:false},cache:{x:3980,y:290,w:65,h:65,opened:false},moving:{x:1485,y:380,w:145,h:18,baseY:380,phase:0,prevY:380},particles:[],shake:0,cameraX:0};
+const S={mode:"menu",t:0,bookFound:false,bookPages:0,puzzleSolved:false,doubleJump:false,checkpoint:false,shards:0,secrets:0,story:{miraWhisper:false},keys:Object.create(null),touch:{left:false,right:false,down:false},jumpBuffer:0,spawn:{x:110,y:406},p:{x:110,y:406,w:44,h:70,vx:0,vy:0,ground:false,jumps:0,maxJumps:1,coyote:0,dir:1,hp:100,inv:0,atk:0,atkHit:false,land:0},enemy:{x:1845,y:418,w:52,h:58,hp:120,dead:false,dir:-1,cd:0,hit:0},altar:{x:3370,y:412,w:78,h:64,used:false},bag:{x:365,y:428,w:58,h:48},mechanism:{x:1040,y:295,w:92,h:70},barrier:{x:1195,y:305,w:52,h:171},miraEcho:{x:2580,y:382,seen:false},finalGate:{x:4690,y:280,w:82,h:196},secret:{x:2200,y:245,w:70,h:70,found:false},signs:[{x:2390,y:260,found:false},{x:2940,y:235,found:false},{x:3860,y:240,found:false}],questSigns:0,totem:{x:3070,y:265,w:55,h:65,used:false},cache:{x:3980,y:290,w:65,h:65,opened:false},moving:{x:1485,y:380,w:145,h:18,baseY:380,phase:0,prevY:380},awakenedBridge:{x:1305,y:405,w:155,h:18,active:false},particles:[],shake:0,cameraX:0};
 const plats=[
 {x:0,y:476,w:610,h:44},{x:670,y:476,w:235,h:44},{x:980,y:476,w:210,h:44},{x:1245,y:476,w:230,h:44},{x:1510,y:476,w:205,h:44},{x:1760,y:476,w:285,h:44},{x:2080,y:476,w:225,h:44},{x:2350,y:476,w:215,h:44},{x:2610,y:476,w:230,h:44},{x:2895,y:476,w:225,h:44},{x:3170,y:476,w:230,h:44},{x:3440,y:476,w:235,h:44},{x:3720,y:476,w:300,h:44},{x:4070,y:476,w:260,h:44},{x:4380,y:476,w:350,h:44},
 {x:355,y:370,w:155,h:18},{x:545,y:310,w:145,h:18},{x:770,y:380,w:150,h:18},{x:900,y:350,w:175,h:18},{x:1260,y:355,w:150,h:18},{x:1515,y:325,w:150,h:18},{x:1725,y:350,w:160,h:18},{x:2050,y:345,w:170,h:18},{x:2295,y:310,w:150,h:18},{x:2540,y:342,w:150,h:18},{x:2765,y:285,w:155,h:18},{x:3020,y:330,w:160,h:18},{x:3260,y:285,w:165,h:18},{x:3510,y:330,w:155,h:18},{x:3760,y:290,w:170,h:18},{x:4005,y:350,w:160,h:18},{x:4250,y:300,w:165,h:18}
@@ -77,7 +77,7 @@ function hud(){document.getElementById("hp").textContent=Math.max(0,Math.round(S
 function save(){syncCoreWorld();localStorage.setItem("tlt_v02",JSON.stringify({bookFound:S.bookFound,bookPages:S.bookPages,puzzleSolved:S.puzzleSolved,doubleJump:S.doubleJump,checkpoint:S.checkpoint,shards:S.shards,story:S.story,spawn:S.spawn,crystals:S.crystals,enemyDead:S.enemy.dead,secrets:S.secrets,secretFound:S.secret.found,questSigns:S.questSigns,signs:S.signs,totemUsed:S.totem.used,cacheOpened:S.cache.opened,worldMutation:S.puzzleSolved}))}
 function load(){try{const q=JSON.parse(localStorage.getItem("tlt_v02")||"null");if(!q)return false;S.bookFound=!!q.bookFound;S.bookPages=q.bookPages||0;S.puzzleSolved=!!q.puzzleSolved;S.doubleJump=!!q.doubleJump;S.p.maxJumps=S.doubleJump?2:1;S.checkpoint=!!q.checkpoint;S.shards=q.shards||0;S.questSigns=q.questSigns||0;S.signs=S.signs||[{x:2390,y:260,found:false},{x:2940,y:235,found:false},{x:3860,y:240,found:false}];S.signs.forEach((z,i)=>z.found=!!(q.signs&&q.signs[i]));S.secrets=q.secrets||0;S.story=q.story||S.story;S.spawn=q.spawn||S.spawn;S.p.x=S.spawn.x;S.p.y=S.spawn.y;S.enemy.dead=!!q.enemyDead;S.enemy.hp=S.enemy.dead?0:120;if(q.crystals)S.crystals=q.crystals;if(q.worldMutation&&S.puzzleSolved){registerWorldMutations();bindWorldEvents();applyWorldMutation("seal_open_upper_route",{source:"save"});}hud();return true}catch(e){return false}}
 S.crystals=[{x:2310,y:275,taken:false,b:0},{x:2818,y:245,taken:false,b:1.7},{x:3555,y:290,taken:false,b:3}];
-function bindWorldEvents(){
+function updateAwakenedWorld(){S.awakenedBridge.active=Boolean(S.puzzleSolved);S.awakenedBridge.y=405+Math.sin(S.t*1.7)*3;}\nfunction bindWorldEvents(){
  const core=window.ThresholdCore;
  if(!core||window.__tltWorldEventsBound)return;
  core.eventBus.on("world:mutated",({id})=>{
@@ -91,7 +91,7 @@ function registerWorldMutations(){
  const api=window.ThresholdCoreAPI;
  if(!api||window.__tltWorldMutationsRegistered)return;
  api.registerWorldMutation("seal_open_upper_route",({world})=>{
-   world.update({upperRouteOpen:true,mechanismAwakened:true,barrierState:"open"});
+   world.update({upperRouteOpen:true,mechanismAwakened:true,barrierState:"open",hiddenBridgeActive:true});
    return {route:"upper",barrier:"open"};
  });
  api.registerWorldMutation("memory_gate_awaken",({world})=>{
@@ -358,13 +358,12 @@ function draw(){
  // torches
  for(let i=0;i<15;i++){const xx=110+i*310;ctx.fillStyle="#29231d";ctx.fillRect(xx,148,17,83);const g=ctx.createRadialGradient(xx+8,207,2,xx+8,207,58);g.addColorStop(0,"rgba(238,194,103,.33)");g.addColorStop(1,"rgba(238,194,103,0)");ctx.fillStyle=g;ctx.beginPath();ctx.arc(xx+8,207,58,0,Math.PI*2);ctx.fill();ctx.fillStyle="#b17b45";ctx.fillRect(xx+4,185,9,25)}
  // platforms
- const all=plats.concat([{x:S.moving.x,y:S.moving.y,w:S.moving.w,h:S.moving.h}]);for(const r of all){ctx.fillStyle=r.h>25?"#303837":"#3b4442";ctx.fillRect(r.x,r.y,r.w,r.h);ctx.fillStyle="#68736d";ctx.fillRect(r.x,r.y,r.w,4);ctx.strokeStyle="#151a19";ctx.strokeRect(r.x,r.y,r.w,r.h)}
+ const all=plats.concat([{x:S.moving.x,y:S.moving.y,w:S.moving.w,h:S.moving.h}]);if(S.awakenedBridge.active)all.push(S.awakenedBridge);for(const r of all){ctx.fillStyle=r.h>25?"#303837":"#3b4442";ctx.fillRect(r.x,r.y,r.w,r.h);ctx.fillStyle="#68736d";ctx.fillRect(r.x,r.y,r.w,4);ctx.strokeStyle="#151a19";ctx.strokeRect(r.x,r.y,r.w,r.h)}
  // moving platform visual
  ctx.strokeStyle="#c1a767";ctx.setLineDash([7,7]);ctx.beginPath();ctx.moveTo(S.moving.x+8,360);ctx.lineTo(S.moving.x+8,S.moving.y);ctx.stroke();ctx.setLineDash([]);
  // bag
  if(ASSET.bag)ctx.drawImage(ASSET.bag,S.bag.x-4,S.bag.y-10,S.bag.w+8,S.bag.h+18);else{ctx.fillStyle="#4d3b2a";ctx.fillRect(S.bag.x,S.bag.y,S.bag.w,S.bag.h);ctx.fillStyle="#c0a263";ctx.fillRect(S.bag.x+8,S.bag.y+12,S.bag.w-16,7);ctx.fillStyle="#e6d596";ctx.font="12px Georgia";ctx.fillText("МИРА",S.bag.x+8,S.bag.y+38)}
- // mechanism
- const m=S.mechanism;if(ASSET.seal)ctx.drawImage(ASSET.seal,m.x-8,m.y-14,m.w+16,m.h+24);else{ctx.fillStyle="#252e2c";ctx.fillRect(m.x,m.y,m.w,m.h);ctx.strokeStyle=S.puzzleSolved?"#dcc47c":"#806e4d";ctx.lineWidth=4;ctx.strokeRect(m.x+4,m.y+4,m.w-8,m.h-8);ctx.fillStyle="#d2ba71";ctx.font="38px Georgia";ctx.fillText("◈",m.x+25,m.y+49)}
+ // awakened bridge\n if(S.awakenedBridge.active){const b=S.awakenedBridge;ctx.fillStyle="rgba(81,92,85,.95)";ctx.fillRect(b.x,b.y,b.w,b.h);ctx.fillStyle="rgba(218,194,116,.8)";ctx.fillRect(b.x,b.y,b.w,3);ctx.strokeStyle="rgba(218,194,116,.65)";ctx.strokeRect(b.x,b.y,b.w,b.h);}\n // mechanism\n const m=S.mechanism;if(ASSET.seal)ctx.drawImage(ASSET.seal,m.x-8,m.y-14,m.w+16,m.h+24);else{ctx.fillStyle="#252e2c";ctx.fillRect(m.x,m.y,m.w,m.h);ctx.strokeStyle=S.puzzleSolved?"#dcc47c":"#806e4d";ctx.lineWidth=4;ctx.strokeRect(m.x+4,m.y+4,m.w-8,m.h-8);ctx.fillStyle="#d2ba71";ctx.font="38px Georgia";ctx.fillText("◈",m.x+25,m.y+49)}
  // barrier
  if(!S.puzzleSolved){ctx.fillStyle="#17201f";ctx.fillRect(S.barrier.x,S.barrier.y,S.barrier.w,S.barrier.h);ctx.strokeStyle="#9e8759";ctx.strokeRect(S.barrier.x+4,S.barrier.y+4,S.barrier.w-8,S.barrier.h-8)}else{const pulse=.35+.15*Math.sin(S.t*4);ctx.strokeStyle="rgba(218,194,116,"+pulse+")";ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(S.barrier.x+S.barrier.w/2,S.barrier.y+S.barrier.h);ctx.lineTo(S.barrier.x+S.barrier.w/2,S.barrier.y-38);ctx.stroke()}
  // altar
@@ -382,7 +381,7 @@ function draw(){
  ctx.restore();
  const vg=ctx.createRadialGradient(vw/2,270,110,vw/2,270,445);vg.addColorStop(0,"rgba(0,0,0,0)");vg.addColorStop(1,"rgba(0,0,0,.56)");ctx.fillStyle=vg;ctx.fillRect(0,0,vw,vh);if(S.flash>0){ctx.fillStyle="rgba(240,216,132,"+(S.flash*.42)+")";ctx.fillRect(0,0,vw,vh);S.flash=Math.max(0,S.flash-.012)}
 }
-let last=performance.now();function loop(now){const dt=Math.min(.025,(now-last)/1000);last=now;S.t+=dt;if(S.mode==="play")platformUpdate(dt);draw();updateContextButtons();requestAnimationFrame(loop)}requestAnimationFrame(loop);hud();
+let last=performance.now();function loop(now){const dt=Math.min(.025,(now-last)/1000);last=now;S.t+=dt;if(S.mode==="play"){platformUpdate(dt);updateAwakenedWorld();}draw();updateContextButtons();requestAnimationFrame(loop)}requestAnimationFrame(loop);hud();
 </script>
 </body>
 </html>
