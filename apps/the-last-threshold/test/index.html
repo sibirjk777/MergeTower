@@ -1554,7 +1554,7 @@ function startThresholdRitual(){
   o.classList.remove("ritual-awakened");
   $("#thresholdStep").textContent="Сердце просыпается";
   $("#thresholdTitle").textContent="Сердце Порога";
-  $("#thresholdText").textContent="Слышно дыхание храма. Книга открывается сама.";
+  $("#thresholdText").textContent=S.branchReward==="silence"?"Осколок Тишины гасит шум храма. Сердце открывает скрытую камеру.":"Слышно дыхание храма. Книга открывается сама.";
   a.style.display="none";
   b.style.display="none";
   c.style.display="block";
@@ -1564,8 +1564,8 @@ function startThresholdRitual(){
     S.thresholdRitualStep=2;
     o.classList.add("ritual-awakened");
     $("#thresholdStep").textContent="Вопрос Книги";
-    $("#thresholdTitle").textContent="Что ищет Рен?";
-    $("#thresholdText").textContent="Имя Миры уже записано в камне. Но следующий след требует выбора.";
+    $("#thresholdTitle").textContent=S.branchReward==="silence"?"Тихий след":"Что ищет Рен?";
+    $("#thresholdText").textContent=S.branchReward==="silence"?"Тишина показывает два следа: Мира или ты. Один из них станет дверью наружу.":"Имя Миры уже записано в камне. Но следующий след требует выбора.";
     a.style.display="block";
     b.style.display="block";
     c.style.display="block";
@@ -1574,15 +1574,31 @@ function startThresholdRitual(){
 }
 function finishThresholdRitual(){
   S.chapter3Done=true;
+  const mira=S.thresholdChoice==="mira";
+  const silence=S.branchReward==="silence";
+  const dark=S.branchReward==="dark";
+  if(silence&&mira)S.ending="silent_mira";
+  else if(silence&&!mira)S.ending="silent_self";
+  else if(dark&&mira)S.ending="dark_mira";
+  else S.ending="dark_self";
   save();
   $("#thresholdChoice").classList.add("hidden");
   S.mode="modal";
-  const mira=S.thresholdChoice==="mira";
-  const title=mira?"КОНЦОВКА: СЛЕД МИРЫ":"КОНЦОВКА: ЗА ПРЕДЕЛОМ СЕБЯ";
-  const text=mira
-    ?"Рен выбирает Миру. Сердце принимает имя и показывает последний отпечаток её руки на камне. Книга закрывается сама. Где-то впереди остаётся место, где она остановилась. Порог не отпустил её след — он передал его Рену."
-    :"Рен выбирает себя. Сердце гасит имя Миры и отражает лицо Рена в чёрном камне. Книга молчит, но на последней странице появляется знак: «Тот, кто вошёл, уже изменился». Путь Миры остаётся тайной. Порог теперь связан с Реном.";
-  $("#mt").textContent=title;
+  const endings={
+    silent_mira:["КОНЦОВКА: ТИХИЙ СЛЕД","Осколок Тишины гасит храм. Рен выбирает Миру — и впервые слышит не голос Порога, а её настоящий шёпот. На камне появляется путь наружу. След Миры сохранён, но теперь у него есть продолжение."],
+    silent_self:["КОНЦОВКА: ТИХОЕ ОСВОБОЖДЕНИЕ","Осколок Тишины раскрывает скрытую дверь. Рен выбирает себя и выходит из Сердца без боя. Книга оставляет чистую страницу: Порог больше не владеет его именем."],
+    dark_mira:["КОНЦОВКА: ЦЕНА СЛЕДА","Осколок Тьмы разбудил Сердце. Рен выбирает Миру, но камень требует цену: часть его памяти остаётся внутри Порога. Имя Миры открывает путь, а прошлое Рена становится неполным."],
+    dark_self:["КОНЦОВКА: ЗА ПРЕДЕЛОМ СЕБЯ","Осколок Тьмы принимает выбор Рена. Сердце показывает его лицо и запирает путь Миры. Рен выходит сильнее, но теперь Порог знает его лучше, чем он сам себя."]
+  };
+  const result=endings[S.ending];
+  $("#mt").textContent=result[0];
+  $("#mb").textContent=result[1];
+  $("#mok").textContent="Остаться у Сердца";
+  $("#mok").onclick=()=>{ $("#modal").classList.add("hidden"); S.mode="play"; syncControls(); };
+  $("#modal").classList.remove("hidden");
+  syncControls();
+  toast(result[0],1800);
+}  $("#mt").textContent=title;
   $("#mb").textContent=text;
   $("#mok").textContent="Остаться у Сердца";
   $("#mok").onclick=()=>{ $("#modal").classList.add("hidden"); S.mode="play"; syncControls(); };
@@ -1600,9 +1616,15 @@ function chooseThreshold(choice){
   b.style.display="none";
   $("#thresholdStep").textContent="Ответ принят";
   $("#thresholdTitle").textContent=choice==="mira"?"МИРА":"СЕБЯ";
-  $("#thresholdText").textContent=choice==="mira"
-    ?"Имя вспыхивает в камне. Появляется новая строка: «Тогда ищи там, где она остановилась»."
-    :"Камень молчит. Затем возникает строка: «Тогда смотри туда, где ты ещё не был».";
+  if(S.branchReward==="silence"){
+    $("#thresholdText").textContent=choice==="mira"
+      ?"Тишина принимает имя Миры. В стене появляется тонкая дверь."
+      :"Тишина принимает Рена. Сердце освобождает его имя.";
+  }else{
+    $("#thresholdText").textContent=choice==="mira"
+      ?"Тёмный осколок вспыхивает. Имя Миры открывает путь ценой памяти."
+      :"Тёмный осколок вспыхивает. Рен принимает силу Порога.";
+  }
   c.textContent="Завершить ритуал";
   c.style.display="block";
   save();
