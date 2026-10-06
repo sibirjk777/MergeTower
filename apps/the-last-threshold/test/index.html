@@ -77,6 +77,24 @@ function hud(){document.getElementById("hp").textContent=Math.max(0,Math.round(S
 function save(){syncCoreWorld();localStorage.setItem("tlt_v02",JSON.stringify({bookFound:S.bookFound,bookPages:S.bookPages,puzzleSolved:S.puzzleSolved,doubleJump:S.doubleJump,checkpoint:S.checkpoint,shards:S.shards,story:S.story,spawn:S.spawn,crystals:S.crystals,enemyDead:S.enemy.dead,secrets:S.secrets,secretFound:S.secret.found,questSigns:S.questSigns,signs:S.signs,totemUsed:S.totem.used,cacheOpened:S.cache.opened}))}
 function load(){try{const q=JSON.parse(localStorage.getItem("tlt_v02")||"null");if(!q)return false;S.bookFound=!!q.bookFound;S.bookPages=q.bookPages||0;S.puzzleSolved=!!q.puzzleSolved;S.doubleJump=!!q.doubleJump;S.p.maxJumps=S.doubleJump?2:1;S.checkpoint=!!q.checkpoint;S.shards=q.shards||0;S.questSigns=q.questSigns||0;S.signs=S.signs||[{x:2390,y:260,found:false},{x:2940,y:235,found:false},{x:3860,y:240,found:false}];S.signs.forEach((z,i)=>z.found=!!(q.signs&&q.signs[i]));S.secrets=q.secrets||0;S.story=q.story||S.story;S.spawn=q.spawn||S.spawn;S.p.x=S.spawn.x;S.p.y=S.spawn.y;S.enemy.dead=!!q.enemyDead;S.enemy.hp=S.enemy.dead?0:120;if(q.crystals)S.crystals=q.crystals;hud();return true}catch(e){return false}}
 S.crystals=[{x:2310,y:275,taken:false,b:0},{x:2818,y:245,taken:false,b:1.7},{x:3555,y:290,taken:false,b:3}];
+function registerWorldMutations(){
+ const api=window.ThresholdCoreAPI;
+ if(!api||window.__tltWorldMutationsRegistered)return;
+ api.registerWorldMutation("seal_open_upper_route",({world})=>{
+   world.update({upperRouteOpen:true,mechanismAwakened:true,barrierState:"open"});
+   return {route:"upper",barrier:"open"};
+ });
+ api.registerWorldMutation("memory_gate_awaken",({world})=>{
+   world.update({memoryGateAwakened:true,finaleReady:true});
+   return {gate:"awakened"};
+ });
+ window.__tltWorldMutationsRegistered=true;
+}
+function applyWorldMutation(id,context={}){
+ const api=window.ThresholdCoreAPI;
+ if(!api)return false;
+ return api.applyWorldMutation(id,context);
+}
 function syncCoreWorld(){
  const core=window.ThresholdCore;
  if(!core)return;
@@ -101,7 +119,7 @@ function registerCoreArtifacts(){
  core.artifacts.register({id:"memoryShard",...CORE_ARTIFACTS.memoryShard});
  core._artifactsRegistered=true;
 }
-function start(){registerCoreArtifacts();syncCoreWorld();S.mode="play";document.getElementById("start").classList.add("hidden");toast("Иди вправо. Сумка Миры впереди.",1300);hud();updateContextButtons()}
+function start(){registerCoreArtifacts();registerWorldMutations();syncCoreWorld();S.mode="play";document.getElementById("start").classList.add("hidden");toast("Иди вправо. Сумка Миры впереди.",1300);hud();updateContextButtons()}
 function reset(){localStorage.removeItem("tlt_v02");location.reload()}
 function openBook(){if(!S.bookFound||S.mode==="menu")return;S.mode="book";document.getElementById("book").classList.remove("hidden");updateContextButtons();renderBook()}
 function closeBook(){if(S.mode==="book")S.mode="play";document.getElementById("book").classList.add("hidden");updateContextButtons()}
@@ -122,7 +140,7 @@ function legacyInteract(targetId){
  if(targetId==="bag"&&!S.bookFound){S.bookFound=true;S.bookPages=1;objective("Открой Книгу Порога.");toast("Книга найдена. Она записывает твоё имя.",1800);hud();save();return true}
  if(targetId==="mechanism"&&S.bookFound&&!S.puzzleSolved){openPuzzle();return true}
  if(targetId==="altar"){if(!S.checkpoint){S.checkpoint=true;S.spawn={x:S.altar.x-35,y:S.altar.y-70};save();objective(S.shards<3?"Собери три осколка памяти.":"Дойди до последних врат.");toast("Алтарь связал твою память с храмом.",1700)}else toast("Точка возврата уже сохранена.",750);return true}
- if(targetId==="gate"&&S.shards>=3&&S.checkpoint){showModal("МИРА","«Рен… не верь тому, что книга называет прошлым. Иногда Порог пишет то, что ещё не случилось.»");return true}
+ if(targetId==="gate"&&S.shards>=3&&S.checkpoint){applyWorldMutation("memory_gate_awaken",{source:"memory_shards"});showModal("МИРА","«Рен… не верь тому, что книга называет прошлым. Иногда Порог пишет то, что ещё не случилось.»");return true}
  return false;
 }
 let coreInteractionsRegistered=false;
@@ -278,6 +296,7 @@ function puzClick(i){
    toast(outcome.solved?"ПЕЧАТЬ III — МЕХАНИЗМ ПРОСНУЛСЯ":"Печать усилилась",outcome.solved?1100:500);
    if(outcome.solved){
      S.puzzleSolved=true;
+     applyWorldMutation("seal_open_upper_route",{source:"seal_merge",moves:sealMergeSession?.moves||0});
      if(api&&sealMergeSession)api.completeMiniGame("seal_merge",sealMergeSession,{moves:sealMergeSession.moves,solved:true});
      acquireCoreArtifact("secondJump");
      objective("Печать III разбудила механизм. Пройди верхний маршрут.");
