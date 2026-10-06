@@ -1506,6 +1506,9 @@ function interact(){
         obj(text[S.ending]||"Выход открыт."); toast("ВЫХОД ОТКРЫТ",1200); burst(4780,390,22); save();
       }else{
         modal("ЭПИЛОГ · "+(S.ending||"ПОРОГ"),{silent_mira:"За дверью слышен настоящий голос Миры. История ещё не закончена.",silent_self:"За дверью впервые нет шёпота Порога. Рен выходит один.",dark_mira:"Рен выходит с потерянным фрагментом памяти, но имя Миры остаётся с ним.",dark_self:"Рен выходит. Где-то далеко книга сама перелистывает пустую страницу."}[S.ending]||"Порог отпустил тебя.");
+        const epilogueClose=()=>{ $("#modal").classList.add("hidden"); S.mode="play"; syncControls(); };
+        $("#mok").textContent="Закрыть эпилог";
+        $("#mok").onclick=epilogueClose;
         obj("Эпилог завершён. Этот мир запомнил твой выбор.");
       }
       return;
