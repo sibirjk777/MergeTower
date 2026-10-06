@@ -1,0 +1,2385 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<title>Книга Порога — Vertical Slice 46 · Preliminary Working V58</title>
+<style>
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#030606;color:#eee;font-family:system-ui,sans-serif;touch-action:none;user-select:none}
+#c{position:fixed;inset:0;width:100%;height:100%}#ui{position:fixed;inset:0;pointer-events:none}
+#hud{position:absolute;top:8px;left:8px;display:flex;gap:7px;z-index:5}.card{background:#080d0ddd;border:1px solid #8e7b4e;border-radius:10px;padding:7px 10px}.lab{font-size:8px;color:#b9aa86;letter-spacing:.15em}.num{font-weight:900}.bar{width:90px;height:6px;background:#222;border-radius:9px;margin-top:4px;overflow:hidden}.fill{height:100%;background:#a95c55}
+#objective{position:absolute;top:76px;left:50%;transform:translateX(-50%);background:#070c0ddd;border:1px solid #806e48;border-radius:10px;padding:7px 12px;font-size:11px;text-align:center;max-width:85vw}
+#bookBtn{position:absolute;right:10px;top:76px;width:72px;height:62px;background:#1c1710ee;color:#ead58e;border:1px solid #a18c59;border-radius:15px;font-weight:900;pointer-events:auto}
+#settingsBtn{position:fixed;top:max(10px,env(safe-area-inset-top));right:max(10px,env(safe-area-inset-right));width:46px;height:46px;z-index:1400;border:1px solid #8f7b50;border-radius:50%;background:#08100fd9;color:#eadcae;font-size:23px;line-height:1;display:none;pointer-events:auto;touch-action:manipulation;box-shadow:0 6px 18px #0009}
+body.touch-device #settingsBtn{display:block}
+body.menu #settingsBtn,body:not(.touch-device) #settingsBtn{display:none}
+body.orientation-landscape #settingsBtn{top:max(8px,env(safe-area-inset-top));right:max(10px,env(safe-area-inset-right))}
+.settings-overlay{position:fixed!important;inset:0!important;z-index:25000!important;display:grid;place-items:center;background:radial-gradient(circle at 50% 25%,#14201eea 0,#020505f8 65%,#000 100%);padding:max(16px,env(safe-area-inset-top)) max(16px,env(safe-area-inset-right)) max(16px,env(safe-area-inset-bottom)) max(16px,env(safe-area-inset-left));pointer-events:auto}
+.settings-overlay.hidden{display:none!important}
+.settings-panel{width:min(560px,94vw);max-height:min(760px,92dvh);overflow:auto;box-sizing:border-box;padding:24px;border:1px solid #8f7b50;border-radius:22px;background:linear-gradient(180deg,#0b1312f8,#050909fa);box-shadow:0 20px 70px #000b}
+.settings-head{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:16px}.settings-head h2{margin:0;color:#ead49a;font:900 clamp(25px,6vw,38px) Georgia,serif}.settings-close{width:44px;height:44px;border-radius:50%;font-size:24px}
+.settings-section{border-top:1px solid #514a39;padding-top:14px;margin-top:14px}.settings-row{display:flex;align-items:center;justify-content:space-between;gap:18px;min-height:58px;padding:8px 0}.settings-row .copy{min-width:0}.settings-row strong{display:block;color:#eee5cf;font-size:15px}.settings-row small{display:block;color:#9f967d;font-size:11px;line-height:1.35;margin-top:3px}.settings-value{color:#eadcae;font-weight:900;white-space:nowrap}.settings-toggle{min-width:118px;height:42px;border-radius:13px}.settings-slider{width:min(220px,42vw);accent-color:#c7ad68}.settings-danger{border-color:#8b514b!important;color:#e2aaa1!important}
+body.orientation-landscape #settingsBtn{opacity:.62}body.orientation-landscape #settingsBtn.pressed,body.orientation-landscape #settingsBtn:active{opacity:1}
+body.hints-off #objective,body.hints-off #interactHint{display:none!important}
+body.orientation-landscape #controls .jump,body.orientation-landscape #controls .context-action{opacity:var(--land-control-opacity,.38);transition:opacity .14s,transform .08s,filter .14s}
+body.orientation-landscape #controls .jump.pressed{opacity:1}
+body.orientation-landscape #controls .context-action.has-action{opacity:1!important}
+body.orientation-landscape #controls .joystick{opacity:calc(var(--land-control-opacity,.38) + .10);transition:opacity .14s}
+body.orientation-landscape #controls:has(.jump.pressed) .joystick{opacity:.9}
+@media(max-width:600px) and (orientation:portrait){.settings-panel{padding:18px;border-radius:18px}.settings-row{min-height:54px}.settings-row strong{font-size:14px}.settings-row small{font-size:10px}}
+#hint{position:absolute;bottom:18px;left:50%;transform:translateX(-50%);background:#080d0dcc;border-radius:9px;padding:5px 9px;font-size:10px;white-space:nowrap}
+#toast{position:absolute;bottom:215px;left:50%;transform:translateX(-50%);background:#080d0ef5;border:1px solid #917c4e;border-radius:10px;padding:9px 13px;opacity:0;transition:.18s;z-index:30}
+#controls{position:fixed;left:0;right:0;bottom:max(8px,env(safe-area-inset-bottom));height:180px;z-index:1000;display:none;pointer-events:none;padding:0 14px;gap:12px}
+#controls.visible{display:flex;align-items:flex-end;justify-content:space-between}
+#controls .interact{display:none}
+body.touch-device #controls .interact.has-action{display:block}
+body.touch-device.orientation-landscape #controls .interact.has-action{max-width:100%}
+body.touch-device.orientation-portrait #controls{height:156px;padding:0 10px;gap:8px}
+body.touch-device.orientation-portrait .joystick{width:132px;height:132px;flex-basis:132px}
+body.touch-device.orientation-portrait .joy-base{width:124px;height:124px;left:4px;top:4px}
+body.touch-device.orientation-portrait .joy-ring{inset:19px}
+body.touch-device.orientation-portrait .joy-stick{width:48px;height:48px;left:42px;top:42px}
+body.touch-device.orientation-portrait .acts{height:148px;width:min(48vw,280px);margin-left:auto}
+body.touch-device.orientation-portrait .acts button{height:54px;font-size:11px}
+body.touch-device.orientation-portrait .jump,body.touch-device.orientation-portrait .attack{width:calc(50% - 4px)}
+body.touch-device.orientation-portrait .interact{height:46px!important;bottom:0}
+body.touch-device.orientation-portrait #hud{top:max(6px,env(safe-area-inset-top));left:6px;gap:4px;transform:scale(.9);transform-origin:top left}
+body.touch-device.orientation-portrait #hud .card{padding:6px 7px}
+body.touch-device.orientation-portrait #bookBtn{top:max(6px,env(safe-area-inset-top));right:6px;width:58px;height:50px;font-size:10px}
+body.touch-device.orientation-portrait #objective{top:62px;max-width:58vw;font-size:10px;padding:6px 9px}
+body.touch-device.orientation-portrait #toast{bottom:166px;max-width:80vw}
+body.touch-device.orientation-landscape #controls{height:132px;padding:0 10px}
+body.touch-device.orientation-landscape .joystick{width:126px;height:126px;flex-basis:126px}
+body.touch-device.orientation-landscape .joy-base{width:116px;height:116px;left:5px;top:5px}
+body.touch-device.orientation-landscape .joy-ring{inset:18px}
+body.touch-device.orientation-landscape .joy-stick{width:44px;height:44px;left:41px;top:41px}
+body.touch-device.orientation-landscape .acts{height:124px;width:min(390px,48vw);margin-left:auto}
+body.touch-device.orientation-landscape .acts button{height:48px;font-size:10px}
+body.touch-device.orientation-landscape .interact{height:44px!important}
+body.touch-device.orientation-landscape #hud{top:max(6px,env(safe-area-inset-top));left:6px;transform:scale(.88);transform-origin:top left}
+body.touch-device.orientation-landscape #objective{top:max(58px,calc(env(safe-area-inset-top) + 52px));font-size:10px}
+body.touch-device.orientation-landscape #bookBtn{top:max(58px,calc(env(safe-area-inset-top) + 52px));right:7px;width:62px;height:52px;font-size:10px}
+body.desktop-device #controls{display:none!important}
+body.desktop-device #hint{display:block}
+body.touch-device #hint{display:none}
+.joystick{position:relative;width:164px;height:164px;flex:0 0 164px;pointer-events:auto;touch-action:none}
+.joy-base{position:absolute;left:7px;top:7px;width:150px;height:150px;border:1px solid #8f7b50;border-radius:50%;background:#08100fd9;box-shadow:0 8px 20px #0008}
+.joy-ring{position:absolute;inset:24px;border:1px dashed #5f543d;border-radius:50%;pointer-events:none}
+.joy-stick{position:absolute;left:53px;top:53px;width:58px;height:58px;border-radius:50%;background:#171a16;border:1px solid #c0a768;box-shadow:0 5px 12px #0009;pointer-events:none;transition:transform .04s linear}
+.joy-label{position:absolute;left:0;right:0;bottom:4px;text-align:center;font:700 9px system-ui;color:#b9aa86;letter-spacing:.12em;pointer-events:none}
+.acts{position:relative;width:min(420px,calc(100vw - 210px));height:170px;flex:1;pointer-events:none}
+button{font:900 12px system-ui;color:#eee5cf;background:#08100ff5;border:1px solid #8f7b50;border-radius:18px;box-shadow:0 6px 15px #0009;touch-action:none;-webkit-user-select:none;user-select:none}
+.acts button{position:absolute;height:64px;pointer-events:auto}
+.jump{left:0;width:calc(50% - 7px);top:0}.attack{right:0;width:calc(50% - 7px);top:0}
+.hint{position:absolute;left:50%;transform:translateX(-50%);bottom:72px;z-index:20;min-width:220px;max-width:70vw;padding:10px 16px;border:1px solid #8f7b4d;border-radius:16px;background:#07100fdd;color:#eadcae;text-align:center;font-weight:700;pointer-events:none;opacity:0;transition:opacity .12s}.interact{left:0;right:0;bottom:0;width:100%!important;height:62px!important}
+#controls button:active,#controls button.pressed{transform:scale(.96);background:#181a15;border-color:#d0b66c}
+@media(max-width:600px){
+  #controls{height:150px;padding:0 8px}
+  .joystick{width:140px;height:140px;flex-basis:140px}
+  .joy-base{width:132px;height:132px;left:4px;top:4px}
+  .joy-ring{inset:21px}
+  .joy-stick{width:50px;height:50px;left:45px;top:45px}
+  .acts{height:146px;width:auto;margin-left:8px}
+  .acts button{height:54px;font-size:11px}
+  .interact{height:50px!important}.hint{bottom:57px;max-width:82vw;font-size:13px}
+}
+@media(max-width:430px){
+  #controls{height:138px;padding:0 5px}
+  .joystick{width:126px;height:126px;flex-basis:126px}
+  .joy-base{width:118px;height:118px}
+  .joy-ring{inset:18px}
+  .joy-stick{width:46px;height:46px;left:40px;top:40px}
+  .acts{height:134px;margin-left:5px}
+  .acts button{height:48px;font-size:10px}
+  .interact{height:46px!important}
+}
+@media (hover:hover) and (pointer:fine){#controls.visible{display:none!important}}\n.overlay{position:absolute;inset:0;z-index:5000;background:#020505e8;display:grid;place-items:center;pointer-events:auto!important}.overlay .panel{position:relative;z-index:5001;pointer-events:auto!important}.overlay .btn{position:relative;z-index:5002;pointer-events:auto!important;cursor:pointer}
+body.menu #ui{pointer-events:auto}body.menu #hud,body.menu #objective,body.menu #hint,body.menu #toast,body.menu #interactHint{visibility:hidden}.panel{width:min(700px,92vw);padding:25px;border:1px solid #8f7c50;border-radius:18px;background:#0a1010f8}.hidden{display:none!important}.runes{display:flex;gap:10px;justify-content:center;margin:12px 0}.rune{width:76px;height:58px!important;font-size:24px!important}
+h1,h2{font-family:Georgia,serif;color:#dec47f}.title{font-size:clamp(42px,9vw,82px);line-height:.88;margin:0}.sub{color:#b9c0bc;line-height:1.55}.btn{width:100%;padding:14px;margin-top:10px}
+.book{height:min(720px,90vh);overflow:auto}.pages{display:flex;gap:12px}.page{flex:1;background:#d9cba3;color:#29271f;border-radius:8px;padding:18px;font:15px/1.55 Georgia,serif}
+.grid{display:grid;grid-template-columns:repeat(4,1fr);gap:7px}.tile{aspect-ratio:1;font-size:23px}.sel{outline:3px solid #e6d28a}
+@media(max-width:700px) and (orientation:portrait){#objective{top:105px}.hint{display:none}.pages{flex-direction:column}.page{min-height:190px}}
+/* V31: device/orientation layout is controlled by body classes from JavaScript. */
+@media (orientation:portrait){.panel{width:min(620px,94vw);max-height:calc(100dvh - 20px);overflow:auto}.overlay{padding:10px}.overlay .panel.book{height:min(88dvh,680px)}}
+@media (orientation:landscape) and (max-height:620px){.panel{max-height:94dvh;overflow:auto}.overlay{padding:8px}.title{font-size:clamp(38px,8vw,68px)}}
+
+/* V32 adaptive layout: viewport-safe UI and orientation-specific density. */html,body{min-height:100%;overscroll-behavior:none}#c{z-index:0;display:block}#ui{z-index:10}#hud{top:max(8px,env(safe-area-inset-top));left:max(8px,env(safe-area-inset-left));}#bookBtn{right:max(10px,env(safe-area-inset-right));}#objective{max-width:min(46vw,520px);z-index:20;}.overlay{padding:max(10px,env(safe-area-inset-top)) max(10px,env(safe-area-inset-right)) max(10px,env(safe-area-inset-bottom)) max(10px,env(safe-area-inset-left));}.overlay .panel{max-height:calc(100dvh - max(20px,env(safe-area-inset-top) + env(safe-area-inset-bottom)));overflow:auto;}@media (orientation:portrait) and (max-width:700px){  #hud{transform:none;gap:4px;scale:.78;transform-origin:top left;}  #objective{top:58px;max-width:64vw;font-size:10px;}  #bookBtn{top:58px;width:58px;height:48px;}  #controls{height:142px!important;padding:0 8px!important;}  #controls .joystick{width:118px!important;height:118px!important;flex-basis:118px!important;}  #controls .joy-base{width:110px!important;height:110px!important;left:4px;top:4px;}  #controls .joy-ring{inset:17px;}  #controls .joy-stick{width:44px;height:44px;left:37px;top:37px;}  #controls .acts{height:126px!important;width:min(58vw,300px)!important;}  #controls .acts button{height:46px!important;font-size:10px;}  #controls .interact{height:42px!important;}  .overlay .panel{width:min(92vw,620px);padding:18px;}  .overlay .title{font-size:clamp(42px,12vw,68px);line-height:.86;}  .overlay .sub{font-size:clamp(14px,3.7vw,18px);line-height:1.35;}  .overlay .btn{padding:12px;margin-top:8px;}}@media (orientation:landscape) and (max-height:700px){  .overlay{align-items:center;}  .overlay .panel{width:min(760px,calc(100vw - 24px));padding:14px 20px;max-height:calc(100dvh - 16px);}  .overlay .title{font-size:clamp(38px,9vh,66px);line-height:.84;}  .overlay .sub{font-size:clamp(12px,2.3vh,16px);line-height:1.28;margin:8px 0;}  .overlay .btn{padding:10px;margin-top:6px;}  #controls{height:116px!important;padding-bottom:max(6px,env(safe-area-inset-bottom))!important;}  #controls .joystick{width:106px;height:106px;flex-basis:106px;}  #controls .joy-base{width:100px;height:100px;left:3px;top:3px;}  #controls .joy-ring{inset:15px;}  #controls .joy-stick{width:40px;height:40px;left:33px;top:33px;}  #controls .acts{height:104px;width:min(360px,42vw);}  #controls .acts button{height:42px;font-size:10px;}  #controls .interact{height:38px!important;}}@media (orientation:landscape) and (min-width:701px){  body.touch-device #controls{height:108px!important;padding:0 12px!important;}  body.touch-device #controls .joystick{width:104px;height:104px;flex-basis:104px;}  body.touch-device #controls .joy-base{width:98px;height:98px;left:3px;top:3px;}  body.touch-device #controls .joy-ring{inset:15px;}  body.touch-device #controls .joy-stick{width:38px;height:38px;left:33px;top:33px;}  body.touch-device #controls .acts{height:98px;width:min(340px,38vw);}  body.touch-device #controls .acts button{height:40px;font-size:10px;}  body.touch-device #controls .interact{height:36px!important;}}<style id="v33-interaction-layout">#controls .interact{display:none!important}body.touch-device #controls .interact.has-action{display:block!important}body.touch-device #interactHint{bottom:var(--interaction-hint-bottom,76px)}body.touch-device.orientation-portrait #controls .interact.has-action{display:block!important}#c{position:fixed;inset:0;width:100vw;height:100vh;touch-action:none}#ui{position:fixed;inset:0;pointer-events:none}#controls{pointer-events:none}#controls.visible{pointer-events:auto}#controls .interact{pointer-events:auto}body.touch-device.orientation-landscape #controls .interact.has-action{height:40px!important}body.touch-device.orientation-portrait #controls .interact.has-action{height:44px!important}body.touch-device #interactHint{z-index:50}</style>
+<style id="v34-adaptive-interaction">
+/* V34: contextual action is a separate compact control, never a third giant row. */
+body.touch-device #interactHint{display:none!important}
+body.desktop-device #controls .interact{display:none!important}
+body.touch-device #controls .interact.has-action{
+  display:block!important;
+  position:absolute!important;
+  left:50%!important;
+  right:auto!important;
+  top:auto!important;
+  bottom:calc(100% + 8px)!important;
+  transform:translateX(-50%)!important;
+  width:min(72vw,360px)!important;
+  max-width:72vw!important;
+  height:44px!important;
+  min-height:44px!important;
+  padding:0 16px!important;
+  font-size:11px!important;
+  border-radius:14px!important;
+  z-index:110!important;
+}
+body.touch-device.orientation-landscape #controls .interact.has-action{
+  width:min(46vw,330px)!important;
+  height:40px!important;
+  min-height:40px!important;
+  font-size:10px!important;
+  bottom:calc(100% + 7px)!important;
+}
+body.touch-device.orientation-portrait #controls .interact.has-action{
+  width:min(72vw,340px)!important;
+  height:44px!important;
+  min-height:44px!important;
+  bottom:calc(100% + 8px)!important;
+}
+body.touch-device #controls .acts{
+  position:relative!important;
+}
+body.touch-device #controls .jump,
+body.touch-device #controls .attack{
+  top:0!important;
+}
+body.touch-device.orientation-landscape #controls{
+  height:116px!important;
+}
+body.touch-device.orientation-portrait #controls{
+  height:138px!important;
+}
+@media(max-height:560px) and (orientation:landscape){
+  body.touch-device #controls{height:98px!important}
+  body.touch-device #controls .joystick{
+    width:92px!important;height:92px!important;flex-basis:92px!important
+  }
+  body.touch-device #controls .joy-base{width:86px!important;height:86px!important;left:3px!important;top:3px!important}
+  body.touch-device #controls .joy-ring{inset:13px!important}
+  body.touch-device #controls .joy-stick{width:34px!important;height:34px!important;left:29px!important;top:29px!important}
+  body.touch-device #controls .acts{height:90px!important;width:min(38vw,300px)!important}
+  body.touch-device #controls .acts button{height:36px!important;font-size:9px!important}
+  body.touch-device.orientation-landscape #controls .interact.has-action{
+    height:36px!important;min-height:36px!important;bottom:calc(100% + 5px)!important
+  }
+}
+</style>
+<style id="v35-ui-fix">
+/* V35: contextual interaction is compact and anchored to the action cluster. */
+body.touch-device #controls .acts{position:relative!important;display:flex!important;align-items:flex-end!important;justify-content:flex-end!important}
+body.touch-device #controls .interact.has-action{
+  display:block!important;position:absolute!important;
+  left:auto!important;right:0!important;top:auto!important;bottom:calc(100% + 8px)!important;
+  transform:none!important;width:min(260px,100%)!important;max-width:260px!important;
+  height:42px!important;min-height:42px!important;padding:0 12px!important;
+  font-size:10px!important;border-radius:12px!important;z-index:120!important;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+}
+body.touch-device.orientation-portrait #controls .interact.has-action{
+  width:min(240px,100%)!important;max-width:240px!important;height:42px!important;min-height:42px!important;
+}
+body.touch-device.orientation-landscape #controls .interact.has-action{
+  width:min(260px,100%)!important;max-width:260px!important;height:40px!important;min-height:40px!important;
+}
+body.touch-device #interactHint{display:none!important}
+body.touch-device #controls .interact:not(.has-action){display:none!important}
+/* Keep the interaction control clear of the platforming viewport and browser safe area. */
+body.touch-device.orientation-landscape #controls{bottom:max(10px,env(safe-area-inset-bottom));}
+body.touch-device.orientation-portrait #controls{bottom:max(10px,env(safe-area-inset-bottom));}
+</style>
+<style id="v36-orientation">
+/* V36 legacy styles retained; V42 treats every orientation as a valid layout. */
+#orientationGate{
+  position:fixed;inset:0;z-index:10000;display:none;
+  align-items:center;justify-content:center;
+  padding:24px;background:#020505f5;color:#eee;
+  pointer-events:auto;
+}
+#orientationGate .orientation-card{
+  width:min(560px,88vw);padding:28px 24px;text-align:center;
+  background:#09100ff8;border:1px solid #a08a57;border-radius:22px;
+  box-shadow:0 20px 60px #000b;
+}
+#orientationGate .orientation-icon{
+  width:96px;height:64px;margin:0 auto 20px;border:3px solid #d9c17a;
+  border-radius:12px;position:relative;
+}
+#orientationGate .orientation-icon:after{
+  content:"";position:absolute;inset:8px;border:1px solid #806e48;border-radius:5px;
+}
+#orientationGate h2{margin:0 0 10px;font:900 25px Georgia,serif;color:#ead58e}
+#orientationGate p{margin:0 0 18px;font-size:15px;line-height:1.45;color:#c9c9c3}
+#orientationGate button{
+  width:min(320px,100%);height:50px;pointer-events:auto;
+}
+/* V41: orientation is fully adaptive. Portrait is a supported gameplay layout, not an error state. */
+#orientationGate{display:none!important}
+body.orientation-portrait #controls{display:flex!important}
+body.orientation-portrait #ui,
+body.orientation-portrait #c{visibility:visible!important}
+
+/* Landscape gameplay rail: reserve a small, predictable control strip. */
+body.touch-device.orientation-landscape #controls{
+  height:112px!important;
+  bottom:max(6px,env(safe-area-inset-bottom))!important;
+  padding:0 14px!important;
+  gap:14px!important;
+  align-items:flex-end!important;
+}
+body.touch-device.orientation-landscape #controls .joystick{
+  width:96px!important;height:96px!important;flex:0 0 96px!important;
+}
+body.touch-device.orientation-landscape #controls .joy-base{
+  width:90px!important;height:90px!important;left:3px!important;top:3px!important;
+}
+body.touch-device.orientation-landscape #controls .joy-ring{inset:14px!important}
+body.touch-device.orientation-landscape #controls .joy-stick{
+  width:36px!important;height:36px!important;left:30px!important;top:30px!important;
+}
+body.touch-device.orientation-landscape #controls .joy-label{
+  bottom:-1px!important;font-size:8px!important;
+}
+body.touch-device.orientation-landscape #controls .acts{
+  height:96px!important;width:min(420px,46vw)!important;flex:0 1 420px!important;
+  margin-left:auto!important;
+}
+body.touch-device.orientation-landscape #controls .acts button{
+  height:42px!important;font-size:10px!important;
+}
+body.touch-device.orientation-landscape #controls .interact.has-action{
+  height:38px!important;
+  bottom:46px!important;
+  left:0!important;right:0!important;
+}
+body.touch-device.orientation-landscape #controls .jump,
+body.touch-device.orientation-landscape #controls .attack{
+  top:auto!important;bottom:0!important;
+}
+body.touch-device.orientation-landscape #controls .interact:not(.has-action){
+  display:none!important;
+}
+
+/* Extra-wide desktop-touch/tablet landscape: do not let controls grow into the playfield. */
+@media (min-width:1200px) and (orientation:landscape){
+  body.touch-device.orientation-landscape #controls .acts{width:420px!important}
+}
+
+/* V42: portrait is a first-class gameplay mode. Menus and modal screens remain available. */
+body.orientation-portrait #orientationGate{display:none!important}
+body.orientation-portrait #start,
+body.orientation-portrait #modal,
+body.orientation-portrait #book,
+body.orientation-portrait #puzzle,
+body.orientation-portrait #archivePuzzle,
+body.orientation-portrait #bridgePuzzle,
+body.orientation-portrait #thresholdChoice{display:grid}
+</style>
+
+<style id="v37-layout-fix">
+/* V37: gameplay viewport and touch controls are separate surfaces. */
+:root{--tlt-control-rail:86px}
+body.touch-device.orientation-landscape #c{
+  top:0!important;left:0!important;right:0!important;
+  bottom:calc(var(--tlt-control-rail) + env(safe-area-inset-bottom))!important;
+  width:100vw!important;
+  height:calc(100vh - var(--tlt-control-rail) - env(safe-area-inset-bottom))!important;
+}
+body.touch-device.orientation-landscape #controls{
+  left:0!important;right:0!important;bottom:0!important;
+  height:var(--tlt-control-rail)!important;
+  padding:5px max(12px,env(safe-area-inset-left)) max(5px,env(safe-area-inset-bottom)) max(12px,env(safe-area-inset-right))!important;
+  display:flex!important;align-items:center!important;justify-content:space-between!important;
+  gap:12px!important;
+  background:linear-gradient(180deg,#070b0bf0 0%,#020505fa 100%)!important;
+  border-top:1px solid #51472f!important;
+  box-shadow:0 -8px 24px #0008!important;
+}
+body.touch-device.orientation-landscape #controls .joystick{
+  width:76px!important;height:76px!important;flex:0 0 76px!important;
+  margin:0!important;
+}
+body.touch-device.orientation-landscape #controls .joy-base{
+  width:70px!important;height:70px!important;left:3px!important;top:3px!important;
+  background:#0a1110e8!important;border:1px solid #8e7b4e!important;
+}
+body.touch-device.orientation-landscape #controls .joy-ring{inset:12px!important;border-color:#63583c!important}
+body.touch-device.orientation-landscape #controls .joy-stick{
+  width:30px!important;height:30px!important;left:23px!important;top:23px!important;
+  background:#9d8a5b!important;border:2px solid #e0c77c!important;
+}
+body.touch-device.orientation-landscape #controls .joy-label{
+  display:none!important;
+}
+body.touch-device.orientation-landscape #controls .acts{
+  height:76px!important;width:274px!important;flex:0 0 274px!important;
+  margin:0 0 0 auto!important;display:flex!important;align-items:center!important;
+  justify-content:flex-end!important;gap:8px!important;position:relative!important;
+}
+body.touch-device.orientation-landscape #controls .acts button{
+  position:relative!important;top:auto!important;bottom:auto!important;left:auto!important;right:auto!important;
+  width:133px!important;height:52px!important;margin:0!important;
+  border-radius:16px!important;border:1px solid #8f7b4d!important;
+  background:linear-gradient(180deg,#101816f5,#080e0df5)!important;
+  box-shadow:inset 0 1px #ffffff0d,0 3px 10px #0008!important;
+  color:#eadcae!important;font-size:11px!important;font-weight:900!important;letter-spacing:.03em!important;
+}
+body.touch-device.orientation-landscape #controls .jump,
+body.touch-device.orientation-landscape #controls .attack{flex:1 1 0!important}
+body.touch-device.orientation-landscape #controls .interact.has-action{
+  position:absolute!important;left:50%!important;right:auto!important;bottom:62px!important;
+  transform:translateX(-50%)!important;width:230px!important;max-width:230px!important;
+  height:34px!important;min-height:34px!important;padding:0 10px!important;
+  border-radius:12px!important;font-size:10px!important;
+  white-space:nowrap!important;overflow:hidden!important;text-overflow:ellipsis!important;
+  z-index:120!important;
+}
+body.touch-device.orientation-landscape #controls .interact:not(.has-action){display:none!important}
+body.touch-device.orientation-landscape #hud{
+  top:max(7px,env(safe-area-inset-top))!important;left:max(10px,env(safe-area-inset-left))!important;
+  transform:none!important;scale:.82!important;transform-origin:top left!important;
+}
+body.touch-device.orientation-landscape #bookBtn{
+  top:max(7px,env(safe-area-inset-top))!important;right:max(10px,env(safe-area-inset-right))!important;
+  width:66px!important;height:48px!important;border-radius:14px!important;font-size:10px!important;
+}
+body.touch-device.orientation-landscape #objective{
+  top:max(8px,env(safe-area-inset-top))!important;
+  max-width:min(42vw,440px)!important;font-size:10px!important;padding:6px 10px!important;
+}
+body.touch-device.orientation-landscape #toast{bottom:calc(var(--tlt-control-rail) + 14px)!important}
+/* Menus remain full-screen overlays, but gameplay itself never hides behind the mobile rail. */
+@media (max-width:520px) and (orientation:landscape){
+  :root{--tlt-control-rail:78px}
+  body.touch-device.orientation-landscape #controls{gap:8px!important;padding-left:8px!important;padding-right:8px!important}
+  body.touch-device.orientation-landscape #controls .joystick{width:68px!important;height:68px!important;flex-basis:68px!important}
+  body.touch-device.orientation-landscape #controls .joy-base{width:62px!important;height:62px!important}
+  body.touch-device.orientation-landscape #controls .joy-stick{width:26px!important;height:26px!important;left:21px!important;top:21px!important}
+  body.touch-device.orientation-landscape #controls .acts{width:246px!important;flex-basis:246px!important;height:70px!important}
+  body.touch-device.orientation-landscape #controls .acts button{width:119px!important;height:46px!important;font-size:10px!important}
+  body.touch-device.orientation-landscape #controls .interact.has-action{bottom:54px!important;width:205px!important;max-width:205px!important;height:30px!important;min-height:30px!important}
+}
+</style>
+
+<style id="v38-final-mobile-layout">
+/* V38: the gameplay canvas owns the whole viewport. Controls float in safe corner zones. */
+html,body{width:100%;height:100%;overflow:hidden}
+body.touch-device.orientation-landscape #c{
+  position:fixed!important;inset:0!important;width:100vw!important;height:100dvh!important;
+  max-width:none!important;max-height:none!important;display:block!important;
+}
+body.touch-device.orientation-landscape #controls{
+  position:fixed!important;inset:0!important;width:100vw!important;height:100dvh!important;
+  padding:0!important;margin:0!important;background:none!important;border:0!important;box-shadow:none!important;
+  pointer-events:none!important;display:block!important;z-index:1000!important;
+}
+body.touch-device.orientation-landscape #controls .joystick{
+  position:absolute!important;left:max(14px,env(safe-area-inset-left))!important;bottom:max(12px,env(safe-area-inset-bottom))!important;
+  width:82px!important;height:82px!important;flex:none!important;margin:0!important;
+  pointer-events:auto!important;
+}
+body.touch-device.orientation-landscape #controls .joy-base{
+  width:76px!important;height:76px!important;left:3px!important;top:3px!important;
+  background:#07100fee!important;border:1px solid #9b8651!important;
+}
+body.touch-device.orientation-landscape #controls .joy-ring{inset:13px!important;border-color:#6c5d3c!important}
+body.touch-device.orientation-landscape #controls .joy-stick{
+  width:32px!important;height:32px!important;left:25px!important;top:25px!important;
+  background:#b69c5d!important;border:2px solid #e4ca79!important;
+}
+body.touch-device.orientation-landscape #controls .joy-label{display:none!important}
+body.touch-device.orientation-landscape #controls .acts{
+  position:absolute!important;right:max(14px,env(safe-area-inset-right))!important;bottom:max(12px,env(safe-area-inset-bottom))!important;
+  width:min(330px,38vw)!important;height:58px!important;display:flex!important;align-items:stretch!important;gap:8px!important;
+  margin:0!important;padding:0!important;pointer-events:none!important;
+}
+body.touch-device.orientation-landscape #controls .acts button{
+  position:relative!important;left:auto!important;right:auto!important;top:auto!important;bottom:auto!important;
+  width:auto!important;height:58px!important;min-width:0!important;flex:1 1 0!important;margin:0!important;
+  padding:0 10px!important;border-radius:15px!important;
+  background:linear-gradient(180deg,#101817eF,#080d0deF)!important;
+  border:1px solid #9b8651!important;box-shadow:0 5px 16px #0009,inset 0 1px #fff1!important;
+  color:#eadcae!important;font-size:11px!important;font-weight:900!important;pointer-events:auto!important;
+}
+body.touch-device.orientation-landscape #controls .interact.has-action{
+  position:absolute!important;left:50%!important;right:auto!important;bottom:calc(100% + 8px)!important;
+  transform:translateX(-50%)!important;width:min(260px,100%)!important;max-width:260px!important;
+  height:38px!important;min-height:38px!important;z-index:120!important;
+}
+body.touch-device.orientation-landscape #controls .interact:not(.has-action){display:none!important}
+body.touch-device.orientation-landscape #hud{
+  top:max(8px,env(safe-area-inset-top))!important;left:max(10px,env(safe-area-inset-left))!important;
+  transform:none!important;scale:.82!important;transform-origin:top left!important;z-index:30!important;
+}
+body.touch-device.orientation-landscape #bookBtn{
+  top:max(8px,env(safe-area-inset-top))!important;right:max(10px,env(safe-area-inset-right))!important;
+  width:68px!important;height:50px!important;border-radius:14px!important;z-index:30!important;
+}
+body.touch-device.orientation-landscape #objective{
+  top:max(9px,env(safe-area-inset-top))!important;max-width:min(42vw,430px)!important;
+  font-size:10px!important;padding:6px 10px!important;z-index:30!important;
+}
+body.touch-device.orientation-landscape #toast{bottom:calc(86px + env(safe-area-inset-bottom))!important;z-index:80!important}
+@media (max-width:900px) and (orientation:landscape){
+  body.touch-device.orientation-landscape #controls .joystick{width:74px!important;height:74px!important;left:10px!important;bottom:10px!important}
+  body.touch-device.orientation-landscape #controls .joy-base{width:68px!important;height:68px!important}
+  body.touch-device.orientation-landscape #controls .joy-stick{width:28px!important;height:28px!important;left:22px!important;top:22px!important}
+  body.touch-device.orientation-landscape #controls .acts{right:10px!important;bottom:10px!important;width:280px!important;height:52px!important;gap:7px!important}
+  body.touch-device.orientation-landscape #controls .acts button{height:52px!important;font-size:10px!important}
+  body.touch-device.orientation-landscape #controls .interact.has-action{height:34px!important;min-height:34px!important;bottom:calc(100% + 7px)!important;width:220px!important}
+}
+@media (max-width:620px) and (orientation:landscape){
+  body.touch-device.orientation-landscape #controls .acts{width:250px!important;height:48px!important}
+  body.touch-device.orientation-landscape #controls .acts button{height:48px!important;font-size:9px!important;border-radius:13px!important}
+}
+</style>
+<style id="v41-responsive">
+/* V41 responsive contract: never block gameplay because of orientation. */
+html,body{width:100%;height:100%;min-width:0;min-height:0}
+#c{display:block;visibility:visible!important}
+#ui{visibility:visible!important}
+#controls.visible{display:flex!important}
+body.touch-device.orientation-portrait #controls{
+  display:flex!important;
+  height:164px!important;
+  left:0;right:0;
+  bottom:max(6px,env(safe-area-inset-bottom))!important;
+  padding:0 10px!important;
+  align-items:flex-end!important;
+  justify-content:space-between!important;
+}
+body.touch-device.orientation-portrait #controls .joystick{
+  width:126px!important;height:126px!important;flex:0 0 126px!important;
+}
+body.touch-device.orientation-portrait #controls .joy-base{
+  width:118px!important;height:118px!important;left:4px!important;top:4px!important;
+}
+body.touch-device.orientation-portrait #controls .joy-ring{inset:18px!important}
+body.touch-device.orientation-portrait #controls .joy-stick{
+  width:46px!important;height:46px!important;left:40px!important;top:40px!important;
+}
+body.touch-device.orientation-portrait #controls .acts{
+  width:min(56vw,310px)!important;height:142px!important;flex:0 1 auto!important;
+}
+body.touch-device.orientation-portrait #controls .acts button{
+  height:56px!important;font-size:11px!important;
+}
+body.touch-device.orientation-portrait #controls .interact{
+  height:44px!important;bottom:0!important;
+}
+body.touch-device.orientation-portrait #hud{
+  top:max(6px,env(safe-area-inset-top))!important;
+  left:6px!important;transform:scale(.84)!important;transform-origin:top left!important;
+}
+body.touch-device.orientation-portrait #bookBtn{
+  top:max(6px,env(safe-area-inset-top))!important;right:6px!important;
+}
+body.touch-device.orientation-portrait #objective{
+  top:58px!important;max-width:64vw!important;
+}
+body.touch-device.orientation-portrait #hint{display:none!important}
+body.touch-device.orientation-portrait #toast{bottom:174px!important;max-width:82vw!important}
+@media(max-width:430px) and (orientation:portrait){
+  body.touch-device.orientation-portrait #controls{height:150px!important}
+  body.touch-device.orientation-portrait #controls .joystick{width:112px!important;height:112px!important;flex-basis:112px!important}
+  body.touch-device.orientation-portrait #controls .joy-base{width:104px!important;height:104px!important}
+  body.touch-device.orientation-portrait #controls .joy-stick{left:34px!important;top:34px!important;width:42px!important;height:42px!important}
+  body.touch-device.orientation-portrait #controls .acts{height:128px!important;width:min(58vw,270px)!important}
+  body.touch-device.orientation-portrait #controls .acts button{height:50px!important}
+}
+</style>
+<style id="v42-portrait-launch">
+/* V42 portrait launch: the start screen is usable before gameplay begins. */
+body.orientation-portrait #start{display:grid!important;place-items:center!important;visibility:visible!important;z-index:5000!important}
+body.orientation-portrait #start .panel{width:min(94vw,620px)!important;max-height:calc(100dvh - 24px)!important;overflow:auto!important;padding:18px!important}
+body.orientation-portrait #start .title{font-size:clamp(40px,14vw,72px)!important}
+body.orientation-portrait #start .sub{font-size:clamp(13px,4vw,18px)!important}
+</style>
+
+<style id="v43-launch-fix">
+/* V43: launch screen is a true application state, not a transparent overlay over gameplay. */
+body.menu #c,
+body.menu #hud,
+body.menu #objective,
+body.menu #bookBtn,
+body.menu #hint,
+body.menu #toast,
+body.menu #interactHint,
+body.menu #controls{
+  visibility:hidden!important;
+  pointer-events:none!important;
+}
+body.menu #controls{display:none!important}
+body.menu #start{
+  display:grid!important;
+  visibility:visible!important;
+  pointer-events:auto!important;
+  background:#030606!important;
+  opacity:1!important;
+}
+body.menu #start .panel{
+  width:min(680px,calc(100vw - 32px))!important;
+  max-height:calc(100dvh - 32px)!important;
+  overflow:auto!important;
+  padding:clamp(20px,4vw,34px)!important;
+  background:#09100ff9!important;
+  box-shadow:0 24px 80px #000c!important;
+}
+body.menu #start .title{
+  font-size:clamp(48px,10vw,82px)!important;
+  line-height:.86!important;
+  margin:8px 0 24px!important;
+}
+body.menu #start .sub{
+  font-size:clamp(14px,2.2vw,19px)!important;
+  line-height:1.45!important;
+  margin:0 0 18px!important;
+}
+body.menu #start .btn{
+  min-height:52px!important;
+  margin-top:10px!important;
+  font-size:clamp(15px,2.2vw,19px)!important;
+}
+@media (orientation:portrait) and (max-width:700px){
+  body.menu #start{padding:12px!important}
+  body.menu #start .panel{
+    width:min(94vw,560px)!important;
+    max-height:calc(100dvh - 24px)!important;
+    padding:20px!important;
+    border-radius:20px!important;
+  }
+  body.menu #start .title{font-size:clamp(44px,14vw,68px)!important;margin:6px 0 18px!important}
+  body.menu #start .sub{font-size:clamp(14px,4vw,17px)!important;line-height:1.4!important}
+  body.menu #start .btn{min-height:50px!important;padding:12px!important}
+}
+@media (orientation:landscape) and (max-height:620px){
+  body.menu #start .panel{width:min(760px,calc(100vw - 28px))!important;padding:16px 22px!important}
+  body.menu #start .title{font-size:clamp(40px,9vh,64px)!important;margin:2px 0 12px!important}
+  body.menu #start .sub{font-size:clamp(12px,2.4vh,16px)!important;margin-bottom:8px!important}
+  body.menu #start .btn{min-height:44px!important;margin-top:6px!important;padding:9px!important}
+}
+</style>
+
+<style id="v46-immersive-launch-and-ritual-exit">
+/* V46: immersive launch scene + discreet mini-game exit. */
+body.menu #start.launch-screen{position:fixed!important;inset:0!important;width:100vw!important;height:100dvh!important;min-height:100vh!important;padding:0!important;display:grid!important;place-items:center!important;overflow:hidden!important;background:#020505!important;isolation:isolate!important}
+body.menu #start .launch-vignette{position:absolute;inset:0;z-index:0;background:radial-gradient(circle at 50% 43%,#17221f 0%,#0a1211 34%,#030606 72%,#000 100%);animation:launchBreath 7s ease-in-out infinite}
+body.menu #start .launch-vignette:before{content:"";position:absolute;inset:-20%;background:conic-gradient(from 0deg at 50% 48%,transparent 0 20%,#d4b96a0a 23%,transparent 28% 52%,#d4b96a08 56%,transparent 62% 100%);animation:launchWheel 24s linear infinite}
+body.menu #start .launch-content{position:relative;z-index:4;width:min(900px,90vw);display:flex;flex-direction:column;align-items:center;text-align:center;padding:clamp(20px,5vh,56px);box-sizing:border-box}
+body.menu #start .launch-kicker{font-size:clamp(10px,1.2vw,14px);letter-spacing:.34em;color:#bca56d;opacity:.82;animation:launchReveal .9s ease both}
+body.menu #start .title-wrap{position:relative;margin:clamp(16px,3vh,28px) 0 12px;display:flex;align-items:center;justify-content:center}
+body.menu #start .title{font-size:clamp(58px,10vw,132px)!important;line-height:.78!important;letter-spacing:-.045em!important;margin:0!important;color:#e8cf8b!important;text-shadow:0 0 16px #d9bd6822,0 12px 50px #000!important;animation:titleRise 1.25s cubic-bezier(.2,.8,.2,1) both}
+body.menu #start .title span{color:#d9bc78}
+body.menu #start .sigil{position:absolute;font-size:clamp(28px,4vw,54px);color:#9d8750;opacity:.45;animation:sigilPulse 3.8s ease-in-out infinite}
+body.menu #start .sigil-left{left:clamp(-70px,-6vw,-28px)}
+body.menu #start .sigil-right{right:clamp(-70px,-6vw,-28px);animation-delay:1.9s}
+body.menu #start .launch-line{display:flex;align-items:center;gap:14px;width:min(620px,78vw);color:#9f8b5a;font-size:clamp(9px,1.2vw,13px);letter-spacing:.22em;animation:launchReveal 1.2s .15s ease both}
+body.menu #start .launch-line span{height:1px;flex:1;background:linear-gradient(90deg,transparent,#8e7848,transparent)}
+body.menu #start .sub{width:min(680px,84vw);font-size:clamp(14px,1.8vw,19px)!important;line-height:1.55!important;color:#c6c9c5!important;margin:24px 0 26px!important;animation:launchReveal 1.2s .3s ease both}
+body.menu #start .launch-actions{width:min(620px,84vw);display:grid;grid-template-columns:1fr 1fr;gap:14px;animation:launchReveal 1.2s .45s ease both}
+body.menu #start .launch-actions .btn{min-height:68px!important;margin:0!important;padding:10px 18px!important;display:flex;flex-direction:column;justify-content:center;align-items:center;gap:2px;border-radius:16px!important;font-size:clamp(15px,2vw,19px)!important}
+body.menu #start .launch-actions .btn small{font-size:11px;color:#a9aaa2;letter-spacing:.06em;font-weight:500}
+body.menu #start .launch-primary{background:linear-gradient(180deg,#18211e,#0b1211)!important;box-shadow:0 0 0 1px #c4a86666,0 14px 50px #0008!important}
+body.menu #start .launch-primary:hover{transform:translateY(-2px);box-shadow:0 0 30px #c9ae6340,0 14px 50px #0008!important}
+body.menu #start .launch-secondary{opacity:.84}
+body.menu #start .launch-note{margin-top:18px;font-size:11px;color:#777b75;letter-spacing:.12em;animation:launchReveal 1.2s .6s ease both}
+.launch-runes{position:absolute;inset:0;z-index:1;pointer-events:none;overflow:hidden}
+.launch-runes i{position:absolute;font-style:normal;color:#d6bd79;opacity:0;filter:blur(.2px);animation:floatRune 10s linear infinite}
+.launch-runes i:nth-child(1){left:12%;top:22%;font-size:28px;animation-delay:0s}.launch-runes i:nth-child(2){left:78%;top:19%;font-size:20px;animation-delay:2s}.launch-runes i:nth-child(3){left:23%;top:72%;font-size:18px;animation-delay:4s}.launch-runes i:nth-child(4){left:84%;top:67%;font-size:30px;animation-delay:1s}.launch-runes i:nth-child(5){left:48%;top:14%;font-size:14px;animation-delay:5s}.launch-runes i:nth-child(6){left:66%;top:78%;font-size:16px;animation-delay:6s}.launch-runes i:nth-child(7){left:6%;top:55%;font-size:15px;animation-delay:7s}.launch-runes i:nth-child(8){left:91%;top:43%;font-size:17px;animation-delay:3s}
+.launch-embers{position:absolute;inset:0;z-index:2;pointer-events:none;background-image:radial-gradient(circle,#e4c77a 0 1px,transparent 2px);background-size:90px 90px;opacity:.07;animation:emberDrift 16s linear infinite}
+.ritual-exit{position:absolute;z-index:30;top:max(18px,env(safe-area-inset-top));right:max(18px,env(safe-area-inset-right));width:48px;height:48px;border:1px solid #8f7c50;border-radius:50%;background:#070d0cf2;color:#ead8a4;font-size:30px;line-height:1;display:grid;place-items:center;cursor:pointer;box-shadow:0 8px 28px #0008}
+.ritual-exit span{position:absolute;right:58px;white-space:nowrap;font-size:10px;letter-spacing:.08em;color:#9d9b91;opacity:0;transform:translateX(5px);transition:.15s}.ritual-exit:hover span{opacity:1;transform:none}
+@keyframes launchBreath{0%,100%{transform:scale(1);opacity:.92}50%{transform:scale(1.045);opacity:1}}@keyframes launchWheel{to{transform:rotate(360deg)}}
+@keyframes titleRise{0%{opacity:0;transform:translateY(28px) scale(.96);filter:blur(7px)}100%{opacity:1;transform:none;filter:none}}
+@keyframes launchReveal{0%{opacity:0;transform:translateY(14px)}100%{opacity:1;transform:none}}
+@keyframes sigilPulse{0%,100%{transform:scale(.88) rotate(0deg);opacity:.28}50%{transform:scale(1.08) rotate(45deg);opacity:.58}}
+@keyframes floatRune{0%{opacity:0;transform:translateY(30px) rotate(0deg)}18%{opacity:.25}70%{opacity:.12}100%{opacity:0;transform:translateY(-80px) rotate(180deg)}}
+@keyframes emberDrift{to{transform:translate3d(45px,-45px,0)}}
+@media(max-width:700px) and (orientation:portrait){body.menu #start .launch-content{width:100vw;padding:26px 20px}.launch-runes i{opacity:.7}.launch-embers{opacity:.05}body.menu #start .title{font-size:clamp(54px,16vw,82px)!important}.body.menu #start .sub{width:90vw}body.menu #start .launch-actions{width:92vw;grid-template-columns:1fr;gap:10px}body.menu #start .launch-actions .btn{min-height:60px!important}.ritual-exit{width:44px;height:44px;font-size:27px}}
+@media(prefers-reduced-motion:reduce){.launch-vignette,.launch-vignette:before,.launch-runes i,.launch-embers,.title,.launch-content *{animation:none!important}}
+</style>
+<style id="v44-launch-state-fix">
+/* V44: the launch screen exists ONLY while the application is in menu state.
+   Earlier portrait CSS used !important on #start, which overrode .hidden after Start. */
+body:not(.menu) #start{
+  display:none!important;
+  visibility:hidden!important;
+  opacity:0!important;
+  pointer-events:none!important;
+}
+body.menu #start{
+  display:grid!important;
+  visibility:visible!important;
+  opacity:1!important;
+  pointer-events:auto!important;
+}
+</style>
+
+<style id="v45-mobile-interaction-fix">
+/* V45: mobile interaction is always visible. It becomes active only near a usable object.
+   This avoids a hidden control that looks like a missing feature in landscape. */
+body.touch-device #controls .acts .interact{
+  display:block!important;
+  visibility:visible!important;
+  opacity:.38!important;
+  pointer-events:none!important;
+  position:absolute!important;
+  z-index:130!important;
+  left:50%!important;
+  right:auto!important;
+  transform:translateX(-50%)!important;
+  bottom:calc(100% + 7px)!important;
+  width:min(260px,92vw)!important;
+  max-width:92vw!important;
+  height:38px!important;
+  min-height:38px!important;
+  padding:0 12px!important;
+  font-size:10px!important;
+  border-radius:12px!important;
+}
+body.touch-device #controls .acts .interact.has-action{
+  opacity:1!important;
+  pointer-events:auto!important;
+  border-color:#d2b86e!important;
+  background:linear-gradient(180deg,#151a17f5,#090f0ef5)!important;
+  box-shadow:inset 0 1px #fff2,0 5px 14px #000b!important;
+}
+body.touch-device.orientation-landscape #controls .acts .interact{
+  bottom:calc(100% + 7px)!important;
+  width:min(260px,42vw)!important;
+  height:38px!important;
+  min-height:38px!important;
+}
+body.touch-device.orientation-portrait #controls .acts .interact{
+  bottom:calc(100% + 8px)!important;
+  width:min(260px,58vw)!important;
+  height:42px!important;
+  min-height:42px!important;
+}
+</style>
+<style id="v46-context-ui">
+/* V46: one contextual mobile action button + jump. Book is accessed from the memory card. */
+#bookBtn{display:none!important}
+#memoryCard{appearance:none;-webkit-appearance:none;border:1px solid #8e7b4e;background:#080d0ddd;color:#eee;text-align:left;cursor:pointer;pointer-events:none}
+body.touch-device #memoryCard{pointer-events:none;cursor:default}
+body.touch-device #memoryCard.book-ready{border-color:#8e7b4e;box-shadow:none}
+body.touch-device #memoryCard.book-ready .lab::after{content:""}
+body.touch-device #controls .attack,
+body.touch-device #controls .interact{display:none!important}
+body.touch-device #controls .context-action{display:none!important}
+body.touch-device #controls .context-action.has-action{display:block!important;pointer-events:auto!important;opacity:1!important;color:#eadcae!important;border-color:#d2b86e!important;background:linear-gradient(180deg,#151a17f7,#090f0ef7)!important;box-shadow:inset 0 1px #fff2,0 5px 14px #000b!important}
+body.touch-device #controls .context-action.context-attack{border-color:#c86a61!important;box-shadow:inset 0 1px #fff2,0 0 18px #a94e4838,0 5px 14px #000b!important;color:#f0c2b9!important}
+body.touch-device #controls .context-action.context-ladder{border-color:#d2b86e!important}
+body.touch-device #interactHint{display:none!important}
+body.touch-device.orientation-portrait #controls .context-action.has-action{height:50px!important;bottom:calc(100% + 8px)!important;width:min(280px,62vw)!important}
+body.touch-device.orientation-landscape #controls .context-action.has-action{height:44px!important;bottom:calc(100% + 8px)!important;width:min(260px,30vw)!important}
+@media(max-width:520px) and (orientation:landscape){body.touch-device.orientation-landscape #controls .context-action.has-action{width:min(220px,34vw)!important;height:38px!important;font-size:9px!important}}
+</style>
+<style id="interaction-focus-v50">
+body.touch-device #controls .context-action.has-action{
+  animation:focusActionPulse 1.35s ease-in-out infinite;
+  transform:translateZ(0);
+}
+body.touch-device #controls .context-action.context-attack{animation-duration:.72s}
+@keyframes focusActionPulse{0%,100%{filter:brightness(1);transform:translateY(0)}50%{filter:brightness(1.12);transform:translateY(-1px)}}
+#controls .context-action:focus-visible{outline:2px solid #e8d48d;outline-offset:3px}
+</style>
+<style id="mini-game-fullscreen-v48">
+.mini-game-overlay{position:fixed!important;inset:0!important;width:100vw!important;height:100dvh!important;min-height:100vh!important;padding:0!important;z-index:20000!important;background:radial-gradient(circle at 50% 35%,#14201ee8 0,#020505f7 62%,#000 100%)!important;overflow:hidden!important;display:grid!important;place-items:center!important}
+.mini-game-overlay.hidden{display:none!important}.mini-game-panel{box-sizing:border-box!important;width:100vw!important;max-width:none!important;height:100dvh!important;max-height:none!important;min-height:100vh!important;margin:0!important;border:0!important;border-radius:0!important;padding:clamp(18px,4vw,52px)!important;background:linear-gradient(180deg,#0b1312f8,#050909f8)!important;display:flex!important;flex-direction:column!important;justify-content:center!important;overflow:auto!important;box-shadow:none!important}
+.mini-game-panel h2{font-size:clamp(30px,5vw,58px)!important;margin:4px 0 8px!important;color:#ead49a!important}.mini-game-panel .sub{font-size:clamp(15px,2vw,22px)!important;max-width:900px!important;line-height:1.45!important;margin:0!important;color:#c8cfcb!important}
+.mini-head{display:flex;justify-content:space-between;align-items:flex-start;gap:20px;width:min(1100px,92vw);margin:0 auto 16px}.mini-score{flex:0 0 auto;min-width:84px;padding:12px 16px;border:1px solid #8f7c50;border-radius:14px;text-align:center;background:#080e0d}.mini-score span{display:block;font-size:10px;letter-spacing:2px;color:#9f967d}.mini-score b{font-size:24px;color:#eadcae}
+.seal-meter{width:min(1100px,92vw);height:7px;margin:0 auto 12px;background:#1a2421;border:1px solid #514a39;border-radius:99px;overflow:hidden}.seal-meter i{display:block;height:100%;width:0;background:linear-gradient(90deg,#75613c,#e6d28a);transition:width .25s ease}.mini-status{width:min(1100px,92vw);min-height:44px;box-sizing:border-box;margin:0 auto 14px;padding:11px 15px;border:1px solid #514a39;border-radius:12px;background:#080e0de8;color:#e5e1d4;text-align:center;font-size:clamp(12px,1.6vw,17px)}.mini-status.good{border-color:#a99357;box-shadow:0 0 24px #a9935730;color:#f0dfab}.mini-status.bad{border-color:#9c5952;color:#e6b6ae}
+.mini-game-panel .grid{width:min(760px,92vw);max-width:760px;align-self:center;grid-template-columns:repeat(4,1fr);gap:clamp(8px,1.4vw,16px);margin:0 auto 18px}.mini-game-panel .tile{aspect-ratio:1;font-size:clamp(26px,5vw,54px)!important;border-radius:clamp(12px,2vw,22px)!important;background:linear-gradient(145deg,#111a18,#07100f)!important;border:1px solid #8f7c50!important;box-shadow:inset 0 1px #fff1,0 8px 24px #0008!important;transition:transform .12s ease,box-shadow .18s ease,background .18s ease!important}.mini-game-panel .tile:hover{transform:translateY(-2px)}.mini-game-panel .tile.sel{outline:3px solid #ead28a!important;box-shadow:0 0 28px #d8bd6745,inset 0 1px #fff2!important;background:#1b241f!important}.mini-game-panel .tile.merge-pop{animation:sealMerge .28s ease}
+.mini-actions{display:flex;gap:12px;width:min(760px,92vw);margin:0 auto}.mini-actions .btn{margin:0!important;flex:1}.mini-actions .secondary{background:#080e0d!important;color:#bcb7aa!important}.archive-flash{width:min(760px,92vw);height:clamp(70px,12vh,120px);margin:0 auto 18px;border:1px solid #514a39;border-radius:18px;display:grid;place-items:center;background:radial-gradient(circle,#1e2925,#080e0d 70%);color:#eadcae;font-size:clamp(20px,4vw,36px);letter-spacing:4px;opacity:.9}.archive-flash.show{animation:runeFlash .52s ease}.archive-panel .runes{width:min(760px,92vw);margin:0 auto 14px;gap:clamp(10px,2vw,18px)}.archive-panel .rune{height:clamp(86px,15vh,150px)!important;font-size:clamp(30px,6vw,58px)!important;margin:0!important;border-radius:20px!important}.archive-panel .rune.flash{box-shadow:0 0 36px #e6d28a70!important;border-color:#ead28a!important;transform:translateY(-3px);background:#1b241f!important}.archive-panel .rune:disabled{opacity:.38!important}
+body.mini-game-active #controls,body.mini-game-active #hud,body.mini-game-active #objective,body.mini-game-active #hint,body.mini-game-active #interactHint,body.mini-game-active #toast,body.mini-game-active #memoryCard{visibility:hidden!important;pointer-events:none!important}body.mini-game-active #c{filter:brightness(.45)!important}
+@keyframes sealMerge{0%{transform:scale(.85)}55%{transform:scale(1.08);box-shadow:0 0 40px #ead28a66}100%{transform:scale(1)}}@keyframes runeFlash{0%{transform:scale(.94);opacity:.35}50%{transform:scale(1.02);opacity:1}100%{transform:scale(1);opacity:.9}}
+@media(max-width:700px) and (orientation:portrait){.mini-game-panel{padding:18px 14px!important}.mini-head{width:94vw;gap:10px}.mini-score{min-width:64px;padding:9px 10px}.mini-score b{font-size:20px}.mini-game-panel .grid{width:min(94vw,620px);gap:7px}.mini-actions{width:94vw}.mini-actions .btn{font-size:12px;padding:12px 8px}}
+</style>
+
+<style id="kpt-mini-landscape-v58">
+/* V58 WORKING BASE: landscape mini-games are a true single-screen surface. No internal scroll. */
+@media (orientation:landscape) and (max-height:700px){
+  body.mini-game-active{overflow:hidden!important}
+  .mini-game-overlay{
+    position:fixed!important;
+    inset:0!important;
+    width:100vw!important;
+    height:100dvh!important;
+    min-height:0!important;
+    padding:0!important;
+    overflow:hidden!important;
+    place-items:center!important;
+  }
+  .mini-game-overlay > .mini-game-panel,
+  .mini-game-overlay > .panel{
+    width:100vw!important;
+    height:100dvh!important;
+    min-height:0!important;
+    max-height:none!important;
+    margin:0!important;
+    padding:clamp(8px,2.2vh,18px) clamp(14px,3vw,34px)!important;
+    overflow:hidden!important;
+    display:flex!important;
+    flex-direction:column!important;
+    justify-content:center!important;
+    align-items:center!important;
+    box-shadow:none!important;
+    border-radius:0!important;
+  }
+  .mini-game-panel h2,
+  .mini-game-overlay > .panel h2{
+    font-size:clamp(22px,5.2vh,34px)!important;
+    line-height:1!important;
+    margin:2px 0 4px!important;
+  }
+  .mini-game-panel .sub,
+  .mini-game-overlay > .panel .sub{
+    max-width:min(900px,88vw)!important;
+    font-size:clamp(11px,2.6vh,16px)!important;
+    line-height:1.2!important;
+    margin:0 0 5px!important;
+    text-align:center!important;
+  }
+  .mini-head{
+    width:min(900px,88vw)!important;
+    margin:0 auto 5px!important;
+    gap:10px!important;
+    align-items:center!important;
+    flex:0 0 auto!important;
+  }
+  .mini-head .lab{font-size:7px!important}
+  .mini-score{
+    min-width:58px!important;
+    padding:5px 8px!important;
+    border-radius:10px!important;
+  }
+  .mini-score span{font-size:7px!important}
+  .mini-score b{font-size:17px!important}
+  .seal-meter{
+    width:min(900px,88vw)!important;
+    height:5px!important;
+    margin:0 auto 5px!important;
+    flex:0 0 auto!important;
+  }
+  .mini-status{
+    width:min(900px,88vw)!important;
+    min-height:30px!important;
+    margin:0 auto 6px!important;
+    padding:6px 9px!important;
+    border-radius:9px!important;
+    font-size:clamp(9px,2.1vh,13px)!important;
+    line-height:1.15!important;
+    flex:0 0 auto!important;
+  }
+  /* 4x4 merge puzzle: size is governed by viewport HEIGHT, not width. */
+  .mini-game-panel .grid{
+    width:min(48vh,52vw)!important;
+    max-width:48vh!important;
+    gap:clamp(4px,1vh,7px)!important;
+    margin:0 auto 6px!important;
+    flex:0 0 auto!important;
+  }
+  .mini-game-panel .tile{
+    width:auto!important;
+    aspect-ratio:1/1!important;
+    min-height:0!important;
+    font-size:clamp(18px,4.8vh,30px)!important;
+    border-radius:clamp(7px,1.5vh,13px)!important;
+  }
+  .mini-actions{
+    width:min(760px,88vw)!important;
+    gap:7px!important;
+    margin:0 auto!important;
+    flex:0 0 auto!important;
+  }
+  .mini-actions .btn{
+    min-height:38px!important;
+    padding:7px 10px!important;
+    margin:0!important;
+    font-size:clamp(10px,2.3vh,13px)!important;
+  }
+  .archive-flash{
+    width:min(760px,82vw)!important;
+    height:min(12vh,70px)!important;
+    margin:0 auto 6px!important;
+    border-radius:12px!important;
+    font-size:clamp(14px,3.5vh,24px)!important;
+    flex:0 0 auto!important;
+  }
+  .archive-panel .runes{
+    width:min(700px,82vw)!important;
+    gap:clamp(6px,1.2vw,12px)!important;
+    margin:0 auto 6px!important;
+    flex:0 0 auto!important;
+  }
+  .archive-panel .rune{
+    height:min(16vh,72px)!important;
+    min-height:48px!important;
+    font-size:clamp(22px,5vh,34px)!important;
+    border-radius:12px!important;
+  }
+  /* Bridge sequence and final choice are also single-screen. */
+  #bridgePuzzle > .panel,
+  #thresholdChoice > .panel{
+    width:min(760px,92vw)!important;
+    height:auto!important;
+    min-height:0!important;
+    max-height:calc(100dvh - 16px)!important;
+    padding:clamp(14px,3vh,24px)!important;
+    border:1px solid #8f7b50!important;
+    border-radius:18px!important;
+    background:linear-gradient(180deg,#0b1312f8,#050909fa)!important;
+  }
+  #bridgePuzzle .runes{
+    width:min(650px,82vw)!important;
+    gap:clamp(6px,1.2vw,12px)!important;
+    margin:4px auto!important;
+  }
+  #bridgePuzzle .rune{
+    height:min(15vh,68px)!important;
+    min-height:46px!important;
+    font-size:clamp(20px,4.5vh,32px)!important;
+  }
+  #bridgeProgress{font-size:clamp(10px,2.3vh,14px)!important}
+  #thresholdChoice .threshold-panel{position:relative;overflow:hidden;text-align:center;}
+  #thresholdChoice .threshold-panel::before{content:"";position:absolute;inset:-30%;background:radial-gradient(circle,rgba(218,194,112,.13),transparent 48%);opacity:.45;transition:opacity .7s ease,transform 1s ease;pointer-events:none;}
+  #thresholdChoice.ritual-awakened .threshold-panel::before{opacity:.95;transform:scale(1.08);}
+  #thresholdStep,#thresholdTitle,#thresholdText,#chooseMira,#chooseSelf,#closeChoice{position:relative;z-index:1;}
+  .threshold-core{position:relative;z-index:1;width:86px;height:86px;margin:2px auto 8px;border-radius:50%;display:grid;place-items:center;border:1px solid #8f7b50;background:radial-gradient(circle,rgba(225,204,128,.26),rgba(9,14,14,.7) 62%,transparent 64%);box-shadow:0 0 24px rgba(218,194,112,.18);animation:thresholdPulse 2.2s ease-in-out infinite;}
+  .threshold-core span{font-size:44px;color:#e5d39a;text-shadow:0 0 16px rgba(229,211,154,.65);transform:rotate(45deg);}
+  @keyframes thresholdPulse{0%,100%{transform:scale(.94);opacity:.72}50%{transform:scale(1.04);opacity:1}}
+  #thresholdChoice > .panel .btn{
+    width:min(560px,76vw)!important;
+    min-height:40px!important;
+    padding:8px 12px!important;
+    margin-top:6px!important;
+    font-size:clamp(11px,2.4vh,15px)!important;
+  }
+  #thresholdChoice > .panel h2{margin-bottom:7px!important}
+  #thresholdChoice > .panel .sub{margin-bottom:5px!important}
+  /* Never allow the ritual surface itself to become scrollable in landscape. */
+  .mini-game-overlay .panel,
+  .mini-game-overlay .mini-game-panel{scrollbar-width:none!important;overflow:hidden!important}
+  .mini-game-overlay .panel::-webkit-scrollbar,
+  .mini-game-overlay .mini-game-panel::-webkit-scrollbar{display:none!important}
+}
+</style>
+<!-- KPT: EMBEDDED SVG ASSETS. No external asset files are required. -->
+<script id="embedded-svg-assets" type="application/json">{"renIdle":"PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxOTIgMjU2Ij48Y2lyY2xlIGN4PSI5NiIgY3k9IjU4IiByPSIzMSIgZmlsbD0iI2M3YjY5NiIvPjxwYXRoIGQ9Ik02NiA1MnE2LTM5IDMxLTM5dDMxIDM5cS0xNS0xMi0zMS0xMVQ2NiA1MiIgZmlsbD0iIzI1MjkyNyIvPjxwYXRoIGQ9Ik02MyA5MnEzMy0xOSA2NiAwbDE4IDg5SDQ1eiIgZmlsbD0iIzMwM2IzNyIgc3Ryb2tlPSIjMTAxNjE1IiBzdHJva2Utd2lkdGg9IjYiLz48cGF0aCBkPSJNNzQgMTc2aDI3djU1SDY5ek0xMDEgMTc2aDI3bDcgNTVoLTM0eiIgZmlsbD0iIzVkNDczOCIvPjxwYXRoIGQ9Ik01NyAxMDhsLTE4IDU0TTEzNSAxMDhsMTggNTQiIHN0cm9rZT0iIzZiNzA1ZiIgc3Ryb2tlLXdpZHRoPSIxOCIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIi8+PC9zdmc+","renRun":"PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxOTIgMjU2Ij48Y2lyY2xlIGN4PSI5NiIgY3k9IjU1IiByPSIzMCIgZmlsbD0iI2M5Yjk5OSIvPjxwYXRoIGQ9Ik02NyA1MFE3NSAxNCA5NyAxN3EyNCAyIDI5IDM4LTE4LTEyLTMwLTEwLTE1LTEtMjkgNXoiIGZpbGw9IiMyNTJhMjgiLz48cGF0aCBkPSJNNjIgOTFxMzQtMTggNjggMGwxNiA3OEg0NnoiIGZpbGw9IiMyNzMyMmUiIHN0cm9rZT0iIzEwMTUxMiIgc3Ryb2tlLXdpZHRoPSI2Ii8+PHBhdGggZD0iTTcwIDE2OGgyNWwtOCA2MUg2NHpNOTggMTY4aDI1bDEzIDYxSDEwNHoiIGZpbGw9IiM2MTRhMzYiLz48cGF0aCBkPSJNNTggMTA0IDM1IDE1MU0xMzQgMTAzbDI1IDM3IiBzdHJva2U9IiM2Zjc1NjgiIHN0cm9rZS13aWR0aD0iMTciIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIvPjwvc3ZnPg==","renJump":"PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyMjAgMjgwIj48Y2lyY2xlIGN4PSIxMTAiIGN5PSI1NCIgcj0iMzAiIGZpbGw9IiNjOWI5OTkiLz48cGF0aCBkPSJNODAgNTFxOC0zNCAzMC0zNHQzMCAzNHEtMTgtMTItMzEtMTAtMTQtMi0yOSAxMCIgZmlsbD0iIzI1MmEyOCIvPjxwYXRoIGQ9Ik03NiA5MnEzNC0yMCA2OCAwbDI4IDY4LTM4IDEyLTIyLTM4LTEyIDQyLTM5LTEyeiIgZmlsbD0iIzI5MzUzMCIgc3Ryb2tlPSIjMTAxNTEyIiBzdHJva2Utd2lkdGg9IjYiLz48cGF0aCBkPSJNOTIgMTU2IDU4IDIxM2wyMCAxMyAzNi01MU0xMjYgMTU3bDQ3IDQxLTE1IDE5LTQ0LTMwIiBzdHJva2U9IiM2MTRhMzYiIHN0cm9rZS13aWR0aD0iMTYiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgZmlsbD0ibm9uZSIvPjwvc3ZnPg==","guardianIdle":"PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNTYgMjU2Ij48cGF0aCBkPSJNNjMgMjAzUTQ3IDEyOCA3MyA1OHE1NS00NSAxMTAgMCAyNyA3MCAxMSAxNDV6IiBmaWxsPSIjMTcxYjFjIiBzdHJva2U9IiM0YTUzNGQiIHN0cm9rZS13aWR0aD0iNyIvPjxwYXRoIGQ9Ik04NSA2OGwtMjQtMjcgNDAgOU0xNzEgNjhsMjQtMjctNDAgOSIgZmlsbD0iIzIyMjgyOSIgc3Ryb2tlPSIjNTk2MDVhIiBzdHJva2Utd2lkdGg9IjYiLz48ZWxsaXBzZSBjeD0iMTAxIiBjeT0iMTA0IiByeD0iMTUiIHJ5PSIyMSIgZmlsbD0iI2YzZDk4YiIvPjxlbGxpcHNlIGN4PSIxNTUiIGN5PSIxMDQiIHJ4PSIxNSIgcnk9IjIxIiBmaWxsPSIjZjNkOThiIi8+PC9zdmc+","guardianAttack":"PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAzMDAgMjYwIj48cGF0aCBkPSJNNTggMjIxUTQ0IDEyOCA3MiA2MXE1Ni00NSAxMTUgMSAzMCA3NiAxMiAxNTl6IiBmaWxsPSIjMTUxOTFhIiBzdHJva2U9IiM2OTcxNmIiIHN0cm9rZS13aWR0aD0iNyIvPjxwYXRoIGQ9Ik04MCA4NGwtNTgtNDkgMjUgODRNMTkxIDg0bDYwLTQ5LTI4IDg0IiBmaWxsPSIjMjAyNzI4IiBzdHJva2U9IiM4YjhlNzkiIHN0cm9rZS13aWR0aD0iNiIvPjxlbGxpcHNlIGN4PSIxMDgiIGN5PSIxMTEiIHJ4PSIxNyIgcnk9IjIzIiBmaWxsPSIjY2Y3YTU1Ii8+PGVsbGlwc2UgY3g9IjE4MCIgY3k9IjExMSIgcng9IjE3IiByeT0iMjMiIGZpbGw9IiNjZjdhNTUiLz48cGF0aCBkPSJNNTkgMTg1TDggMjM4TTIwOCAxODVsNzUgMzgiIHN0cm9rZT0iIzIwMjcyNiIgc3Ryb2tlLXdpZHRoPSIyMyIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIi8+PC9zdmc+","guardianHurt":"PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNzAgMjUwIj48cGF0aCBkPSJNNzYgMjA4UTU4IDEyOSA4NSA2MXE1NC00MSAxMTAgMCAyOCA3NSAxMiAxNDd6IiBmaWxsPSIjMTcxYjFjIiBzdHJva2U9IiM3ZDg1N2IiIHN0cm9rZS13aWR0aD0iNyIvPjxlbGxpcHNlIGN4PSIxMDciIGN5PSIxMTEiIHJ4PSIxNiIgcnk9IjIwIiBmaWxsPSIjZGQ3YjU5Ii8+PGVsbGlwc2UgY3g9IjE2NCIgY3k9IjExMSIgcng9IjE2IiByeT0iMjAiIGZpbGw9IiNkZDdiNTkiLz48cGF0aCBkPSJNNDYgMTM1bC0yOSAxMk0yMjQgMTM1bDMwLTEyIiBzdHJva2U9IiM2ZDRkNDMiIHN0cm9rZS13aWR0aD0iMTMiLz48L3N2Zz4=","miraEcho":"PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyMjAgMzYwIj48ZGVmcz48bGluZWFyR3JhZGllbnQgaWQ9ImUiIHgxPSIwIiB4Mj0iMCIgeTE9IjAiIHkyPSIxIj48c3RvcCBzdG9wLWNvbG9yPSIjZTVkOWI0IiBzdG9wLW9wYWNpdHk9Ii43MiIvPjxzdG9wIG9mZnNldD0iMSIgc3RvcC1jb2xvcj0iIzhhYTA5OSIgc3RvcC1vcGFjaXR5PSIuMDQiLz48L2xpbmVhckdyYWRpZW50PjwvZGVmcz48Y2lyY2xlIGN4PSIxMTAiIGN5PSI3NyIgcj0iMzYiIGZpbGw9InVybCgjZSkiLz48cGF0aCBkPSJNNTcgMTExcTUzLTM4IDEwNiAwbDI4IDE2MUgyOXoiIGZpbGw9InVybCgjZSkiLz48cGF0aCBkPSJNNzAgODhxNDEtNTkgODAgMCIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjZTlkZmJlIiBzdHJva2Utb3BhY2l0eT0iLjQ1IiBzdHJva2Utd2lkdGg9IjgiLz48L3N2Zz4=","altar":"PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNTYgMjU2Ij48Y2lyY2xlIGN4PSIxMjgiIGN5PSI5MSIgcj0iNjUiIGZpbGw9IiNlYWQzOGIiIG9wYWNpdHk9Ii4zNSIvPjxwYXRoIGQ9Ik01NSAyMzNoMTQ2bC0xNy0xMDNINzJ6IiBmaWxsPSIjMzQzYjM5IiBzdHJva2U9IiMxMTE2MTYiIHN0cm9rZS13aWR0aD0iNyIvPjxwYXRoIGQ9Ik02NyAxMzBoMTIydjIwSDY3eiIgZmlsbD0iIzU5NjE1YyIvPjxyZWN0IHg9Ijk2IiB5PSIxNjMiIHdpZHRoPSI2NCIgaGVpZ2h0PSI1MSIgcng9IjUiIGZpbGw9IiMyNDJiMmEiLz48Y2lyY2xlIGN4PSIxMjgiIGN5PSIxMDMiIHI9IjIyIiBmaWxsPSJub25lIiBzdHJva2U9IiNlNGM5NzUiIHN0cm9rZS13aWR0aD0iNiIvPjwvc3ZnPg==","seal":"PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAzMjAgMjIwIj48cmVjdCB4PSIxOCIgeT0iMjQiIHdpZHRoPSIyODQiIGhlaWdodD0iMTcyIiByeD0iMTgiIGZpbGw9IiMzOTQ0NDAiIHN0cm9rZT0iIzEyMTgxNyIgc3Ryb2tlLXdpZHRoPSI4Ii8+PHJlY3QgeD0iNDIiIHk9IjQ3IiB3aWR0aD0iMjM2IiBoZWlnaHQ9IjEyNiIgcng9IjEyIiBmaWxsPSIjMTExNzE2IiBzdHJva2U9IiM4YjdiNTQiIHN0cm9rZS13aWR0aD0iNSIvPjxjaXJjbGUgY3g9IjE2MCIgY3k9IjExMCIgcj0iNTAiIGZpbGw9IiMyNzJmMmQiIHN0cm9rZT0iI2MxYTg2NyIgc3Ryb2tlLXdpZHRoPSI2Ii8+PHBhdGggZD0iTTE2MCA3MGwxMiAyOCAzMCA0LTIyIDIwIDYgMzAtMjYtMTUtMjYgMTUgNi0zMC0yMi0yMCAzMC00eiIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjZTBjYzg2IiBzdHJva2Utd2lkdGg9IjUiLz48L3N2Zz4=","memoryShard":"PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxNjAgMjAwIj48cGF0aCBkPSJNODAgOEwxNDQgODIgODAgMTkyIDE2IDgyeiIgZmlsbD0iI2U4ZDA3NiIgc3Ryb2tlPSIjZjhlOGE2IiBzdHJva2Utd2lkdGg9IjYiLz48cGF0aCBkPSJNODAgMzB2MTI1TTQ1IDg0aDcwIiBzdHJva2U9IiNmZmY3Y2UiIHN0cm9rZS13aWR0aD0iNiIgb3BhY2l0eT0iLjgiLz48Y2lyY2xlIGN4PSI4MCIgY3k9IjgyIiByPSIyNiIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjNWM0ODI3IiBzdHJva2Utd2lkdGg9IjUiLz48L3N2Zz4=","torch":"PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxNjAgMjYwIj48cGF0aCBkPSJNMTggMjQ4VjE4aDEyNHYyMzB6IiBmaWxsPSIjMjUyZDJjIiBzdHJva2U9IiMxMDE1MTQiIHN0cm9rZS13aWR0aD0iNyIvPjxwYXRoIGQ9Ik04MCAzNHY1NCIgc3Ryb2tlPSIjYTg5MDYxIiBzdHJva2Utd2lkdGg9IjciLz48cGF0aCBkPSJNNjEgOTFoMzhsLTcgNDhINjh6IiBmaWxsPSIjN2I0YzM1IiBzdHJva2U9IiNjMzlhNTUiIHN0cm9rZS13aWR0aD0iNCIvPjxjaXJjbGUgY3g9IjgwIiBjeT0iMTAwIiByPSI3MiIgZmlsbD0iI2Y2ZDQ3YSIgb3BhY2l0eT0iLjIiLz48L3N2Zz4=","spikes":"PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAzMjAgMTAwIj48cmVjdCB4PSI4IiB5PSI1NiIgd2lkdGg9IjMwNCIgaGVpZ2h0PSIzMSIgcng9IjYiIGZpbGw9IiMyYjMyMzAiIHN0cm9rZT0iIzExMTYxNSIgc3Ryb2tlLXdpZHRoPSI2Ii8+PGcgZmlsbD0iI2I5YTE2YiIgc3Ryb2tlPSIjMjUyMDFhIiBzdHJva2Utd2lkdGg9IjMiPjxwYXRoIGQ9Ik0yNSA1NWwxNS00MyAxNSA0M3oiLz48cGF0aCBkPSJNNzcgNTVsMTUtNDMgMTUgNDN6Ii8+PHBhdGggZD0iTTEyOSA1NWwxNS00MyAxNSA0M3oiLz48cGF0aCBkPSJNMTgxIDU1bDE1LTQzIDE1IDQzeiIvPjxwYXRoIGQ9Ik0yMzMgNTVsMTUtNDMgMTUgNDN6Ii8+PHBhdGggZD0iTTI4NSA1NWwxNS00MyAxNSA0M3oiLz48L2c+PC9zdmc+","gate":"PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNjAgNTIwIj48cmVjdCB4PSIxOCIgeT0iMTQiIHdpZHRoPSIyMjQiIGhlaWdodD0iNDkyIiByeD0iMTIiIGZpbGw9IiMyNTJjMmIiIHN0cm9rZT0iIzExMTUxNSIgc3Ryb2tlLXdpZHRoPSI5Ii8+PHBhdGggZD0iTTQ4IDQ3MlYxMjhxODItOTQgMTY0IDB2MzQ0IiBmaWxsPSIjMTExODE3IiBzdHJva2U9IiM4MTc0NTEiIHN0cm9rZS13aWR0aD0iNyIvPjxjaXJjbGUgY3g9IjEzMCIgY3k9IjI1OCIgcj0iNTQiIGZpbGw9Im5vbmUiIHN0cm9rZT0iI2Q1YmQ3OSIgc3Ryb2tlLXdpZHRoPSI3Ii8+PHBhdGggZD0iTTEzMCAxODF2MTU0TTUzIDI1OGgxNTQiIHN0cm9rZT0iI2Q1YmQ3OSIgc3Ryb2tlLXdpZHRoPSI2Ii8+PC9zdmc+"}</script>
+<script>window.KPT_EMBEDDED_SVG_ASSETS=JSON.parse(document.getElementById("embedded-svg-assets").textContent);</script>
+
+<style id="responsive-controls-v53">
+/* V53 responsive control rail: one stable geometry for portrait/landscape. */
+#controls{
+  --joy-size:132px;
+  --jump-w:118px;
+  --jump-h:58px;
+  --action-w:190px;
+  --control-gap:12px;
+  left:0!important;
+  right:0!important;
+  bottom:max(8px,env(safe-area-inset-bottom))!important;
+  height:var(--joy-size)!important;
+  padding-left:max(10px,env(safe-area-inset-left))!important;
+  padding-right:max(10px,env(safe-area-inset-right))!important;
+  gap:12px!important;
+  align-items:center!important;
+  justify-content:space-between!important;
+  overflow:visible!important;
+}
+#controls .joystick{
+  width:var(--joy-size)!important;
+  height:var(--joy-size)!important;
+  flex:0 0 var(--joy-size)!important;
+  margin:0!important;
+}
+#controls .acts{
+  position:relative!important;
+  width:var(--action-w)!important;
+  height:var(--joy-size)!important;
+  flex:0 0 var(--action-w)!important;
+  margin:0!important;
+  padding:0!important;
+  overflow:visible!important;
+}
+#controls .acts .jump{
+  position:absolute!important;
+  right:0!important;
+  left:auto!important;
+  top:50%!important;
+  bottom:auto!important;
+  width:var(--jump-w)!important;
+  min-width:var(--jump-w)!important;
+  height:var(--jump-h)!important;
+  min-height:var(--jump-h)!important;
+  margin:0!important;
+  transform:translateY(-50%)!important;
+  display:flex!important;
+  align-items:center!important;
+  justify-content:center!important;
+  white-space:nowrap!important;
+}
+#controls .acts .context-action.has-action{
+  position:absolute!important;
+  right:0!important;
+  left:auto!important;
+  top:auto!important;
+  bottom:calc(50% + (var(--jump-h) / 2) + var(--control-gap))!important;
+  width:min(var(--action-w),var(--action-w))!important;
+  max-width:var(--action-w)!important;
+  height:44px!important;
+  min-height:44px!important;
+  margin:0!important;
+  transform:none!important;
+  display:flex!important;
+  align-items:center!important;
+  justify-content:center!important;
+  white-space:nowrap!important;
+  overflow:hidden!important;
+  text-overflow:ellipsis!important;
+}
+/* Do not let old orientation overrides move the buttons after this layout is applied. */
+body.touch-device.orientation-landscape #controls,
+body.touch-device.orientation-portrait #controls{
+  height:var(--joy-size)!important;
+  padding-left:max(10px,env(safe-area-inset-left))!important;
+  padding-right:max(10px,env(safe-area-inset-right))!important;
+}
+body.touch-device.orientation-landscape #controls{
+  --joy-size:126px;
+  --jump-w:118px;
+  --jump-h:58px;
+  --action-w:190px;
+}
+body.touch-device.orientation-portrait #controls{
+  --joy-size:132px;
+  --jump-w:116px;
+  --jump-h:58px;
+  --action-w:184px;
+}
+/* Short landscape phones: preserve the exact vertical centre while shrinking the rail. */
+@media (max-height:560px) and (orientation:landscape){
+  body.touch-device.orientation-landscape #controls{
+    --joy-size:96px;
+    --jump-w:108px;
+    --jump-h:52px;
+    --action-w:168px;
+    --control-gap:8px;
+  }
+}
+/* Very narrow portrait devices. */
+@media (max-width:380px) and (orientation:portrait){
+  body.touch-device.orientation-portrait #controls{
+    --joy-size:116px;
+    --jump-w:104px;
+    --jump-h:52px;
+    --action-w:158px;
+    --control-gap:8px;
+  }
+}
+/* Tablets / large touch screens: keep the controls compact instead of stretching them. */
+@media (min-width:900px) and (orientation:landscape){
+  body.touch-device.orientation-landscape #controls{
+    --joy-size:128px;
+    --jump-w:122px;
+    --jump-h:60px;
+    --action-w:196px;
+  }
+}
+</style>
+
+<style id="responsive-controls-v54">
+/* V54: final deterministic mobile geometry. This block intentionally overrides the historical V31-V53 layout layers. */
+html,body{width:100%;height:100%;min-width:0;min-height:0;overflow:hidden}
+#controls{position:fixed!important;left:0!important;right:0!important;top:auto!important;bottom:max(8px,env(safe-area-inset-bottom))!important;height:132px!important;width:100%!important;margin:0!important;padding:0 max(12px,env(safe-area-inset-left)) 0 max(12px,env(safe-area-inset-right))!important;display:none!important;align-items:center!important;justify-content:space-between!important;gap:0!important;background:none!important;border:0!important;box-shadow:none!important;pointer-events:none!important;overflow:visible!important;z-index:1000!important}
+#controls.visible{display:flex!important}
+body.desktop-device #controls{display:none!important}
+body.touch-device #controls{display:flex!important}
+body.touch-device:not(.orientation-landscape) #controls{--joy:132px;--jumpW:116px;--jumpH:58px;--actionH:44px;--gap:10px;--rightW:116px}
+body.touch-device.orientation-landscape #controls{--joy:96px;--jumpW:108px;--jumpH:52px;--actionH:40px;--gap:9px;--rightW:108px}
+@media (min-width:900px) and (orientation:landscape){body.touch-device.orientation-landscape #controls{--joy:112px;--jumpW:116px;--jumpH:56px;--actionH:42px;--gap:10px;--rightW:116px}}
+@media (max-width:430px) and (orientation:portrait){body.touch-device.orientation-portrait #controls{--joy:116px;--jumpW:104px;--jumpH:52px;--actionH:40px;--gap:8px;--rightW:104px}}
+@media (max-height:560px) and (orientation:landscape){body.touch-device.orientation-landscape #controls{--joy:84px;--jumpW:104px;--jumpH:50px;--actionH:38px;--gap:8px;--rightW:104px}}
+#controls .joystick{position:relative!important;left:auto!important;right:auto!important;top:auto!important;bottom:auto!important;width:var(--joy)!important;height:var(--joy)!important;flex:0 0 var(--joy)!important;margin:0!important;pointer-events:auto!important}
+#controls .joy-base{position:absolute!important;width:calc(var(--joy) - 8px)!important;height:calc(var(--joy) - 8px)!important;left:4px!important;top:4px!important}
+#controls .joy-ring{position:absolute!important;inset:calc(var(--joy) * .15)!important}
+#controls .joy-stick{position:absolute!important;width:calc(var(--joy) * .34)!important;height:calc(var(--joy) * .34)!important;left:33%!important;top:33%!important}
+#controls .joy-label{display:none!important}
+#controls .acts{position:relative!important;left:auto!important;right:0!important;top:auto!important;bottom:auto!important;width:var(--rightW)!important;height:calc(var(--jumpH) + var(--actionH) + var(--gap))!important;flex:0 0 var(--rightW)!important;margin:0!important;padding:0!important;display:block!important;pointer-events:none!important;overflow:visible!important;transform:none!important}
+#controls .acts .jump{position:absolute!important;left:auto!important;right:0!important;top:auto!important;bottom:0!important;width:var(--jumpW)!important;min-width:var(--jumpW)!important;max-width:var(--jumpW)!important;height:var(--jumpH)!important;min-height:var(--jumpH)!important;margin:0!important;padding:0 8px!important;transform:none!important;display:flex!important;align-items:center!important;justify-content:center!important;pointer-events:auto!important}
+#controls .acts .context-action{position:absolute!important;left:auto!important;right:0!important;top:auto!important;bottom:calc(var(--jumpH) + var(--gap))!important;width:var(--jumpW)!important;min-width:var(--jumpW)!important;max-width:var(--jumpW)!important;height:var(--actionH)!important;min-height:var(--actionH)!important;margin:0!important;padding:0 7px!important;transform:none!important;display:none!important;align-items:center!important;justify-content:center!important;pointer-events:none!important;white-space:nowrap!important;overflow:hidden!important;text-overflow:ellipsis!important;border-radius:14px!important;font-size:10px!important}
+#controls .acts .context-action.has-action{display:flex!important;pointer-events:auto!important}
+#controls .acts .context-action.context-attack{border-color:#c86a61!important}
+/* Both controls share the same horizontal right edge; action is directly above jump. */
+body.touch-device.orientation-portrait #controls,
+body.touch-device.orientation-landscape #controls{align-items:center!important}
+body.touch-device #hud{max-width:calc(100vw - 24px)!important}
+/* The game canvas always owns the viewport; controls float over it. */
+#c{position:fixed!important;inset:0!important;width:100vw!important;height:100vh!important;display:block!important}
+/* Do not let a contextual button become wider than the jump button. */
+body.touch-device #controls .context-action.has-action{width:var(--jumpW)!important;max-width:var(--jumpW)!important}
+</style>
+
+<style id="responsive-controls-v55">
+/* V55: specificity lock. Overrides every previous V31-V54 mobile-control rule. */
+body.touch-device #controls,
+body.touch-device.orientation-portrait #controls,
+body.touch-device.orientation-landscape #controls{
+  position:fixed!important;
+  top:auto!important;left:0!important;right:0!important;bottom:max(8px,env(safe-area-inset-bottom))!important;
+  inset-inline:0!important;
+  width:100%!important;height:132px!important;
+  margin:0!important;padding:0 max(12px,env(safe-area-inset-left)) 0 max(12px,env(safe-area-inset-right))!important;
+  display:flex!important;align-items:center!important;justify-content:space-between!important;gap:0!important;
+  background:none!important;border:0!important;box-shadow:none!important;pointer-events:none!important;overflow:visible!important;
+  transform:none!important;z-index:1000!important;
+}
+body.desktop-device #controls{display:none!important}
+body.touch-device.orientation-landscape #controls{height:112px!important}
+body.touch-device.orientation-portrait #controls{height:132px!important}
+@media (max-height:560px) and (orientation:landscape){body.touch-device.orientation-landscape #controls{height:100px!important}}
+body.touch-device.orientation-portrait #controls .joystick,
+body.touch-device.orientation-landscape #controls .joystick{
+  position:relative!important;left:auto!important;right:auto!important;top:auto!important;bottom:auto!important;
+  flex:0 0 var(--joy)!important;width:var(--joy)!important;height:var(--joy)!important;margin:0!important;pointer-events:auto!important;
+}
+body.touch-device.orientation-portrait #controls{--joy:132px;--jumpW:116px;--jumpH:58px;--actionH:44px;--gap:10px;--rightW:116px}
+body.touch-device.orientation-landscape #controls{--joy:96px;--jumpW:108px;--jumpH:52px;--actionH:40px;--gap:9px;--rightW:108px}
+@media (max-width:430px) and (orientation:portrait){body.touch-device.orientation-portrait #controls{--joy:116px;--jumpW:104px;--jumpH:52px;--actionH:40px;--gap:8px;--rightW:104px}}
+@media (max-height:560px) and (orientation:landscape){body.touch-device.orientation-landscape #controls{--joy:84px;--jumpW:104px;--jumpH:50px;--actionH:38px;--gap:8px;--rightW:104px}}
+@media (min-width:900px) and (orientation:landscape){body.touch-device.orientation-landscape #controls{--joy:112px;--jumpW:116px;--jumpH:56px;--actionH:42px;--gap:10px;--rightW:116px}}
+body.touch-device.orientation-portrait #controls .acts,
+body.touch-device.orientation-landscape #controls .acts{
+  position:relative!important;left:auto!important;right:auto!important;top:auto!important;bottom:auto!important;
+  width:var(--rightW)!important;height:calc(var(--jumpH) + var(--actionH) + var(--gap))!important;
+  flex:0 0 var(--rightW)!important;margin:0!important;padding:0!important;display:block!important;
+  pointer-events:none!important;overflow:visible!important;
+  transform:translateY(calc((var(--actionH) + var(--gap)) / -2))!important;
+}
+body.touch-device.orientation-portrait #controls .jump,
+body.touch-device.orientation-landscape #controls .jump{
+  position:absolute!important;left:auto!important;right:0!important;top:auto!important;bottom:0!important;
+  width:var(--jumpW)!important;min-width:var(--jumpW)!important;max-width:var(--jumpW)!important;
+  height:var(--jumpH)!important;min-height:var(--jumpH)!important;margin:0!important;padding:0 7px!important;
+  transform:none!important;display:flex!important;align-items:center!important;justify-content:center!important;pointer-events:auto!important;
+  flex:none!important;
+}
+body.touch-device.orientation-portrait #controls .context-action,
+body.touch-device.orientation-landscape #controls .context-action{
+  position:absolute!important;left:auto!important;right:0!important;top:auto!important;
+  bottom:calc(var(--jumpH) + var(--gap))!important;
+  width:var(--jumpW)!important;min-width:var(--jumpW)!important;max-width:var(--jumpW)!important;
+  height:var(--actionH)!important;min-height:var(--actionH)!important;margin:0!important;padding:0 6px!important;
+  transform:none!important;display:none!important;align-items:center!important;justify-content:center!important;
+  pointer-events:none!important;white-space:nowrap!important;overflow:hidden!important;text-overflow:ellipsis!important;
+  border-radius:14px!important;font-size:10px!important;z-index:120!important;
+}
+body.touch-device.orientation-portrait #controls .context-action.has-action,
+body.touch-device.orientation-landscape #controls .context-action.has-action{
+  display:flex!important;pointer-events:auto!important;opacity:1!important;
+}
+body.touch-device.orientation-portrait #controls .joy-base,
+body.touch-device.orientation-landscape #controls .joy-base{width:calc(var(--joy) - 8px)!important;height:calc(var(--joy) - 8px)!important;left:4px!important;top:4px!important}
+body.touch-device.orientation-portrait #controls .joy-ring,
+body.touch-device.orientation-landscape #controls .joy-ring{inset:15%!important}
+body.touch-device.orientation-portrait #controls .joy-stick,
+body.touch-device.orientation-landscape #controls .joy-stick{width:34%!important;height:34%!important;left:33%!important;top:33%!important}
+body.touch-device.orientation-portrait #controls .joy-label,
+body.touch-device.orientation-landscape #controls .joy-label{display:none!important}
+</style>
+
+<style id="responsive-controls-v55b">
+body.touch-device.orientation-landscape #controls .acts .jump{
+  position:absolute!important;left:auto!important;right:0!important;top:auto!important;bottom:0!important;
+  width:var(--jumpW)!important;min-width:var(--jumpW)!important;max-width:var(--jumpW)!important;
+  height:var(--jumpH)!important;min-height:var(--jumpH)!important;max-height:var(--jumpH)!important;
+  flex:0 0 auto!important;transform:none!important;margin:0!important;
+}
+body.touch-device.orientation-landscape #controls .acts .context-action.has-action{
+  width:var(--jumpW)!important;min-width:var(--jumpW)!important;max-width:var(--jumpW)!important;
+  right:0!important;left:auto!important;transform:none!important;
+}
+</style>
+
+<style id="responsive-controls-v56">
+/* V56: lock the contextual action to the jump button. */
+body.touch-device.orientation-portrait #controls .acts .context-action.has-action,
+body.touch-device.orientation-landscape #controls .acts .context-action.has-action{
+  position:absolute!important;left:auto!important;right:0!important;top:auto!important;
+  bottom:calc(var(--jumpH) + var(--gap))!important;
+  width:var(--jumpW)!important;min-width:var(--jumpW)!important;max-width:var(--jumpW)!important;
+  height:var(--actionH)!important;min-height:var(--actionH)!important;max-height:var(--actionH)!important;
+  margin:0!important;padding:0 6px!important;transform:none!important;
+  display:flex!important;align-items:center!important;justify-content:center!important;
+  pointer-events:auto!important;opacity:1!important;z-index:120!important;
+}
+</style>
+
+<style id="v57-landscape-final">
+/* V57: final landscape composition. One authoritative layer wins over the old
+   historical responsive blocks above. The playfield always owns the viewport;
+   touch controls float above it and never reserve/crop canvas height. */
+html,body{width:100%;height:100%;min-width:0;min-height:0;overflow:hidden}
+#c{position:fixed!important;inset:0!important;width:100dvw!important;height:100dvh!important;max-width:none!important;max-height:none!important;display:block!important}
+body.touch-device.orientation-landscape #c{width:100dvw!important;height:100dvh!important}
+body.touch-device.orientation-landscape #controls{position:fixed!important;inset:0!important;width:100dvw!important;height:100dvh!important;padding:0!important;margin:0!important;background:none!important;border:0!important;box-shadow:none!important;display:block!important;pointer-events:none!important;z-index:1000!important}
+body.touch-device.orientation-landscape #controls .joystick{position:absolute!important;left:max(14px,env(safe-area-inset-left))!important;bottom:max(14px,env(safe-area-inset-bottom))!important;width:92px!important;height:92px!important;flex:none!important;margin:0!important;pointer-events:auto!important}
+body.touch-device.orientation-landscape #controls .acts{position:absolute!important;right:max(14px,env(safe-area-inset-right))!important;bottom:max(14px,env(safe-area-inset-bottom))!important;width:min(190px,24vw)!important;height:92px!important;margin:0!important;padding:0!important;display:block!important;pointer-events:none!important}
+body.touch-device.orientation-landscape #controls .acts .jump{position:absolute!important;right:0!important;bottom:0!important;width:100%!important;height:62px!important;margin:0!important}
+body.touch-device.orientation-landscape #controls .acts .context-action.has-action{position:absolute!important;right:0!important;bottom:70px!important;left:auto!important;width:100%!important;max-width:none!important;height:44px!important;min-height:44px!important;margin:0!important;transform:none!important;display:flex!important;align-items:center!important;justify-content:center!important;pointer-events:auto!important}
+body.touch-device.orientation-landscape #controls .acts .context-action:not(.has-action){display:none!important}
+body.touch-device.orientation-landscape #controls .jump{opacity:var(--land-control-opacity,.38)!important}
+body.touch-device.orientation-landscape #controls .jump.pressed{opacity:1!important}
+body.touch-device.orientation-landscape #controls .context-action.has-action{opacity:1!important}
+body.touch-device.orientation-landscape #controls .joystick{opacity:calc(var(--land-control-opacity,.38) + .10)!important}
+body.touch-device.orientation-landscape #settingsBtn{z-index:1400!important;opacity:.72!important}
+body.touch-device.orientation-landscape #hud{top:max(8px,env(safe-area-inset-top))!important;left:max(10px,env(safe-area-inset-left))!important;transform:none!important;scale:.78!important;transform-origin:top left!important}
+body.touch-device.orientation-landscape #objective{top:max(8px,env(safe-area-inset-top))!important;left:50%!important;transform:translateX(-50%)!important;max-width:min(42vw,440px)!important;z-index:30!important}
+body.touch-device.orientation-landscape #toast{bottom:120px!important;z-index:80!important}
+/* Immersive mode means no game HUD/objective over the authored scene. The
+   settings gear remains available so the player is never trapped. */
+body.immersive-mode #hud,body.immersive-mode #objective,body.immersive-mode #hint,body.immersive-mode #interactHint{opacity:0!important;pointer-events:none!important}
+body.immersive-mode #settingsBtn{opacity:.5!important}
+@media (max-height:520px) and (orientation:landscape){
+  body.touch-device.orientation-landscape #controls .joystick{width:78px!important;height:78px!important;bottom:max(10px,env(safe-area-inset-bottom))!important}
+  body.touch-device.orientation-landscape #controls .acts{width:min(168px,25vw)!important;height:78px!important;bottom:max(10px,env(safe-area-inset-bottom))!important}
+  body.touch-device.orientation-landscape #controls .acts .jump{height:52px!important}
+  body.touch-device.orientation-landscape #controls .acts .context-action.has-action{bottom:59px!important;height:38px!important;min-height:38px!important}
+}
+@media (orientation:landscape) and (min-width:900px){
+  body.touch-device.orientation-landscape #controls .joystick{width:96px!important;height:96px!important}
+  body.touch-device.orientation-landscape #controls .acts{width:210px!important;height:96px!important}
+}
+</style>
+</head>
+<body>
+<div id="orientationGate" aria-hidden="true" hidden></div>
+
+<canvas id="c"></canvas><div id="ui">
+<div id="hud"><div class="card"><div class="lab">РЕН</div><span class="num" id="hp">100</span> HP<div class="bar"><div id="hpFill" class="fill"></div></div></div><button type="button" class="card memory-card" id="memoryCard" title="Открыть Книгу Порога"><div class="lab">ПАМЯТЬ</div><span class="num" id="shards">0 / 3</span></button><div class="card"><div class="lab">СПОСОБНОСТЬ</div><span class="num" id="ability">Прыжок</span></div></div><button type="button" id="settingsBtn" aria-label="Настройки" title="Настройки">⚙</button>
+<div id="interactHint" class="hint"></div><div id="objective">Найди сумку Миры.</div><div id="hint">A/D или ←/→ · W/S или ↑/↓ на лестницах · SPACE · SHIFT · E · B (книга)</div><div id="toast"></div>
+<div id="controls" aria-label="Мобильное управление"><div id="joystick" class="joystick" aria-label="Виртуальный стик"><div class="joy-base"></div><div class="joy-ring"></div><div id="joyStick" class="joy-stick"></div></div><div class="acts"><button type="button" class="jump" data-a="jump">ПРЫЖОК</button><button type="button" class="context-action" data-a="context" aria-disabled="true">ДЕЙСТВИЕ</button></div></div>
+<div id="start" class="overlay launch-screen"><div class="launch-vignette"></div><div class="launch-runes" aria-hidden="true"><i>◈</i><i>✦</i><i>△</i><i>⊕</i><i>◈</i><i>✦</i><i>△</i><i>⊕</i></div><div class="launch-embers" aria-hidden="true"></div><div class="launch-content"><div class="lab launch-kicker">VERTICAL SLICE 46 · ЗАЛ ПОРОГА</div><div class="title-wrap"><div class="sigil sigil-left">◈</div><h1 class="title">КНИГА<br><span>ПОРОГА</span></h1><div class="sigil sigil-right">◈</div></div><div class="launch-line"><span></span><b>ПАМЯТЬ · ПЕЧАТЬ · ПОРОГ</b><span></span></div><p class="sub">Храм помнит тех, кто входил до тебя. Найди Миру. Собери осколки памяти. Открой то, что должно было остаться запечатано.</p><div class="launch-actions"><button type="button" class="btn launch-primary" id="startBtn" onclick="window.__T_START&&window.__T_START()"><span>Начать путь</span><small>Войти в Зал Порога</small></button><button type="button" class="btn launch-secondary" id="loadBtn" onclick="window.__T_CONTINUE&&window.__T_CONTINUE()"><span>Продолжить</span><small>Вернуться к памяти</small></button></div><div class="launch-note">Нажми, чтобы открыть Порог</div></div></div>
+<div id="settings" class="settings-overlay hidden" aria-hidden="true"><div class="settings-panel" role="dialog" aria-modal="true" aria-labelledby="settingsTitle"><div class="settings-head"><h2 id="settingsTitle">Настройки</h2><button type="button" class="settings-close" id="closeSettings" aria-label="Закрыть">×</button></div><div class="settings-section"><div class="settings-row"><div class="copy"><strong>Во весь экран</strong><small>Расширяет игровую область и убирает лишние игровые панели. Браузерные панели управляются самим устройством.</small></div><button type="button" class="settings-toggle" id="fullscreenSetting">ВКЛЮЧИТЬ</button></div><div class="settings-row"><div class="copy"><strong>Звук</strong><small>Звуки интерфейса и будущие игровые эффекты.</small></div><button type="button" class="settings-toggle" id="soundSetting">ВКЛ</button></div><div class="settings-row"><div class="copy"><strong>Вибрация</strong><small>Короткий отклик при важных действиях, если поддерживается.</small></div><button type="button" class="settings-toggle" id="vibrationSetting">ВКЛ</button></div><div class="settings-row"><div class="copy"><strong>Прозрачность управления</strong><small>В горизонтальном режиме управление становится менее заметным, пока не используется.</small></div><input class="settings-slider" id="controlOpacity" type="range" min="20" max="80" step="5" value="38" aria-label="Прозрачность управления"></div></div><div class="settings-section"><div class="settings-row"><div class="copy"><strong>Подсказки</strong><small>Показывать контекстные подсказки и цель текущего этапа.</small></div><button type="button" class="settings-toggle" id="hintsSetting">ВКЛ</button></div><div class="settings-row"><div class="copy"><strong>Сбросить прогресс</strong><small>Удаляет сохранение и возвращает игру к началу. Действие необратимо.</small></div><button type="button" class="settings-toggle settings-danger" id="resetSaveSetting">СБРОС</button></div></div><div class="settings-section"><button type="button" class="settings-toggle" id="closeSettingsBottom" style="width:100%;height:48px">Вернуться в игру</button></div></div></div>
+<div id="book" class="overlay hidden"><div class="panel book"><h2>Книга Порога</h2><div class="pages"><div class="page"><b>ПАМЯТЬ</b><p id="pageLeft">Страница пуста.</p></div><div class="page"><b>НАБЛЮДЕНИЯ</b><p id="pageRight">Рен ещё не знает, что храм наблюдает за ним.</p></div></div><button class="btn" id="closeBook">Закрыть</button></div></div>
+<div id="puzzle" class="overlay mini-game-overlay hidden"><div class="panel mini-game-panel merge-panel"><div class="mini-head"><div><div class="lab">РИТУАЛ I · ПЕЧАТЬ</div><h2>Слияние Печатей</h2><p class="sub">Соедини две соседние одинаковые руны. Создай <b>III</b>. Чем меньше ходов — тем сильнее отклик печати.</p></div><div class="mini-score"><span>ХОДЫ</span><b id="puzzleMoves">0</b></div></div><div class="seal-meter"><i id="puzzleMeter"></i></div><div id="puzzleStatus" class="mini-status">Выбери руну, затем соседнюю такую же.</div><div class="grid" id="grid"></div><div class="mini-actions"><button class="btn secondary" id="resetPuzzle">Начать заново</button><button class="ritual-exit" id="closePuzzle" type="button" aria-label="Выйти из ритуала">×<span>Выйти</span></button></div></div></div>
+<div id="archivePuzzle" class="overlay mini-game-overlay hidden"><div class="panel mini-game-panel archive-panel"><div class="mini-head"><div><div class="lab">РИТУАЛ II · АРХИВ</div><h2>Память Архива</h2><p class="sub" id="archiveText">Запомни порядок знаков. Затем повтори его без ошибки.</p></div><div class="mini-score"><span>ШАГ</span><b id="archiveProgress">0/3</b></div></div><div id="archiveFlash" class="archive-flash">Внимание</div><div id="runes" class="runes"><button class="btn rune" data-r="0">◈</button><button class="btn rune" data-r="1">✦</button><button class="btn rune" data-r="2">△</button></div><div id="archiveStatus" class="mini-status">Смотри внимательно.</div><div class="mini-actions"><button class="btn secondary" id="restartArchive">Повторить показ</button></div><button class="ritual-exit" id="closeArchive" type="button" aria-label="Выйти из ритуала">×<span>Выйти</span></button></div></div>
+<div id="bridgePuzzle" class="overlay mini-game-overlay hidden"><div class="panel"><h2>Калибровка Перехода</h2><p class="sub" id="bridgeText">Запомни последовательность. Мост реагирует только на правильный порядок.</p><div id="bridgeRunes" class="runes"><button class="btn rune bridgeRune" data-r="0">◈</button><button class="btn rune bridgeRune" data-r="1">✦</button><button class="btn rune bridgeRune" data-r="2">△</button><button class="btn rune bridgeRune" data-r="3">⊕</button></div><div id="bridgeProgress" class="sub" style="text-align:center">Подготовка…</div><button class="ritual-exit" id="closeBridge" type="button" aria-label="Выйти из ритуала">×<span>Выйти</span></button></div></div>
+<div id="thresholdChoice" class="overlay hidden"><div class="panel threshold-panel">
+  <div id="thresholdStep" class="mini-status">ПРОБУЖДЕНИЕ</div>
+  <div class="threshold-core" aria-hidden="true"><span>◈</span></div>
+  <h2 id="thresholdTitle">Сердце Порога</h2>
+  <p class="sub" id="thresholdText">Слышно дыхание храма. Книга открывается сама.</p>
+  <button class="btn" id="chooseMira">МИРУ</button>
+  <button class="btn" id="chooseSelf">СЕБЯ</button>
+  <button class="btn" id="closeChoice">Пока не отвечать</button>
+</div></div>
+<div id="modal" class="overlay hidden"><div class="panel"><h2 id="mt"></h2><p class="sub" id="mb"></p><button class="btn" id="mok">Продолжить</button></div></div>
+</div>
+
+<script>
+(function(){
+  /* V45: never request browser fullscreen automatically.
+     Android/Chrome can show a native "выйти из полноэкранного режима" toast and
+     can change the visual viewport after the request. The game adapts to the
+     current viewport instead. */
+  window.__T_ENTER_GAME_MODE=function(){
+    setTimeout(function(){
+      try{window.dispatchEvent(new Event("resize"));}catch(e){}
+      if(typeof window.syncControls==="function")window.syncControls();
+    },80);
+  };
+})();
+</script>
+<script>
+(function(){
+  function bootStart(){
+    try{
+      if(typeof window.newGame==="function"){ window.newGame(); if(window.__T_ENTER_GAME_MODE)window.__T_ENTER_GAME_MODE(); return; }
+      if(typeof S!=="undefined"){ S.mode="play"; var el=document.getElementById("start"); if(el)el.classList.add("hidden"); return; }
+      throw new Error("Игровое ядро не инициализировано");
+    }catch(e){ console.error(e); alert("Ошибка запуска: "+e.message); }
+  }
+  function bootContinue(){
+    try{
+      if(typeof window.load==="function" && window.load()){ S.mode="play"; document.body.classList.remove("menu"); var el=document.getElementById("start"); if(el)el.classList.add("hidden"); if(typeof window.syncControls==="function")window.syncControls(); if(window.__T_ENTER_GAME_MODE)window.__T_ENTER_GAME_MODE(); return; }
+      bootStart();
+    }catch(e){ console.error(e); alert("Ошибка продолжения: "+e.message); }
+  }
+  window.__T_START=bootStart; window.__T_CONTINUE=bootContinue;
+  function bootMenu(){
+    document.body.classList.add("menu");
+    var start=document.getElementById("start");
+    if(start) start.classList.remove("hidden");
+    var loadBtn=document.getElementById("loadBtn");
+    try{
+      var rawSave=(typeof readSave==="function" ? readSave() : null); var parsedSave=null; try{parsedSave=rawSave?JSON.parse(rawSave):null}catch(e){} var hasSave=!!parsedSave;
+      /* Continue is always actionable. If this copy has no readable save,
+         bootContinue() safely falls back to a new game instead of trapping
+         the player behind a disabled button. */
+      if(loadBtn){
+        loadBtn.disabled=false;
+        loadBtn.style.opacity="1";
+        loadBtn.style.pointerEvents="auto";
+        loadBtn.title=hasSave?("Продолжить с главы "+(Number(parsedSave.level)||1)):"Сохранение не найдено — начать новую игру";
+      }
+    }catch(e){}
+  }
+  /* The game core (including readSave/load) is declared in the following script.
+     Defer the initial menu refresh until that script has been parsed, otherwise
+     the Continue button is incorrectly disabled on a fresh file:// launch. */
+  if(document.readyState==="loading") document.addEventListener("DOMContentLoaded",bootMenu,{once:true});
+  else setTimeout(bootMenu,0);
+})();
+</script>
+<script>
+"use strict";
+const c=document.querySelector("#c"),x=c.getContext("2d");
+/* CHAPTER OWNERSHIP: Level I = Bag -> Book -> Seal -> Memory. Lift/ladders/bridge are Level III only. */
+const S={mode:"menu",level:1,t:0,cam:0,spawn:{x:90,y:390},book:false,checkpoint:false,shards:0,double:false,secret:false,signs:0,archiveKeys:0,archiveA:false,archiveB:false,threshold:false,bridge:false,deadEnemy:false,
+p:{x:90,y:390,w:42,h:66,vx:0,vy:0,ground:false,jumps:0,hp:100,inv:0,dir:1,atk:0,onLadder:false,ladderId:-1,ladderEdge:""},
+enemy:{x:1870,y:418,w:52,h:58,hp:120,dead:false,cd:0},
+crystals:[{x:2310,y:275,t:0,taken:false},{x:2818,y:245,t:1.7,taken:false},{x:3555,y:290,t:3,taken:false}],
+secretBox:{x:2200,y:245,found:false},cache:{x:3980,y:290,open:false},mira:{x:2580,y:382,seen:false},
+altar:{x:3370,y:412},gate:{x:4690,y:280},moving:{x:1485,y:380,base:380,phase:0,prev:380},
+lift3:{x:1510,y:410,min:250,max:410,phase:0,prev:410,w:190,h:18,paused:true,used:false,dockTimer:0},
+flash:0,shake:0,particles:[],keys:{},touch:{left:false,right:false},bridgeTune:false,thresholdChoice:"",chapter3Done:false,ending:"",focus:null,upperCheckpoint:false,bridgeCheckpoint:false,branchChoice:"",branchReward:"",branchRewardClaimed:false,branchEnemy:{x:3715,y:418,w:52,h:58,hp:100,dead:false,cd:0,hit:0},branchRelic:{x:4120,y:250,w:62,h:62,claimed:false},endingExitOpen:false};
+const P=[
+[0,476,610,44],[670,476,235,44],[980,476,210,44],[1245,476,230,44],[1510,476,205,44],[1760,476,285,44],[2080,476,225,44],[2350,476,215,44],[2610,476,230,44],[2895,476,225,44],[3170,476,230,44],[3440,476,235,44],[3720,476,300,44],[4070,476,260,44],[4380,476,350,44],
+[355,370,155,18],[545,310,145,18],[770,380,150,18],[900,350,175,18],[1260,355,150,18],[1515,325,150,18],[1725,350,160,18],[2050,345,170,18],[2295,310,150,18],[2540,342,150,18],[2765,285,155,18],[3020,330,160,18],[3260,285,165,18],[3510,330,155,18],[3760,290,170,18],[4005,350,160,18],[4250,300,165,18]];
+const spikes=[{x:690,y:455,w:95,h:21},{x:1260,y:455,w:105,h:21},{x:2070,y:455,w:90,h:21},{x:3735,y:455,w:90,h:21}];
+const vents=[{x:1535,y:430,w:48,h:46,phase:0},{x:3185,y:430,w:48,h:46,phase:1.8},{x:4110,y:430,w:48,h:46,phase:3.2}];
+const P2=[
+[0,476,520,44],[585,476,250,44],[900,476,180,44],[1145,476,250,44],[1460,476,210,44],
+[1735,476,300,44],[2090,476,210,44],[2350,476,270,44],[2690,476,180,44],[2945,476,270,44],
+[3270,476,220,44],[3540,476,300,44],[3890,476,230,44],[4180,476,320,44],
+[240,360,170,18],[560,300,145,18],[830,365,150,18],[1085,315,160,18],[1395,350,150,18],
+[1650,290,160,18],[1930,350,165,18],[2250,300,160,18],[2520,350,150,18],[2780,285,160,18],
+[3030,335,170,18],[3290,285,160,18],[3560,330,155,18],[3830,285,160,18],[4100,335,170,18]
+];
+const P3=[
+[0,476,500,44],[580,476,220,44],[900,476,260,44],[1320,476,190,44],
+[1650,476,250,44],[2050,476,190,44],[2340,476,260,44],[2740,476,210,44],
+[3040,476,220,44],[3370,476,180,44],[3660,476,240,44],[3980,476,220,44],
+[4300,476,330,44],[4630,476,420,44],
+[120,360,160,18],[430,300,160,18],[650,380,150,18],[840,320,180,18],
+[1080,240,180,18],[1260,330,160,18],[1450,250,170,18],[1680,340,150,18],
+[1900,270,180,18],[2110,360,160,18],[2300,290,170,18],[2530,220,180,18],
+[2780,340,160,18],[3000,260,180,18],[3240,350,170,18],[3470,270,170,18],
+[3720,330,180,18],[3960,240,180,18],[4200,330,150,18],
+[3510,320,150,18],[3710,245,150,18],[3910,190,170,18],[4120,270,150,18]
+];
+const spikes3=[
+{x:610,y:455,w:90,h:21},{x:1130,y:455,w:90,h:21},{x:1730,y:455,w:90,h:21},
+{x:2620,y:455,w:90,h:21},{x:3440,y:455,w:90,h:21},{x:4050,y:455,w:90,h:21}
+];
+const vents3=[
+{x:860,y:430,w:48,h:46,phase:.7},{x:1450,y:430,w:48,h:46,phase:2.1},
+{x:2870,y:430,w:48,h:46,phase:3.5},{x:3760,y:430,w:48,h:46,phase:4.7}
+];
+const ladders3=[
+{x:1025,top:240,bottom:476,w:58,label:"ЛЕСТНИЦА I"},
+{x:1420,top:250,bottom:476,w:58,label:"ЛЕСТНИЦА II"},
+{x:2505,top:220,bottom:476,w:58,label:"ЛЕСТНИЦА III"},
+{x:3935,top:240,bottom:476,w:58,label:"ЛЕСТНИЦА IV"}
+];
+const stairs3=[
+{x:1940,y:430,w:42,h:46},{x:1982,y:384,w:42,h:92},
+{x:2024,y:338,w:42,h:138},{x:2066,y:292,w:42,h:184}
+];
+const spikes2=[{x:610,y:455,w:90,h:21},{x:1180,y:455,w:100,h:21},{x:2140,y:455,w:90,h:21},{x:2990,y:455,w:90,h:21},{x:3950,y:455,w:90,h:21}];
+const vents2=[{x:1510,y:430,w:48,h:46,phase:1.1},{x:2730,y:430,w:48,h:46,phase:2.7},{x:3670,y:430,w:48,h:46,phase:4.1}];
+let currentP=P,currentSpikes=spikes,currentVents=vents,currentLadders=[],currentStairs=[];
+let puzzle=[2,1,1,0,0,0,2,0,1,0,0,2,0,1,0,0],selected=-1;
+function gameViewportPixels(){
+  const r=c.getBoundingClientRect();
+  const vv=window.visualViewport;
+  const w=Math.round(vv&&vv.width||r.width||innerWidth);
+  const h=Math.round(vv&&vv.height||r.height||innerHeight);
+  return {w:Math.max(320,w),h:Math.max(260,h)};
+}
+function resize(){
+  const r=c.getBoundingClientRect();
+  const d=Math.min(devicePixelRatio||1,2);
+  c.width=Math.max(1,Math.floor((r.width||innerWidth)*d));
+  c.height=Math.max(1,Math.floor((r.height||innerHeight)*d));
+}
+function renderViewport(){
+  const q=gameViewportPixels(),w=q.w,h=q.h;
+  const portrait=h>w;
+  if(portrait){
+    /* Portrait keeps the original square gameplay composition. */
+    return {w:540,h:540,portrait:true,worldShiftY:0};
+  }
+  /* Landscape uses a fixed 540px world height.
+     This is deliberate: the levels are authored around y=0..540 and the
+     previous 420px viewport clipped the floor, ladders and lower objects.
+     The canvas now scales the complete authored field to the real viewport. */
+  const aspect=Math.max(1.55,Math.min(2.45,w/Math.max(1,h)));
+  const vh=540;
+  const vw=Math.round(vh*aspect);
+  return {w:Math.max(900,Math.min(1320,vw)),h:vh,portrait:false,worldShiftY:0};
+}
+addEventListener("resize",()=>{resize();}, {passive:true});
+if(window.visualViewport)window.visualViewport.addEventListener("resize",()=>{resize();syncControls?.();},{passive:true});
+resize();
+function toast(s,ms=1400){let e=$("#toast");e.textContent=s;e.style.opacity=1;clearTimeout(toast.t);toast.t=setTimeout(()=>e.style.opacity=0,ms)}
+function $(s){return document.querySelector(s)}function rect(a,b){return a.x<b.x+b.w&&a.x+a.w>b.x&&a.y<b.y+b.h&&a.y+a.h>b.y}
+function obj(s){S.objective=s;$("#objective").textContent=s}
+function hud(){$("#hp").textContent=Math.max(0,Math.round(S.p.hp));$("#hpFill").style.width=Math.max(0,S.p.hp)+"%";$("#shards").textContent=S.shards+" / 3";$("#ability").textContent=S.double?"Двойной прыжок":"Прыжок";const m=$("#memoryCard");if(m)m.classList.toggle("book-ready",!!S.book)}
+const STORAGE_KEY="tlt_v46_save_v2";
+const LEGACY_STORAGE_KEYS=["tlt_v46","tlt_v45","tlt_save"];
+let storageMemory=null;
+let storageAvailable=false;
+function writeSave(data){
+  const raw=JSON.stringify({...data,version:2,savedAt:Date.now()});
+  storageMemory=raw;
+  try{
+    localStorage.setItem(STORAGE_KEY,raw);
+    storageAvailable=localStorage.getItem(STORAGE_KEY)===raw;
+  }catch(e){storageAvailable=false;}
+  return storageAvailable;
+}
+function readSave(){
+  if(storageMemory)return storageMemory;
+  try{
+    const raw=localStorage.getItem(STORAGE_KEY);
+    if(raw){storageAvailable=true;return raw;}
+    for(const key of LEGACY_STORAGE_KEYS){
+      const legacy=localStorage.getItem(key);
+      if(legacy){storageAvailable=true;return legacy;}
+    }
+  }catch(e){storageAvailable=false;}
+  return null;
+}
+function saveNow(){try{save()}catch(e){}}
+window.addEventListener("pagehide",saveNow);
+window.addEventListener("beforeunload",saveNow);
+document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="hidden")saveNow()});
+function clearSave(){
+  storageMemory=null;
+  try{
+    localStorage.removeItem(STORAGE_KEY);
+    for(const key of LEGACY_STORAGE_KEYS)localStorage.removeItem(key);
+  }catch(e){}
+}
+function save(){
+  return writeSave({level:S.level,book:S.book,checkpoint:S.checkpoint,spawn:S.spawn,shards:S.shards,double:S.double,secret:S.secret,signs:S.signs,archiveKeys:S.archiveKeys,archiveA:S.archiveA,archiveB:S.archiveB,threshold:S.threshold,bridge:S.bridge,upperCheckpoint:S.upperCheckpoint,bridgeCheckpoint:S.bridgeCheckpoint,thresholdChoice:S.thresholdChoice,chapter3Done:S.chapter3Done,ending:S.ending||"",liftUsed:S.lift3.used,liftPaused:S.lift3.paused,deadEnemy:S.enemy.dead,crystals:S.crystals,cache:S.cache.open,mira:S.mira.seen,branchChoice:S.branchChoice,branchReward:S.branchReward,branchRewardClaimed:S.branchRewardClaimed,branchEnemyDead:S.branchEnemy.dead,branchRelicClaimed:S.branchRelic.claimed,endingExitOpen:S.endingExitOpen});
+}
+function setLevelGeometry(level){
+  S.level=Math.max(1,Math.min(3,Number(level)||1));
+  currentP=S.level===3?P3:(S.level===2?P2:P);
+  currentSpikes=S.level===3?spikes3:(S.level===2?spikes2:spikes);
+  currentVents=S.level===3?vents3:(S.level===2?vents2:vents);
+  currentLadders=S.level===3?ladders3:[];
+  currentStairs=S.level===3?stairs3:[];
+}
+function resetPhysics(x=90,y=390){
+  const p=S.p;
+  p.x=Number.isFinite(x)?x:90;
+  p.y=Number.isFinite(y)?y:390;
+  p.vx=0;p.vy=0;p.ground=false;p.onLadder=false;p.ladderId=-1;p.ladderEdge="";p.jumps=0;p.inv=.25;p.atk=0;
+  const platforms=solidRects();
+  const support=platforms.find(r=>p.x+p.w>r[0] && p.x<r[0]+r[2] && Math.abs((p.y+p.h)-r[1])<90);
+  if(support){
+    p.y=support[1]-p.h;
+    p.ground=true;
+  }
+}
+function ladderLandingSolids(){
+  if(S.level!==3)return [];
+  return currentLadders.map(l=>[l.x-30,l.top,l.w+90,18]);
+}
+function solidRects(){
+  const solids=currentP.concat(currentStairs.map(r=>[r.x,r.y,r.w,r.h]),ladderLandingSolids());
+  if(S.level===3&&S.bridge)solids.push([2860,350,190,18]);
+  return solids;
+}
+function validSpawn(x,y){
+  if(!Number.isFinite(x)||!Number.isFinite(y))return false;
+  if(x<15||x>4900||y<0||y>520)return false;
+  const platforms=solidRects();
+  return platforms.some(r=>x+S.p.w>r[0]&&x<r[0]+r[2]&&y+S.p.h<=r[1]+3&&y+S.p.h>=r[1]-80);
+}
+function load(){
+  try{
+    const raw=readSave(); if(!raw)return false; let q=JSON.parse(raw);
+    if(!q)return false;
+    /* Migrate saves from previous slices into the current save slot. */
+    writeSave(q);
+    setLevelGeometry(q.level);
+    Object.assign(S,{book:!!q.book,checkpoint:!!q.checkpoint,shards:Number(q.shards)||0,double:!!q.double,secret:!!q.secret,signs:Number(q.signs)||0,archiveKeys:Number(q.archiveKeys)||0,archiveA:!!q.archiveA,archiveB:!!q.archiveB,threshold:!!q.threshold,bridge:!!q.bridge,thresholdChoice:q.thresholdChoice||"",chapter3Done:!!q.chapter3Done,ending:q.ending||"",upperCheckpoint:!!q.upperCheckpoint,bridgeCheckpoint:!!q.bridgeCheckpoint,branchChoice:q.branchChoice||"",branchReward:q.branchReward||"",branchRewardClaimed:!!q.branchRewardClaimed});
+    const sx=Number(q.spawn?.x), sy=Number(q.spawn?.y);
+    S.lift3.used=!!q.liftUsed; S.lift3.paused=!!q.liftPaused; S.lift3.dockTimer=0;
+    S.branchEnemy.dead=!!q.branchEnemyDead;S.branchEnemy.hp=S.branchEnemy.dead?0:100;S.branchEnemy.cd=0;S.branchRelic.claimed=!!q.branchRelicClaimed;S.branchRewardClaimed=!!q.branchRewardClaimed;S.endingExitOpen=!!q.endingExitOpen;
+    S.spawn=validSpawn(sx,sy)?{x:sx,y:sy}:{x:90,y:390};
+    resetPhysics(S.spawn.x,S.spawn.y);
+    S.p.hp=100;
+    S.enemy.dead=!!q.deadEnemy;S.enemy.hp=S.enemy.dead?0:120;
+    S.cache.open=!!q.cache;S.mira.seen=!!q.mira;
+    if(q.crystals)S.crystals=q.crystals;
+    hud(); obj("Сохранение загружено: глава "+S.level); toast("ПРОДОЛЖЕНИЕ · ГЛАВА "+S.level,1400); return true;
+  }catch(e){return false}
+}
+function newGame(){
+  clearSave();
+  S.level=1;S.book=false;S.checkpoint=false;S.shards=0;S.double=false;S.secret=false;S.signs=0;S.archiveKeys=0;S.archiveA=false;S.archiveB=false;S.threshold=false;S.bridge=false;S.upperCheckpoint=false;S.bridgeCheckpoint=false;S.thresholdChoice="";S.chapter3Done=false;S.ending="";S.branchChoice="";S.branchReward="";S.branchRewardClaimed=false;S.endingExitOpen=false;
+  S.deadEnemy=false;S.cache.open=false;S.mira.seen=false;S.upperCheckpoint=false;S.bridgeCheckpoint=false;S.cam=0;S.mode="play";S.crystals.forEach(q=>q.taken=false);S.enemy.dead=false;S.enemy.hp=120;S.branchEnemy.dead=false;S.branchEnemy.hp=100;S.branchEnemy.cd=0;S.branchRelic.claimed=false;S.branchRewardClaimed=false;
+  S.spawn={x:90,y:390};setLevelGeometry(1);resetPhysics(90,390);S.p.hp=100;
+  document.body.classList.remove("menu");
+  $("#start").classList.add("hidden");syncControls();obj("Найди сумку Миры.");toast("Новая игра",900);hud();
+}
+function beginLevel2(){
+  S.mode="play";S.cam=0;S.spawn={x:90,y:390};setLevelGeometry(2);resetPhysics(90,390);S.p.hp=100;
+S.archiveKeys=0;S.archiveA=false;S.archiveB=false;
+  $("#start").classList.add("hidden");syncControls();
+  obj("Глава II — Нижний архив. Доберись до двери в глубине.");
+  toast("НОВЫЙ УРОВЕНЬ: НИЖНИЙ АРХИВ",1800);save();hud();
+}
+function beginLevel3(){
+  S.mode="play";S.cam=0;S.spawn={x:90,y:390};setLevelGeometry(3);resetPhysics(90,390);S.p.hp=100;S.threshold=false;
+S.bridge=false;S.thresholdChoice="";S.chapter3Done=false;S.ending="";S.branchChoice="";S.branchReward="";S.branchRewardClaimed=false;S.endingExitOpen=false;S.branchEnemy.dead=false;S.branchEnemy.hp=100;S.branchEnemy.cd=0;S.branchRelic.claimed=false;S.lift3.y=S.lift3.max;S.lift3.prev=S.lift3.y;S.lift3.phase=0;S.lift3.paused=true;S.lift3.used=false;S.lift3.dockTimer=0;
+  $("#modal").classList.add("hidden");syncControls();
+  obj("Глава III — Зал Порога. Активируй подъёмник, доберись до верхнего яруса и восстанови мост.");
+  toast("ГЛАВА III: ЗАЛ ПОРОГА",1800);save();hud();
+}
+function startLevel2Prompt(){
+  $("#modal").classList.add("hidden");
+  beginLevel2();
+}
+function startLevel3Prompt(){beginLevel3();}
+function start(){newGame();toast("Двигайся вправо. Осматривай подозрительные места.",1400)}
+function modal(t,b){$("#mt").textContent=t;$("#mb").textContent=b;$("#modal").classList.remove("hidden");S.mode="modal";syncControls()}
+function jump(){if(S.mode!=="play")return;let p=S.p;if(p.onLadder){p.onLadder=false;p.vy=-690;p.ground=false;p.jumps=1;return}if(p.ground){p.vy=-690;p.ground=false;p.jumps=1}else if(S.double&&p.jumps<2){p.vy=-610;p.jumps=2;toast("Второй прыжок",500)}}
+function damagePlayer(amount,source){let p=S.p;if(p.inv>0)return;p.hp=Math.max(0,p.hp-amount);p.inv=.8;S.flash=.22;S.shake=.18;burst(p.x+p.w/2,p.y+p.h,9);toast(source+"  -"+amount+" HP",850);if(p.hp<=0)respawn("Порог вернул тебя к последней точке памяти.")}
+function respawn(msg){
+  let p=S.p;
+  if(!validSpawn(S.spawn.x,S.spawn.y)){S.spawn={x:90,y:390};setLevelGeometry(S.level)}
+  resetPhysics(S.spawn.x,S.spawn.y);p.hp=100;p.inv=1;toast(msg,1500);
+}
+function burst(px,py,n=8){for(let i=0;i<n;i++){let a=Math.random()*6.28,v=40+Math.random()*130;S.particles.push({x:px,y:py,vx:Math.cos(a)*v,vy:Math.sin(a)*v-40,l:.45})}}
+function attackHitbox(){
+  const p=S.p;
+  return {x:p.dir>0?p.x+p.w:p.x-78,y:p.y+8,w:78,h:55};
+}
+function attack(){if(S.mode!=="play"||S.p.atk>0)return;const p=S.p;const h=attackHitbox();S.p.atk=.22;if(S.level===3&&S.branchChoice==="lower"&&!S.branchEnemy.dead&&rect(h,S.branchEnemy)){S.branchEnemy.hp-=50;S.branchEnemy.cd=.45;S.branchEnemy.hit=.18;burst(S.branchEnemy.x+25,S.branchEnemy.y+25,12);S.shake=.12;toast(S.branchEnemy.hp>0?"Тварь отступила":"Тварь повержена",700);if(S.branchEnemy.hp<=0){S.branchEnemy.dead=true;S.branchReward="memoryShard";obj("Тварь повержена. Забери осколок в её логове.");save()}return}if(!S.enemy.dead&&rect(h,S.enemy)){S.enemy.hp-=60;S.enemy.cd=.45;S.enemy.hit=.18;burst(S.enemy.x+25,S.enemy.y+25,12);S.shake=.12;toast(S.enemy.hp>0?"Страж ранен":"Страж повержен",700);if(S.enemy.hp<=0){S.enemy.dead=true;save()}}}
+function liftInteractionNear(p=S.p){
+  const lf=S.lift3;
+  return Math.abs((p.x+p.w/2)-(lf.x+lf.w/2))<230 && Math.abs((p.y+p.h)-lf.y)<190;
+}
+function interact(){
+  if(S.mode!=="play")return;
+  const target=getInteractionTarget();
+  if(!target || target.type!=="interact")return;
+  S.focus=target;
+  switch(target.id){
+    case "mira_bag": S.book=true; obj("Книга Порога найдена. Открой её и прочти первую запись."); toast("КНИГА Порога записала имя: РЕН",1600); save(); return;
+    case "memory_seal": openPuzzle(); return;
+    case "altar": S.checkpoint=true;S.spawn={x:S.altar.x+95,y:410};obj("Точка памяти установлена. Собери три осколка.");toast("Алтарь запомнил тебя.",1400);save();return;
+    case "mira_echo": S.mira.seen=true;modal("Эхо Миры","«Если слышишь меня — найди три знака там, где свет не касается пола.»");obj("Найди три знака Миры.");save();return;
+    case "mira_sign_0": case "mira_sign_1": case "mira_sign_2": if(S.signs<3){S.signs++;toast("Знак Миры найден: "+S.signs+"/3",900);obj(S.signs<3?"Ищи следующий знак.":"Испытание Миры завершено.");save();} return;
+    case "secret": S.secret=true;toast("Секрет: Знак Памяти найден.",1500);save();return;
+    case "cache": S.cache.open=true;S.shards=Math.min(3,S.shards+1);toast("Тайник: осколок памяти.",1300);save();hud();return;
+    case "gate1":
+      if(S.shards<3){obj("Дверь закрыта. Собери три осколка памяти: "+S.shards+"/3.");toast("Дверь требует три осколка памяти.",1100);return;}
+      if(!S.checkpoint){obj("Сначала вернись к алтарю и закрепи точку памяти.");toast("Память ещё не закреплена у алтаря.",1100);return;}
+      $("#mok").textContent="Войти в нижний архив";$("#mok").onclick=startLevel2Prompt;modal("МИРА","«Рен… иногда Порог пишет не прошлое, а то, что ещё не случилось.»");return;
+    case "archive_a": openArchivePuzzle(0); return;
+    case "archive_b": openArchivePuzzle(1); return;
+    case "gate2":
+      if(S.archiveKeys<2){toast("Дверь требует двух печатей Архива.",1100);obj("Найди две печати Архива: "+S.archiveKeys+"/2.");return;}
+      S.mode="modal";$("#mok").textContent="Войти в Зал Порога";$("#mok").onclick=startLevel3Prompt;modal("НИЖНИЙ АРХИВ","Две печати совпали. За дверью начинается место, которое храм скрывал даже от Миры.");return;
+    case "lift":
+      if(!S.lift3.used){S.lift3.used=true;S.lift3.paused=false;toast("ПОДЪЁМНИК АКТИВИРОВАН",1100);obj("Запрыгни на подъёмник. На верхней и нижней площадке он делает короткую остановку для безопасного перехода.");save();return;}
+      S.lift3.paused=!S.lift3.paused;toast(S.lift3.paused?"Подъёмник остановлен.":"Подъёмник продолжил движение.",900);obj(S.lift3.paused?"Запусти подъёмник, когда будешь готов продолжить маршрут.":"Запрыгни на подъёмник. На площадке он сделает короткую остановку.");save();return;
+    case "bridge_mechanism":
+      if(!S.upperCheckpoint){obj("Механизм моста не отвечает. Сначала доберись до верхнего яруса и активируй узел памяти.");toast("Сначала доберись до верхнего яруса.",1100);return;}
+      if(!S.bridge)openBridgePuzzle(); else {toast("Переход уже восстановлен.",900);obj("Переход восстановлен. Перейди через центральную галерею и доберись до Сердца Порога.");} return;
+    case "branch_relic": if(S.branchChoice!=="upper")return;S.branchRelic.claimed=true;S.branchReward="silence";toast("ОСКОЛОК ТИШИНЫ ПРИНЯТ",1200);obj("Ты прошёл верхним путём. В Сердце Порога откроется иной ответ.");save();return;case "branch_cache": if(S.branchChoice!=="lower"||!S.branchEnemy.dead)return;S.branchReward="dark";S.shards=Math.min(3,S.shards+1);S.branchRewardClaimed=true;toast("ОСКОЛОК ТЬМЫ · "+S.shards+"/3",1200);obj("Нижний путь дал силу. Сердце Порога почувствует её.");save();hud();return;case "ending_exit":
+      if(!S.chapter3Done)return;
+      if(!S.endingExitOpen){
+        S.endingExitOpen=true;
+        const text={silent_mira:"Дверь отвечает на голос Миры. За ней — холодный воздух.",silent_self:"Тихая дверь открывается без звука. Рен больше не чувствует хватки Порога.",dark_mira:"Выход открывается, но тёмная память цепляется за Рена.",dark_self:"Чёрный проход принимает Рена. За спиной Сердце закрывает путь."};
+        obj(text[S.ending]||"Выход открыт."); toast("ВЫХОД ОТКРЫТ",1200); burst(4780,390,22); save();
+      }else{
+        modal("ЭПИЛОГ · "+(S.ending||"ПОРОГ"),{silent_mira:"За дверью слышен настоящий голос Миры. История ещё не закончена.",silent_self:"За дверью впервые нет шёпота Порога. Рен выходит один.",dark_mira:"Рен выходит с потерянным фрагментом памяти, но имя Миры остаётся с ним.",dark_self:"Рен выходит. Где-то далеко книга сама перелистывает пустую страницу."}[S.ending]||"Порог отпустил тебя.");
+        const epilogueClose=()=>{ $("#modal").classList.add("hidden"); S.mode="play"; syncControls(); };
+        $("#mok").textContent="Закрыть эпилог";
+        $("#mok").onclick=epilogueClose;
+        obj("Эпилог завершён. Этот мир запомнил твой выбор.");
+      }
+      return;
+    case "threshold":
+      if(!S.bridge){obj("Сердце закрыто. Восстанови мост в центральной галерее.");toast("Сначала восстанови путь.",1100);return;}
+      if(!S.threshold){S.threshold=true;save();obj("Сердце Порога открыто. Книга ждёт твоего ответа.");startThresholdRitual();return;}
+      if(!S.thresholdChoice){startThresholdRitual();return;}
+      toast("Сердце уже записало твой ответ.",900);return;
+  }
+}
+function openArchivePuzzle(target){archiveTarget=target;archiveStep=0;S.mode="archivePuzzle";syncControls();setMiniMode("#archivePuzzle",true);$("#archiveProgress").textContent="0/"+archiveSeq.length;$("#archiveStatus").className="mini-status";$("#archiveStatus").textContent="Смотри внимательно.";document.querySelectorAll("#runes .rune").forEach(b=>b.disabled=true);clearInterval(archivePreviewTimer);let i=0;const show=()=>{document.querySelectorAll("#runes .rune").forEach(b=>b.classList.remove("flash"));if(i<archiveSeq.length){const v=archiveSeq[i++];const b=document.querySelector('#runes .rune[data-r="'+v+'"]');if(b){b.classList.add("flash");$("#archiveFlash").textContent=["◈","✦","△"][v];$("#archiveFlash").classList.remove("show");void $("#archiveFlash").offsetWidth;$("#archiveFlash").classList.add("show")}}else{clearInterval(archivePreviewTimer);document.querySelectorAll("#runes .rune").forEach(b=>b.disabled=false);$("#archiveText").textContent="Теперь повтори порядок. Ошибка не наказывает — просто начни заново.";$("#archiveStatus").textContent="Твой ход."}};show();archivePreviewTimer=setInterval(show,850)}
+function closeArchivePuzzle(){clearInterval(archivePreviewTimer);setMiniMode("#archivePuzzle",false);S.mode="play";syncControls()}
+function restartArchive(){clearInterval(archivePreviewTimer);openArchivePuzzle(archiveTarget)}
+function archivePick(v){
+  if(S.mode!=="archivePuzzle")return;
+  if(v!==archiveSeq[archiveStep]){
+    archiveStep=0;$("#archiveProgress").textContent="0/"+archiveSeq.length;
+    $("#archiveStatus").className="mini-status bad";
+    $("#archiveStatus").textContent="Ошибка. Последовательность забыта. Смотри показ ещё раз.";
+    document.querySelectorAll("#runes .rune").forEach(b=>b.disabled=true);
+    clearInterval(archivePreviewTimer);setTimeout(restartArchive,650);return;
+  }
+  archiveStep++;$("#archiveProgress").textContent=archiveStep+"/"+archiveSeq.length;
+  $("#archiveStatus").className="mini-status good";
+  $("#archiveStatus").textContent=archiveStep>=archiveSeq.length?"Печать приняла тебя.":"Верно. Продолжай.";
+  if(archiveStep>=archiveSeq.length){
+    if(archiveTarget===0)S.archiveA=true;else S.archiveB=true;
+    setTimeout(()=>{closeArchivePuzzle();S.archiveKeys=Math.min(2,S.archiveKeys+1);obj("Печати Архива: "+S.archiveKeys+"/2. "+(S.archiveKeys<2?"Найди вторую.":"Открой дверь в глубине."));toast("ПЕЧАТЬ АРХИВА ПОЛУЧЕНА",1500);save()},500);
+  }
+}
+let puzzleMoves=0;
+function setMiniMode(id,on){document.body.classList.toggle("mini-game-active",!!on);const el=$(id);if(el)el.classList.toggle("hidden",!on)}
+function openPuzzle(){S.mode="puzzle";puzzleMoves=0;selected=-1;syncControls();setMiniMode("#puzzle",true);buildPuzzle();updatePuzzleUI()}
+function updatePuzzleUI(){const made=puzzle.filter(v=>v===3).length;const occupied=puzzle.filter(Boolean).length;$("#puzzleMoves").textContent=puzzleMoves;$("#puzzleMeter").style.width=(made?100:Math.min(92,18+puzzleMoves*5+occupied*2))+"%";$("#puzzleStatus").className="mini-status";$("#puzzleStatus").textContent=made?"Печать III создана. Ритуал завершён.":selected<0?"Выбери руну, затем соседнюю такую же.":"Теперь выбери соседнюю руну того же уровня."}
+function buildPuzzle(){let g=$("#grid");g.innerHTML="";puzzle.forEach((v,i)=>{let b=document.createElement("button");b.className="tile"+(i===selected?" sel":"");b.textContent=v?["","I","II","III"][v]:"";b.onclick=()=>puz(i);g.appendChild(b)});updatePuzzleUI()}
+function adjacent(a,b){return Math.abs(a%4-b%4)+Math.abs(Math.floor(a/4)-Math.floor(b/4))===1}
+function puz(i){if(!puzzle[i])return;if(selected<0){selected=i;buildPuzzle();return}if(i===selected){selected=-1;buildPuzzle();return}if(adjacent(i,selected)&&puzzle[i]===puzzle[selected]){const target=selected;const from=i;puzzle[target]++;puzzle[from]=0;puzzleMoves++;let v=puzzle[target];selected=-1;buildPuzzle();const tile=$("#grid").children[target];if(tile){tile.classList.add("merge-pop");setTimeout(()=>tile.classList.remove("merge-pop"),300)}if(v>=3){S.double=true;$("#puzzleStatus").className="mini-status good";$("#puzzleStatus").textContent="Печать III пробудилась. Двойной прыжок получен.";obj("Печать III открыла способность. Используй двойной прыжок.");toast("ДВОЙНОЙ ПРЫЖОК",1700);save();setTimeout(closePuzzle,900)}else toast("Печать усилилась",500)}else{selected=i;$("#puzzleStatus").className="mini-status bad";$("#puzzleStatus").textContent="Руны не совпали. Выбери соседнюю руну того же уровня.";buildPuzzle();setTimeout(()=>$("#puzzleStatus").className="mini-status",500)}}
+function resetPuzzle(){puzzle=[2,1,1,0,0,0,2,0,1,0,0,2,0,1,0,0];selected=-1;puzzleMoves=0;buildPuzzle()}
+function closePuzzle(){setMiniMode("#puzzle",false);S.mode="play";syncControls();selected=-1}
+function openBook(){if(!S.book||S.mode!=="play")return;S.mode="book";syncControls();$("#book").classList.remove("hidden");$("#pageLeft").innerHTML="<b>РЕН</b><br><br>Книга записала имя. Осколков: "+S.shards+"/3.<br><br>"+(S.signs?"Знаков Миры: "+S.signs+"/3.":"Пока ничего больше.");$("#pageRight").textContent=(S.double?"Печать III. Двойной прыжок.":"Книга ждёт новых наблюдений.")+(S.archiveKeys?"\n\nПечати Архива: "+S.archiveKeys+"/2.":"")+(S.threshold?"\n\nСердце Порога: найдено.":"")+(S.thresholdChoice?"\n\nОтвет Сердцу: "+(S.thresholdChoice==="mira"?"МИРА":"СЕБЯ")+".":"")}
+
+$("#closeBook").onclick=()=>{
+  $("#book").classList.add("hidden");
+  S.mode="play";
+  if(S.level===1 && !S.double){
+    obj("Книга указала на первый механизм. Найди печать на верхней площадке.");
+    toast("Первый след Книги: печать ждёт впереди.",1200);
+  }
+  syncControls();
+};$("#closePuzzle").onclick=closePuzzle;$("#resetPuzzle").onclick=resetPuzzle;$("#restartArchive").onclick=restartArchive;$("#closeArchive").onclick=closeArchivePuzzle;document.querySelectorAll("#runes .rune").forEach(b=>b.onclick=()=>archivePick(+b.dataset.r));$("#closeBridge").onclick=closeBridgePuzzle;document.querySelectorAll(".bridgeRune").forEach(b=>b.onclick=()=>bridgePick(+b.dataset.r));
+function startThresholdRitual(){
+  clearTimeout(S.thresholdRitualTimer);
+  S.thresholdRitualStep=1;
+  S.mode="thresholdChoice";
+  const o=$("#thresholdChoice"),a=$("#chooseMira"),b=$("#chooseSelf"),c=$("#closeChoice");
+  o.classList.remove("hidden");
+  o.classList.remove("ritual-awakened");
+  $("#thresholdStep").textContent="Сердце просыпается";
+  $("#thresholdTitle").textContent="Сердце Порога";
+  $("#thresholdText").textContent=S.branchReward==="silence"?"Осколок Тишины гасит шум храма. Сердце открывает скрытую камеру.":"Слышно дыхание храма. Книга открывается сама.";
+  a.style.display="none";
+  b.style.display="none";
+  c.style.display="block";
+  c.textContent="Отступить";
+  syncControls();
+  S.thresholdRitualTimer=setTimeout(()=>{
+    S.thresholdRitualStep=2;
+    o.classList.add("ritual-awakened");
+    $("#thresholdStep").textContent="Вопрос Книги";
+    $("#thresholdTitle").textContent=S.branchReward==="silence"?"Тихий след":"Что ищет Рен?";
+    $("#thresholdText").textContent=S.branchReward==="silence"?"Тишина показывает два следа: Мира или ты. Один из них станет дверью наружу.":"Имя Миры уже записано в камне. Но следующий след требует выбора.";
+    a.style.display="block";
+    b.style.display="block";
+    c.style.display="block";
+    c.textContent="Пока не отвечать";
+  },850);
+}
+function activateEndingWorld(){
+  S.endingExitOpen=false;
+  const texts={
+    silent_mira:"Мира оставила след за стеной. Ищи тонкую дверь дальше от Сердца.",
+    silent_self:"Сердце отпустило Рена. Впереди открывается тихий выход.",
+    dark_mira:"Порог взял часть памяти. Чёрные искры теперь ведут к выходу.",
+    dark_self:"Сердце запечатало путь Миры. Тёмный выход признал Рена."
+  };
+  obj(texts[S.ending]||"Порог изменился. Найди выход из Зала.");
+  toast("МИР ПОСЛЕ РЕШЕНИЯ · "+(S.ending||"ПРОДОЛЖЕНИЕ"),1500);
+  burst(4525,380,18);
+  save();
+}
+function finishThresholdRitual(){
+  S.chapter3Done=true;
+  const mira=S.thresholdChoice==="mira";
+  const silence=S.branchReward==="silence";
+  const dark=S.branchReward==="dark";
+  if(silence&&mira)S.ending="silent_mira";
+  else if(silence&&!mira)S.ending="silent_self";
+  else if(dark&&mira)S.ending="dark_mira";
+  else S.ending="dark_self";
+  save();
+  $("#thresholdChoice").classList.add("hidden");
+  S.mode="modal";
+  const endings={
+    silent_mira:["КОНЦОВКА: ТИХИЙ СЛЕД","Осколок Тишины гасит храм. Рен выбирает Миру — и впервые слышит не голос Порога, а её настоящий шёпот. На камне появляется путь наружу. След Миры сохранён, но теперь у него есть продолжение."],
+    silent_self:["КОНЦОВКА: ТИХОЕ ОСВОБОЖДЕНИЕ","Осколок Тишины раскрывает скрытую дверь. Рен выбирает себя и выходит из Сердца без боя. Книга оставляет чистую страницу: Порог больше не владеет его именем."],
+    dark_mira:["КОНЦОВКА: ЦЕНА СЛЕДА","Осколок Тьмы разбудил Сердце. Рен выбирает Миру, но камень требует цену: часть его памяти остаётся внутри Порога. Имя Миры открывает путь, а прошлое Рена становится неполным."],
+    dark_self:["КОНЦОВКА: ЗА ПРЕДЕЛОМ СЕБЯ","Осколок Тьмы принимает выбор Рена. Сердце показывает его лицо и запирает путь Миры. Рен выходит сильнее, но теперь Порог знает его лучше, чем он сам себя."]
+  };
+  const result=endings[S.ending];
+  $("#mt").textContent=result[0];
+  $("#mb").textContent=result[1];
+  $("#mok").textContent="Остаться у Сердца";
+  $("#mok").onclick=()=>{ $("#modal").classList.add("hidden"); S.mode="play"; activateEndingWorld(); syncControls(); };
+  $("#modal").classList.remove("hidden");
+  syncControls();
+  toast(result[0],1800);
+}function chooseThreshold(choice){
+  if(S.thresholdRitualStep!==2)return;
+  S.thresholdChoice=choice;
+  S.thresholdRitualStep=3;
+  clearTimeout(S.thresholdRitualTimer);
+  const a=$("#chooseMira"),b=$("#chooseSelf"),c=$("#closeChoice");
+  a.style.display="none";
+  b.style.display="none";
+  $("#thresholdStep").textContent="Ответ принят";
+  $("#thresholdTitle").textContent=choice==="mira"?"МИРА":"СЕБЯ";
+  if(S.branchReward==="silence"){
+    $("#thresholdText").textContent=choice==="mira"
+      ?"Тишина принимает имя Миры. В стене появляется тонкая дверь."
+      :"Тишина принимает Рена. Сердце освобождает его имя.";
+  }else{
+    $("#thresholdText").textContent=choice==="mira"
+      ?"Тёмный осколок вспыхивает. Имя Миры открывает путь ценой памяти."
+      :"Тёмный осколок вспыхивает. Рен принимает силу Порога.";
+  }
+  c.textContent="Завершить ритуал";
+  c.style.display="block";
+  save();
+  syncControls();
+}
+$("#chooseMira").onclick=()=>chooseThreshold("mira");
+$("#chooseSelf").onclick=()=>chooseThreshold("self");
+$("#closeChoice").onclick=()=>{
+  if(S.thresholdRitualStep===3){finishThresholdRitual();return;}
+  clearTimeout(S.thresholdRitualTimer);
+  $("#thresholdChoice").classList.add("hidden");
+  S.mode="play";
+  syncControls();
+};
+const SETTINGS_KEY="tlt_v46_settings_v1";
+let gameSettings={sound:true,vibration:true,hints:true,controlOpacity:38};
+let settingsReturnMode="play";
+function loadSettings(){try{const raw=localStorage.getItem(SETTINGS_KEY);if(raw)gameSettings={...gameSettings,...JSON.parse(raw)};}catch(e){} applySettings();}
+function saveSettings(){try{localStorage.setItem(SETTINGS_KEY,JSON.stringify(gameSettings));}catch(e){} applySettings();}
+function applySettings(){
+  const opacity=Math.max(20,Math.min(80,Number(gameSettings.controlOpacity)||38));
+  document.documentElement.style.setProperty("--land-control-opacity",String(opacity/100));
+  const hs=document.getElementById("hintsSetting"),ss=document.getElementById("soundSetting"),vs=document.getElementById("vibrationSetting"),sl=document.getElementById("controlOpacity");
+  if(hs)hs.textContent=gameSettings.hints?"ВКЛ":"ВЫКЛ";
+  if(ss)ss.textContent=gameSettings.sound?"ВКЛ":"ВЫКЛ";
+  if(vs)vs.textContent=gameSettings.vibration?"ВКЛ":"ВЫКЛ";
+  if(sl)sl.value=String(opacity);
+  document.body.classList.toggle("hints-off",!gameSettings.hints);
+}
+function openSettings(){
+  if(S.mode==="settings")return;
+  settingsReturnMode=S.mode; S.mode="settings"; syncControls();
+  const el=document.getElementById("settings");if(el){el.classList.remove("hidden");el.setAttribute("aria-hidden","false");}
+  applySettings();
+}
+function closeSettings(){
+  const el=document.getElementById("settings");if(el){el.classList.add("hidden");el.setAttribute("aria-hidden","true");}
+  S.mode=settingsReturnMode;syncControls();
+}
+function toggleFullscreen(){
+  /* Mobile WebView/Chrome shows a system-owned fullscreen-exit toast when the
+     Fullscreen API is entered. That message cannot be styled or suppressed.
+     Therefore mobile uses an in-game immersive viewport instead; desktop keeps
+     the real Fullscreen API where the browser controls are not intrusive. */
+  if(deviceProfile.touch){
+    document.body.classList.toggle("immersive-mode");
+    const active=document.body.classList.contains("immersive-mode");
+    const b=document.getElementById("fullscreenSetting");
+    if(b)b.textContent=active?"ВКЛЮЧЕНО":"ВКЛЮЧИТЬ";
+    toast(active?"ИГРОВОЙ ЭКРАН РАСШИРЕН":"ПАНЕЛИ ИГРЫ ВОССТАНОВЛЕНЫ",900);
+    return;
+  }
+  const root=document.documentElement;
+  if(document.fullscreenElement){document.exitFullscreen?.().catch(()=>{});return;}
+  const req=root.requestFullscreen||root.webkitRequestFullscreen;
+  if(req)Promise.resolve(req.call(root)).catch(()=>toast("Полный экран недоступен",1100));
+  else toast("Полный экран не поддерживается",1100);
+}
+function haptic(pattern=12){if(gameSettings.vibration&&navigator.vibrate){try{navigator.vibrate(pattern)}catch(e){}}}
+function uiTone(freq=420,duration=.045){
+  if(!gameSettings.sound)return;
+  try{const AC=window.AudioContext||window.webkitAudioContext;if(!AC)return;const ac=window.__tltAudio||(window.__tltAudio=new AC());if(ac.state==="suspended")ac.resume();const o=ac.createOscillator(),g=ac.createGain();o.frequency.value=freq;o.type="sine";g.gain.setValueAtTime(.025,ac.currentTime);g.gain.exponentialRampToValueAtTime(.001,ac.currentTime+duration);o.connect(g);g.connect(ac.destination);o.start();o.stop(ac.currentTime+duration);}catch(e){}
+}
+function refreshFullscreenButton(){
+  const b=document.getElementById("fullscreenSetting");
+  if(!b)return;
+  if(deviceProfile.touch){b.textContent=document.body.classList.contains("immersive-mode")?"ВКЛЮЧЕНО":"ВКЛЮЧИТЬ";return;}
+  b.textContent=document.fullscreenElement?"ВЫЙТИ":"ВКЛЮЧИТЬ";
+}
+
+function keyboardKey(e){
+  const code=e.code||"";
+  const map={
+    ArrowLeft:"arrowleft",ArrowRight:"arrowright",ArrowUp:"arrowup",ArrowDown:"arrowdown",
+    KeyA:"a",KeyD:"d",KeyW:"w",KeyS:"s",
+    Space:" ",ShiftLeft:"shift",ShiftRight:"shift",KeyE:"e",KeyB:"b",Escape:"escape"
+  };
+  return map[code]||"";
+}
+addEventListener("keydown",e=>{
+  const k=keyboardKey(e);
+  S.keys[k]=true;
+  if(e.repeat && [" ","shift","e","b","escape"].includes(k)) return;
+  if(k===" ")jump();
+  if(k==="shift")attack();
+  if(k==="e")interact();
+  if(k==="b")openBook();
+  if(k==="escape"&&S.mode==="play")modal("Пауза","Игра приостановлена.");
+  if([" ","shift","e","b","escape","arrowleft","arrowright","arrowup","arrowdown","a","d","w","s"].includes(k))e.preventDefault();
+});
+addEventListener("keyup",e=>{
+  const k=keyboardKey(e);
+  S.keys[k]=false;
+  if(k===" "&&S.p.vy<-180)S.p.vy*=.5;
+});
+const controls=$("#controls");
+const joystick=$("#joystick");
+const joyStick=$("#joyStick");
+const interactButton=document.querySelector('#controls .context-action');
+interactButton.addEventListener("click",()=>{if(interactButton.dataset.actionAvailable!=="1")return;const a=interactButton.dataset.contextAction||"";if(a==="attack")attack();else if(a==="interact")interact();else if(a==="ladder")engageLadder();});
+// PC: approaching an object selects it; a mouse click on the selected target performs the same action as E.
+c.addEventListener("pointerdown",e=>{
+  if(deviceProfile.touch||S.mode!=="play")return;
+  const target=S.focus;
+  if(!target)return;
+  e.preventDefault();
+  if(target.type==="attack")attack();
+  else if(target.type==="interact")interact();
+},{passive:false});
+
+let deviceProfile={touch:false,orientation:"landscape",kind:"desktop"};
+function detectInterface(){
+  const w=window.innerWidth||document.documentElement.clientWidth||0;
+  const h=window.innerHeight||document.documentElement.clientHeight||0;
+  const coarse=window.matchMedia ? window.matchMedia("(pointer: coarse)").matches : false;
+  const touchPoints=Number(navigator.maxTouchPoints||0)>0;
+  const touch=coarse || touchPoints || ("ontouchstart" in window);
+  const orientation=w>=h?"landscape":"portrait";
+  const kind=touch ? (w<900 ? "touch" : "hybrid") : "desktop";
+  deviceProfile={touch,orientation,kind};
+  const b=document.body;
+  b.classList.toggle("touch-device",touch);
+  b.classList.toggle("desktop-device",!touch);
+  b.classList.toggle("hybrid-device",kind==="hybrid");
+  b.classList.toggle("orientation-landscape",orientation==="landscape");
+  b.classList.toggle("orientation-portrait",orientation==="portrait");
+  b.dataset.device=kind;
+  b.dataset.orientation=orientation;
+  controls.setAttribute("aria-hidden",String(!(touch && S.mode==="play")));
+  const gate=document.getElementById("orientationGate");
+  if(gate) gate.setAttribute("aria-hidden","true");
+}
+function syncControls(){
+  detectInterface();
+  controls.classList.toggle("visible",S.mode==="play" && deviceProfile.touch);
+  document.body.classList.toggle("settings-open",S.mode==="settings");
+  document.body.classList.toggle("menu",S.mode==="menu");
+  if(S.mode==="play" && typeof updateInteractionHint==="function") updateInteractionHint();
+  if(interactButton) interactButton.classList.toggle("has-action",interactButton.dataset.actionAvailable==="1");
+}
+function requestLandscape(){ return false; }
+addEventListener("resize",()=>{detectInterface();syncControls()},{passive:true});
+addEventListener("orientationchange",()=>{setTimeout(syncControls,50)},{passive:true});
+let joyPointer=null, joyX=0, joyY=0;
+syncControls();
+
+function setJoystick(clientX,clientY){
+  const r=joystick.getBoundingClientRect();
+  const cx=r.left+r.width/2, cy=r.top+r.height/2;
+  let dx=clientX-cx, dy=clientY-cy;
+  const max=Math.max(1,r.width*0.34);
+  const len=Math.hypot(dx,dy);
+  if(len>max){dx=dx/len*max;dy=dy/len*max}
+  joyX=dx/max;
+  joyY=dy/max;
+  S.touch.left=joyX < -0.22;
+  S.touch.right=joyX > 0.22;
+  S.touch.up=joyY < -0.28;
+  S.touch.down=joyY > 0.28;
+  joyStick.style.transform=`translate(${dx}px,${dy}px)`;
+}
+function resetJoystick(){
+  joyPointer=null;joyX=0;joyY=0;
+  S.touch.left=false;S.touch.right=false;S.touch.up=false;S.touch.down=false;
+  joyStick.style.transform="translate(0,0)";
+}
+joystick.addEventListener("pointerdown",e=>{
+  if(S.mode!=="play")return;
+  e.preventDefault();e.stopPropagation();
+  joyPointer=e.pointerId;
+  try{joystick.setPointerCapture(e.pointerId)}catch(_){}
+  setJoystick(e.clientX,e.clientY);
+},{passive:false});
+joystick.addEventListener("pointermove",e=>{
+  if(e.pointerId!==joyPointer)return;
+  e.preventDefault();setJoystick(e.clientX,e.clientY);
+},{passive:false});
+["pointerup","pointercancel","lostpointercapture"].forEach(type=>{
+  joystick.addEventListener(type,e=>{
+    if(type!=="lostpointercapture" && e.pointerId!==joyPointer)return;
+    resetJoystick();
+  },{passive:true});
+});
+
+function bindActionButton(b){
+  const a=b.dataset.a;
+  b.addEventListener("pointerdown",e=>{
+    e.preventDefault();e.stopPropagation();
+    try{b.setPointerCapture(e.pointerId)}catch(_){}
+    b.classList.add("pressed");
+    if(S.mode!=="play")return;
+    if(a==="jump") jump();
+    else if(a==="context"){
+      const action=b.dataset.contextAction||"";
+      if(b.dataset.actionAvailable!=="1")return;
+      if(action==="attack") attack();
+      else if(action==="interact") interact();
+      
+    }
+  },{passive:false});
+  const release=()=>b.classList.remove("pressed");
+  b.addEventListener("pointerup",release,{passive:true});
+  b.addEventListener("pointercancel",release,{passive:true});
+  b.addEventListener("lostpointercapture",release);
+}
+
+/* Touch fallback for older Android WebViews. */
+if(!("PointerEvent" in window)){
+  joystick.addEventListener("touchstart",e=>{
+    e.preventDefault();
+    if(S.mode!=="play")return;
+    const t=e.changedTouches[0];if(t)setJoystick(t.clientX,t.clientY);
+  },{passive:false});
+  joystick.addEventListener("touchmove",e=>{
+    e.preventDefault();
+    const t=e.changedTouches[0];if(t)setJoystick(t.clientX,t.clientY);
+  },{passive:false});
+  joystick.addEventListener("touchend",e=>{e.preventDefault();resetJoystick()},{passive:false});
+  joystick.addEventListener("touchcancel",()=>resetJoystick(),{passive:true});
+  document.querySelectorAll("#controls .acts button").forEach(b=>{
+    b.addEventListener("touchstart",e=>{
+      e.preventDefault();
+      const a=b.dataset.a;
+      if(S.mode!=="play")return;
+      b.classList.add("pressed");
+      if(a==="jump"){uiTone(300,.035);haptic(8);jump();}
+      else if(a==="context"){
+        if(b.dataset.actionAvailable!=="1")return;
+        const action=b.dataset.contextAction||"";
+        if(action==="attack")attack();else if(action==="interact")interact();else if(action==="ladder")engageLadder();
+      }
+    },{passive:false});
+    b.addEventListener("touchend",e=>{e.preventDefault();b.classList.remove("pressed")},{passive:false});
+    b.addEventListener("touchcancel",()=>b.classList.remove("pressed"),{passive:true});
+  });
+}
+document.querySelectorAll(".acts button").forEach(bindActionButton);
+const settingsBtn=document.getElementById("settingsBtn");
+settingsBtn?.addEventListener("click",()=>{uiTone(460);haptic(10);openSettings();});
+document.getElementById("closeSettings")?.addEventListener("click",()=>{uiTone(360);closeSettings();});
+document.getElementById("closeSettingsBottom")?.addEventListener("click",()=>{uiTone(360);closeSettings();});
+document.getElementById("fullscreenSetting")?.addEventListener("click",()=>{uiTone(500);toggleFullscreen();});
+document.getElementById("soundSetting")?.addEventListener("click",()=>{gameSettings.sound=!gameSettings.sound;saveSettings();if(gameSettings.sound)uiTone(520);});
+document.getElementById("vibrationSetting")?.addEventListener("click",()=>{gameSettings.vibration=!gameSettings.vibration;saveSettings();haptic(gameSettings.vibration?18:0);});
+document.getElementById("hintsSetting")?.addEventListener("click",()=>{gameSettings.hints=!gameSettings.hints;saveSettings();});
+document.getElementById("controlOpacity")?.addEventListener("input",e=>{gameSettings.controlOpacity=Number(e.target.value)||38;saveSettings();});
+document.getElementById("resetSaveSetting")?.addEventListener("click",()=>{
+  if(!confirm("Удалить всё сохранение и начать игру заново?"))return;
+  clearSave();
+  const start=document.getElementById("start");
+  if(start)start.classList.remove("hidden");
+  document.body.classList.add("menu");
+  S.mode="menu";
+  settingsReturnMode="menu";
+  closeSettings();
+  const loadBtn=document.getElementById("loadBtn");
+  if(loadBtn){loadBtn.disabled=false;loadBtn.style.opacity="1";loadBtn.style.pointerEvents="auto";loadBtn.title="Сохранение не найдено — начать новую игру";}
+  toast("СОХРАНЕНИЕ УДАЛЕНО",1200);
+});
+document.addEventListener("keydown",e=>{if(e.key==="Escape"&&S.mode==="settings"){e.preventDefault();closeSettings();}});
+document.addEventListener("fullscreenchange",refreshFullscreenButton);
+loadSettings();
+refreshFullscreenButton();
+syncControls();
+function ladderAtPlayer(p){
+  if(p.onLadder && Number.isInteger(p.ladderId) && currentLadders[p.ladderId]) return currentLadders[p.ladderId];
+  for(let i=0;i<currentLadders.length;i++){
+    const l=currentLadders[i];
+    const cx=p.x+p.w*.5;
+    const verticalOverlap=p.y+p.h>l.top-28 && p.y<l.bottom+28;
+    const horizontalOverlap=cx>l.x-46 && cx<l.x+l.w+46;
+    if(horizontalOverlap && verticalOverlap) return l;
+  }
+  return null;
+}
+function ladderIndex(l){return currentLadders.indexOf(l);}
+function snapToLadder(p,l){
+  const target=l.x+l.w*.5-p.w*.5;
+  p.x=Math.max(l.x-p.w*.15,Math.min(l.x+l.w-p.w*.85,target));
+}
+function stepOnPlatform(r,previousBottom){
+  const p=S.p;
+  const bottom=p.y+p.h;
+  const prev=Number.isFinite(previousBottom)?previousBottom:bottom;
+  return p.vy>=0 &&
+    p.x+p.w>r[0] && p.x<r[0]+r[2] &&
+    prev<=r[1]+0.01 && bottom>=r[1]-0.01;
+}
+function drawLadder(l){
+  x.strokeStyle="#a98d59";x.lineWidth=5;
+  x.beginPath();x.moveTo(l.x+9,l.top);x.lineTo(l.x+9,l.bottom);x.moveTo(l.x+l.w-9,l.top);x.lineTo(l.x+l.w-9,l.bottom);x.stroke();
+  x.lineWidth=3;
+  for(let y=l.top+10;y<l.bottom;y+=22){x.beginPath();x.moveTo(l.x+9,y);x.lineTo(l.x+l.w-9,y);x.stroke()}
+  x.lineWidth=1;
+}
+const bridgeSeq=[1,3,0,2];
+let bridgeStep=0,bridgePreviewTimer=0,bridgePreviewIndex=0,bridgeInputReady=false;
+function openBridgePuzzle(){
+  if(S.bridge)return;
+  bridgeStep=0;bridgePreviewIndex=0;bridgeInputReady=false;S.mode="bridgePuzzle";syncControls();
+  setMiniMode("#bridgePuzzle",true);
+  $("#bridgeText").textContent="Запомни последовательность. Печати загорятся по одной.";
+  $("#bridgeProgress").textContent="Подготовка…";
+  document.querySelectorAll(".bridgeRune").forEach(b=>b.disabled=true);
+  clearTimeout(bridgePreviewTimer);
+  const flashNext=()=>{
+    if(S.mode!=="bridgePuzzle")return;
+    document.querySelectorAll(".bridgeRune").forEach(b=>b.classList.remove("sel"));
+    if(bridgePreviewIndex<bridgeSeq.length){
+      const b=document.querySelector('.bridgeRune[data-r="'+bridgeSeq[bridgePreviewIndex]+'"]');
+      if(b)b.classList.add("sel");
+      $("#bridgeProgress").textContent="Запомни знак "+(bridgePreviewIndex+1)+" / "+bridgeSeq.length;
+      bridgePreviewIndex++;
+      bridgePreviewTimer=setTimeout(flashNext,620);
+    }else{
+      document.querySelectorAll(".bridgeRune").forEach(b=>b.classList.remove("sel"));
+      bridgeInputReady=true;document.querySelectorAll(".bridgeRune").forEach(b=>b.disabled=false);
+      $("#bridgeText").textContent="Теперь повтори порядок. Ошибка сбрасывает настройку.";
+      $("#bridgeProgress").textContent="Шаг 1 / "+bridgeSeq.length;
+    }
+  };
+  bridgePreviewTimer=setTimeout(flashNext,450);
+}
+function closeBridgePuzzle(){clearTimeout(bridgePreviewTimer);setMiniMode("#bridgePuzzle",false);S.mode="play";syncControls();}
+function bridgePick(v){
+  if(S.mode!=="bridgePuzzle"||!bridgeInputReady)return;
+  if(v!==bridgeSeq[bridgeStep]){
+    bridgeStep=0;$("#bridgeProgress").textContent="Ошибка. Начни снова: шаг 1 / "+bridgeSeq.length;toast("Печать не совпала. Последовательность сброшена.",900);return;
+  }
+  bridgeStep++;
+  if(bridgeStep>=bridgeSeq.length){
+    closeBridgePuzzle();activateArchiveBridge();return;
+  }
+  $("#bridgeProgress").textContent="Шаг "+(bridgeStep+1)+" / "+bridgeSeq.length;
+}
+function activateArchiveBridge(){
+  if(S.bridge)return;
+  S.bridge=true;S.bridgeTune=true;
+  obj("Переход восстановлен. Перейди через центральную галерею и доберись до Сердца Порога.");
+  toast("СТАРЫЙ МОСТ ВОССТАНОВЛЕН",1500);
+  burst(2890,350,22);S.flash=.16;save();
+}
+function interactionNear(zone,pad=70){
+  const pr={x:S.p.x,y:S.p.y,w:S.p.w,h:S.p.h};
+  const safePad=Math.min(Math.max(Number(pad)||0,0),90);
+  return rect(pr,{x:zone.x-safePad,y:zone.y-safePad,w:zone.w+safePad*2,h:zone.h+safePad*2});
+}
+function interactionTargetCenter(target){return {x:target.zone.x+target.zone.w*.5,y:target.zone.y+target.zone.h*.5};}
+function interactionTargetDistance(target){const c=interactionTargetCenter(target),px=S.p.x+S.p.w*.5,py=S.p.y+S.p.h*.5;return Math.hypot(px-c.x,py-c.y);}
+function getInteractionTarget(){
+  if(S.mode!=="play")return null;
+  const p=S.p;
+  if(S.level===1&&!S.enemy.dead&&rect(attackHitbox(),S.enemy))return {id:"guardian",type:"attack",label:"⚔ УДАР",zone:{x:S.enemy.x-18,y:S.enemy.y-18,w:S.enemy.w+36,h:S.enemy.h+36},priority:100};if(S.level===3&&S.branchChoice==="lower"&&!S.branchEnemy.dead&&rect(attackHitbox(),S.branchEnemy))return {id:"branch_enemy",type:"attack",label:"⚔ УДАР",zone:{x:S.branchEnemy.x-18,y:S.branchEnemy.y-18,w:S.branchEnemy.w+36,h:S.branchEnemy.h+36},priority:100};
+  const candidates=[];
+  const add=(id,label,zone,priority=50)=>{const pad=zone.pad??60;if(interactionNear(zone,pad))candidates.push({id,type:"interact",label,zone,priority});};
+  if(S.level===1){
+    if(!S.book)add("mira_bag","✋ ОСМОТРЕТЬ",{x:300,y:340,w:190,h:150,pad:90},70);
+    if(S.book&&!S.double)add("memory_seal","⚙ ИЗУЧИТЬ ПЕЧАТЬ",{x:980,y:250,w:190,h:190,pad:75},65);
+    if(!S.checkpoint)add("altar","✦ УСТАНОВИТЬ ПАМЯТЬ",{x:S.altar.x-110,y:300,w:300,h:190,pad:65},60);
+    if(!S.mira.seen)add("mira_echo","✋ СЛУШАТЬ ЭХО",{x:S.mira.x-120,y:260,w:240,h:230,pad:65},58);
+    if(S.signs<3){for(let i=0;i<3;i++){const q=[{x:2390,y:260},{x:2940,y:235},{x:3860,y:240}][i];if(i>=S.signs)add("mira_sign_"+i,"◈ ИЗУЧИТЬ ЗНАК",{x:q.x-65,y:q.y-70,w:180,h:200,pad:60},55);}}
+    if(!S.secret)add("secret","✦ ОСМОТРЕТЬ ТАЙНИК",{x:S.secretBox.x-70,y:S.secretBox.y-80,w:210,h:230,pad:65},52);
+    if(!S.cache.open)add("cache","✋ ОТКРЫТЬ ТАЙНИК",{x:S.cache.x-80,y:S.cache.y-80,w:225,h:230,pad:65},51);
+    const gateLabel=S.shards<3?`◈ ДВЕРЬ · ${S.shards}/3 ОСКОЛКОВ`:(!S.checkpoint?"◈ ДВЕРЬ · НУЖЕН АЛТАРЬ":"◈ ВОЙТИ В НИЖНИЙ АРХИВ");
+    add("gate1",gateLabel,{x:S.gate.x-120,y:250,w:330,h:240,pad:70},48);
+  }else if(S.level===2){
+    if(!S.archiveA)add("archive_a","⚙ НАСТРОИТЬ ПЕЧАТЬ",{x:1130,y:300,w:180,h:150,pad:65},65);
+    if(!S.archiveB)add("archive_b","⚙ НАСТРОИТЬ ПЕЧАТЬ",{x:3000,y:280,w:190,h:170,pad:65},65);
+    add("gate2",S.archiveKeys<2?`◈ ДВЕРЬ · ${S.archiveKeys}/2 ПЕЧАТЕЙ`:"✋ ОТКРЫТЬ ДВЕРЬ",{x:4380,y:260,w:240,h:240,pad:70},50);
+  }else if(S.level===3){
+    const lf=S.lift3;if(liftInteractionNear(p))candidates.push({id:"lift",type:"interact",label:!lf.used?"⚙ АКТИВИРОВАТЬ ПОДЪЁМНИК":(lf.paused?"▶ ПРОДОЛЖИТЬ ПОДЪЁМ":"Ⅱ ОСТАНОВИТЬ ПОДЪЁМ"),zone:{x:lf.x-80,y:lf.y-90,w:lf.w+160,h:lf.h+180},priority:70});
+    add("bridge_mechanism",S.lift3.used?"⚙ ВОССТАНОВИТЬ МОСТ":"◈ МЕХАНИЗМ НЕАКТИВЕН",{x:2850,y:300,w:210,h:190,pad:65},60);
+    add("threshold",!S.bridge?"◈ СЕРДЦЕ ЗАКРЫТО":"✦ ОТКРЫТЬ СЕРДЦЕ",{x:4380,y:220,w:260,h:270,pad:70},55);if(S.chapter3Done)add("ending_exit",S.endingExitOpen?"✦ ПРОЙТИ ЧЕРЕЗ ВЫХОД":"✦ ИДТИ К ВЫХОДУ",{x:4700,y:300,w:220,h:170,pad:70},78);if(S.branchChoice==="upper"&&!S.branchRelic.claimed)add("branch_relic","✦ ЗАБРАТЬ ОСКОЛОК ТИШИНЫ",{x:S.branchRelic.x-80,y:S.branchRelic.y-80,w:220,h:220,pad:65},68);if(S.branchChoice==="lower"&&S.branchEnemy.dead&&!S.branchRewardClaimed)add("branch_cache","◈ ЗАБРАТЬ ОСКОЛОК ТЬМЫ",{x:4010,y:370,w:160,h:110,pad:65},68);
+  }
+  if(!candidates.length)return null;
+  candidates.sort((a,b)=>b.priority-a.priority||interactionTargetDistance(a)-interactionTargetDistance(b));
+  return candidates[0];
+}
+function contextAction(){const target=getInteractionTarget();S.focus=target;return target?{type:target.type,label:target.label}:{type:"",label:""};}
+function engageLadder(){
+  if(S.level!==3||S.mode!=="play")return;
+  const l=currentLadders.find(l=>Math.abs((S.p.x+S.p.w/2)-(l.x+l.w/2))<92 && S.p.y+S.p.h>l.top-38 && S.p.y<l.bottom+38);
+  if(!l)return;
+  S.p.onLadder=true; S.p.ladderId=ladderIndex(l); S.p.vx=0; S.p.vy=0; snapToLadder(S.p,l);
+}
+function updateInteractionHint(){
+  const h=$("#interactHint");
+  const a=(S.mode==="play")?contextAction():{type:"",label:""};
+  if(!h){return;}
+  h.textContent=a.label;
+  h.style.opacity=(a.label && deviceProfile.touch)?1:0;
+  if(interactButton){
+    const available=!!a.type && deviceProfile.touch;
+    interactButton.dataset.actionAvailable=available?"1":"0";
+    interactButton.dataset.contextAction=a.type||"";
+    interactButton.textContent=a.label||"ДЕЙСТВИЕ";
+    interactButton.classList.toggle("has-action",available);
+    interactButton.classList.toggle("context-attack",a.type==="attack");
+    interactButton.classList.toggle("context-interact",a.type==="interact");
+    interactButton.classList.toggle("context-ladder",a.type==="ladder");
+    interactButton.setAttribute("aria-disabled",String(!available));
+  }
+}
+function update(dt){
+  let p=S.p;
+  const L=S.keys.arrowleft||S.keys.a||S.touch.left;
+  const R=S.keys.arrowright||S.keys.d||S.touch.right;
+  const U=S.keys.arrowup||S.keys.w||S.touch.up;
+  const D=S.keys.arrowdown||S.keys.s||S.touch.down;
+  const d=(R?1:0)-(L?1:0);
+
+  p.vx+=(d*275-p.vx)*Math.min(1,((d?2200:3100)*dt));
+  if(Math.abs(p.vx)<3&&!d)p.vx=0;
+  if(d)p.dir=d;
+  p.x+=p.vx*dt;
+  p.x=Math.max(15,Math.min(S.level===1?4900:(S.level===2?5050:5000),p.x));
+
+  /* Лестница — часть маршрута, а не отдельное действие.
+     ↑/W и ↓/S автоматически цепляют ближайшую лестницу с нужной стороны.
+     Пока Рен на лестнице, горизонтальное управление не влияет на x, а отпускание
+     направления просто оставляет его на лестнице. Никаких подтверждений/кнопок. */
+  let ladder=ladderAtPlayer(p);
+  const verticalDir=(D?1:0)-(U?1:0);
+  if(!p.onLadder && ladder && verticalDir!==0){
+    const bottom=p.y+p.h;
+    const atTop=Math.abs(bottom-ladder.top)<18;
+    const atBottom=Math.abs(bottom-ladder.bottom)<18;
+    const movingDown=verticalDir>0, movingUp=verticalDir<0;
+    const canEnter=(movingDown && !atBottom) || (movingUp && !atTop);
+    if(canEnter){
+      p.onLadder=true;
+      p.ladderId=ladderIndex(ladder);
+      p.ladderEdge="";
+      p.vx=0; p.vy=0;
+      snapToLadder(p,ladder);
+    }
+  }
+
+  const oldBottom=p.y+p.h;
+  if(p.onLadder){
+    ladder=currentLadders[p.ladderId];
+    if(!ladder){p.onLadder=false;p.ladderId=-1;}
+    else{
+      p.vx=0;
+      p.vy=verticalDir*205;
+      if(verticalDir!==0)p.y+=p.vy*dt;
+      p.ground=false;
+      if(verticalDir<0 && p.y+p.h<=ladder.top+4){
+        p.y=ladder.top-p.h;
+        snapToLadder(p,ladder);
+        p.onLadder=false;p.ladderId=-1;p.ladderEdge="top";
+        p.ground=true;p.jumps=0;p.vy=0;
+      }else if(verticalDir>0 && p.y>=ladder.bottom-p.h-4){
+        p.y=ladder.bottom-p.h;
+        snapToLadder(p,ladder);
+        p.onLadder=false;p.ladderId=-1;p.ladderEdge="bottom";
+        p.ground=true;p.jumps=0;p.vy=0;
+      }
+    }
+  }
+  if(!p.onLadder){
+    p.vy+=1850*dt;
+    p.y+=p.vy*dt;
+    p.ground=false;
+
+    /* Static platforms + explicit stair blocks. */
+    for(let r of solidRects()){
+      if(stepOnPlatform(r,oldBottom)){
+        p.y=r[1]-p.h;p.vy=0;p.ground=true;p.jumps=0;break;
+      }
+    }
+
+    /* Level III lift: wide enough to catch a normal jump and carries the player. */
+    if(S.level===3){
+      const lf=S.lift3;
+      lf.prev=lf.y;
+      /* The lift is controlled only by the contextual action.
+         UP/DOWN are reserved for ladders and never toggle the lift.
+         Before activation it stays at the lower dock; after activation it moves automatically. */
+      if(!lf.paused){
+        if(lf.dockTimer>0){
+          lf.dockTimer=Math.max(0,lf.dockTimer-dt);
+        }else{
+          lf.phase+=dt;
+          const mid=(lf.max+lf.min)/2, amp=(lf.max-lf.min)/2;
+          lf.y=mid+Math.sin(lf.phase*.9)*amp;
+          const atDock=Math.abs(lf.y-lf.min)<1.5||Math.abs(lf.y-lf.max)<1.5;
+          if(atDock){
+            lf.y=lf.y<=(lf.min+lf.max)/2?lf.min:lf.max;
+            lf.dockTimer=.85;
+            toast("Подъёмник остановился на площадке",550);
+          }
+        }
+      }
+      if(p.ground && p.x+p.w>lf.x && p.x<lf.x+lf.w && Math.abs((p.y+p.h)-lf.prev)<12){
+        p.y+=lf.y-lf.prev;
+      }
+      if(p.vy>=0&&p.x+p.w>lf.x&&p.x<lf.x+lf.w&&oldBottom<=lf.prev+10&&p.y+p.h>=lf.y-2){
+        p.y=lf.y-p.h;p.vy=0;p.ground=true;p.jumps=0;
+      }
+    }
+  }
+
+  /* Chapter III route checkpoints: reaching the upper lift platform and then the restored bridge
+     changes the world state. These are automatic adventure checkpoints, not extra interactions. */
+  if(S.level===3 && S.lift3.used && !S.upperCheckpoint && p.y<315 && p.x>1360 && p.x<1760){
+    S.upperCheckpoint=true;
+    S.spawn={x:1515,y:292};
+    obj("Узел памяти пробудился. Теперь центральный механизм отвечает.");
+    toast("ВЕРХНИЙ ЯРУС ДОСТИГНУТ",1500);
+    save();
+  }
+  if(S.level===3 && S.bridge && !S.bridgeCheckpoint && p.x>3040 && p.x<3320 && p.y<430){
+    S.bridgeCheckpoint=true;
+    S.spawn={x:3070,y:410};
+    obj("Переход закреплён. Сердце Порога теперь доступно.");
+    toast("ТОЧКА ПАМЯТИ ЗАКРЕПЛЕНА",1300);
+    save();
+  }
+
+  if(p.y>540){if(!validSpawn(S.spawn.x,S.spawn.y)){S.spawn={x:90,y:390};setLevelGeometry(S.level)}respawn("Ты сорвался. Память вернула тебя назад.");}
+
+  for(let q of currentSpikes){
+    let hit={x:q.x,y:q.y+5,w:q.w,h:18};
+    if(rect(p,hit)&&p.ground)damagePlayer(25,"Шипы");
+  }
+  for(let v of currentVents){
+    v.phase+=dt;
+    let active=Math.sin(v.phase*2.8)>0;
+    let hit={x:v.x-8,y:v.y-70,w:v.w+16,h:70};
+    if(active&&rect(p,hit))damagePlayer(18,"Огненный выброс");
+  }
+
+  if(S.level===3&&S.bridge&&!S.branchChoice&&p.x>3570){const upperEligible=S.double&&p.y<350;S.branchChoice=upperEligible?"upper":"lower";obj(S.branchChoice==="upper"?"Верхний путь: Печать второго прыжка позволила обойти стража.":"Нижний путь: существо проснулось. Пробейся через галерею.");toast(S.branchChoice==="upper"?"ВЕТВЬ · ТИШИНА":"ВЕТВЬ · ТЬМА",1300);save();}if(S.level===3&&S.branchChoice==="lower"&&!S.branchEnemy.dead){const e=S.branchEnemy;e.dir=p.x>=e.x?1:-1;e.cd=Math.max(0,e.cd-dt);if(Math.abs(p.x-e.x)<390)e.x+=e.dir*48*dt;e.x=Math.max(3600,Math.min(4250,e.x));if(e.cd<=0&&Math.abs(p.x-e.x)<75&&Math.abs(p.y-e.y)<70){damagePlayer(16,"Тварь галереи");e.cd=1.0;}}if(S.level===1&&!S.enemy.dead){
+    let e=S.enemy;e.dir=p.x>=e.x?1:-1;
+    if(Math.abs(p.x-e.x)<450)e.x+=e.dir*55*dt;
+    e.x=Math.max(1765,Math.min(2025,e.x));
+    e.cd=Math.max(0,e.cd-dt);
+    if(e.cd<=0&&Math.abs(p.x-e.x)<75&&Math.abs(p.y-e.y)<70)damagePlayer(14,"Страж Памяти");
+  }
+
+  for(let q of S.crystals){
+    q.t+=dt*2;
+    if(!q.taken&&Math.hypot(p.x+21-q.x,p.y+30-q.y)<62){
+      q.taken=true;S.shards++;toast("Осколок памяти: "+S.shards+"/3");
+      if(S.shards===3)obj("Три осколка собраны. Вернись к алтарю.");
+      save();hud();
+    }
+  }
+
+  const rv=renderViewport();
+  /* Smart camera: keep Ren inside a comfortable dead-zone and show more of
+     the route in the direction of travel. This is especially important in
+     landscape, where objects such as ladders, lifts and gates should enter
+     the readable area before the player reaches them. */
+  const worldRight=S.level===1?4772:(S.level===2?4560:4590);
+  const maxCam=Math.max(0,worldRight-rv.w);
+  const speedLook=Math.min(150,Math.max(0,Math.abs(p.vx)*.22));
+  const lookAhead=(p.dir||1)*(70+speedLook);
+  const desiredCenter=p.x+p.w*.5+lookAhead;
+  const targetCam=Math.max(0,Math.min(maxCam,desiredCenter-rv.w*.5));
+  S.cam+=(targetCam-S.cam)*Math.min(1,dt*(Math.abs(p.vx)>40?8:5));
+  p.inv=Math.max(0,p.inv-dt);
+  p.atk=Math.max(0,p.atk-dt);
+  S.shake=Math.max(0,S.shake-dt);
+  S.flash=Math.max(0,S.flash-dt);
+  hud();updateInteractionHint();
+  /* V35: force contextual button state every frame so it can never remain stale. */
+  if(interactButton){
+    const active=(S.mode==="play" && deviceProfile.touch && interactButton.dataset.actionAvailable==="1");
+    interactButton.classList.toggle("has-action",active);
+    interactButton.setAttribute("aria-hidden","false");
+    interactButton.setAttribute("aria-disabled",String(!active));
+  }
+}
+function getFocusVisualRect(t){
+  if(!t)return null;
+  const id=t.id;
+  if(id==="mira_bag")return {x:345,y:407,w:78,h:43};
+  if(id==="memory_seal")return {x:980,y:250,w:190,h:190};
+  if(id==="altar")return {x:S.altar.x,y:S.altar.y,w:78,h:64};
+  if(id==="mira_echo")return {x:S.mira.x-34,y:S.mira.y-70,w:68,h:140};
+  if(id.startsWith("mira_sign_")){const i=Number(id.slice(-1));const q=[{x:2390,y:260},{x:2940,y:235},{x:3860,y:240}][i];return q?{x:q.x,y:q.y,w:44,h:44}:null;}
+  if(id==="secret")return {x:S.secretBox.x,y:S.secretBox.y,w:70,h:70};
+  if(id==="cache")return {x:S.cache.x,y:S.cache.y,w:65,h:65};
+  if(id==="gate1")return {x:S.gate.x,y:S.gate.y,w:82,h:196};
+  if(id==="archive_a")return {x:1130,y:300,w:180,h:150};
+  if(id==="archive_b")return {x:3000,y:280,w:190,h:170};
+  if(id==="gate2")return {x:4440,y:270,w:110,h:206};
+  if(id==="lift")return {x:S.lift3.x,y:S.lift3.y,w:S.lift3.w,h:S.lift3.h};
+  if(id==="bridge_mechanism")return {x:2850,y:300,w:210,h:190};
+  if(id==="threshold")return {x:4380,y:220,w:260,h:270};
+  if(id==="ending_exit")return {x:4740,y:320,w:82,h:156};
+  if(id==="guardian")return {x:S.enemy.x,y:S.enemy.y,w:S.enemy.w,h:S.enemy.h};
+  return t.zone;
+}
+function drawFocusTarget(){
+  const t=S.focus;if(!t||S.mode!=="play")return;
+  const z=getFocusVisualRect(t);if(!z)return;
+  const pulse=.5+.5*Math.sin(S.t*5),cx=z.x+z.w*.5,cy=z.y+z.h*.5;
+  x.save();
+  x.shadowColor=`rgba(224,195,108,${.20+.25*pulse})`;x.shadowBlur=18+10*pulse;
+  x.strokeStyle=`rgba(226,199,116,${.62+.25*pulse})`;x.lineWidth=2;
+  x.strokeRect(z.x-5,z.y-5,z.w+10,z.h+10);
+  x.shadowBlur=0;x.strokeStyle=`rgba(226,199,116,${.22+.18*pulse})`;x.lineWidth=1;x.setLineDash([4,5]);x.strokeRect(z.x-9,z.y-9,z.w+18,z.h+18);x.setLineDash([]);
+  x.fillStyle=`rgba(238,216,145,${.72+.18*pulse})`;x.font="17px Georgia";x.textAlign="center";x.fillText("◇",cx,Math.max(28,z.y-12));
+  x.fillStyle=`rgba(238,216,145,${.08+.05*pulse})`;x.beginPath();x.arc(cx,cy,Math.max(z.w,z.h)*.48,0,Math.PI*2);x.fill();
+  x.restore();
+}
+function draw(){  const rv=renderViewport(),vw=rv.w,vh=rv.h,sc=Math.min(c.width/vw,c.height/vh),ox=(c.width-vw*sc)/2,oy=(c.height-vh*sc)/2,cam=S.cam;  x.setTransform(1,0,0,1,0,0);x.clearRect(0,0,c.width,c.height);  x.setTransform(sc,0,0,sc,ox,oy);
+let g=x.createLinearGradient(0,0,0,vh);if(S.level===1){g.addColorStop(0,"#172321");g.addColorStop(.55,"#091212");g.addColorStop(1,"#020505")}else if(S.level===2){g.addColorStop(0,"#211d25");g.addColorStop(.55,"#0f0b12");g.addColorStop(1,"#030205");}else{g.addColorStop(0,"#202a32");g.addColorStop(.5,"#10151d");g.addColorStop(1,"#030508");}x.fillStyle=g;x.fillRect(0,0,vw,vh);x.save();x.translate(-cam,rv.worldShiftY);
+for(let i=0;i<30;i++){x.fillStyle=S.level===1?(i%2?"#101918":"#0b1212"):(S.level===2?(i%2?"#19131b":"#100c13"):(i%2?"#151d26":"#0d131a"));x.fillRect(i*180,90,28,390)}
+for(let r of currentP){x.fillStyle=r[3]>25?"#303837":"#3c4542";x.fillRect(...r);x.fillStyle="#69746e";x.fillRect(r[0],r[1],r[2],4)}
+if(S.level===3){
+  for(const l of currentLadders){
+    drawLadder(l);
+    x.fillStyle="#3b4541";x.fillRect(l.x-30,l.top,l.w+90,18);
+    x.fillStyle="#68746d";x.fillRect(l.x-30,l.top,l.w+90,4);
+  }
+  for(const s of currentStairs){
+    x.fillStyle="#414a47";x.fillRect(s.x,s.y,s.w,s.h);
+    x.fillStyle="#68736d";x.fillRect(s.x,s.y,s.w,4);
+  }
+  const lf=S.lift3;
+  x.fillStyle="#424b48";x.fillRect(lf.x,lf.y,lf.w,lf.h);
+  x.fillStyle="#d0b86f";x.fillRect(lf.x+8,lf.y+3,lf.w-16,3);
+  x.strokeStyle="#bca264";x.setLineDash([6,7]);x.beginPath();x.moveTo(lf.x+12,470);x.lineTo(lf.x+12,lf.y+2);x.stroke();x.setLineDash([]);
+  if(!lf.used){const bp=.5+.5*Math.sin(S.t*2.6);x.fillStyle=`rgba(226,207,136,${.16+.20*bp})`;x.beginPath();x.arc(lf.x+lf.w*.5,lf.y-28,9+4*bp,0,Math.PI*2);x.fill();x.fillStyle="#d8c47e";x.font="18px Georgia";x.textAlign="center";x.fillText("◇",lf.x+lf.w*.5,lf.y-23);x.textAlign="left";}
+  x.fillStyle=!lf.used?"#9f9270":(lf.paused?"#e5d38e":"#d8c47e");x.font="14px Georgia";x.fillText(!lf.used?"ЛИФТ · НЕ АКТИВЕН":(lf.paused?"ЛИФТ · СТОП":"ЛИФТ · ДВИЖЕНИЕ"),lf.x+24,lf.y-8);
+  x.fillStyle="#b8aa7d";x.font="11px system-ui";x.fillText(!lf.used?"⚙ АКТИВИРОВАТЬ":(lf.paused?"▶ ПРОДОЛЖИТЬ":"Ⅱ ОСТАНОВИТЬ"),lf.x+40,lf.y+34);
+  if(lf.used && !lf.paused && lf.dockTimer>0){x.fillStyle="#e0cf83";x.font="10px system-ui";x.textAlign="center";x.fillText("ПЛОЩАДКА",lf.x+lf.w/2,lf.y-24);x.textAlign="left";}
+  /* Chapter III reactive environment: the hall visibly wakes up as the route is restored. */
+  if(S.level===3){
+    const pulse=.5+.5*Math.sin(S.t*2.4);
+    if(S.lift3.used){
+      x.save();x.globalAlpha=.10+.08*pulse;x.fillStyle="#d9c77c";
+      x.beginPath();x.arc(1515,250,54+10*pulse,0,6.28);x.fill();
+      x.globalAlpha=.75;x.strokeStyle="#9d8a58";x.lineWidth=2;
+      x.beginPath();x.arc(1515,250,28+5*pulse,0,6.28);x.stroke();x.restore();
+    }
+    if(S.upperCheckpoint){
+      x.save();x.globalAlpha=.12+.10*pulse;x.fillStyle="#e5d58d";
+      x.beginPath();x.arc(2950,310,70+12*pulse,0,6.28);x.fill();
+      x.globalAlpha=.8;x.strokeStyle="#b29b5f";x.lineWidth=2;
+      x.beginPath();x.arc(2950,310,34+7*pulse,0,6.28);x.stroke();x.restore();
+    }
+  }
+  if(S.bridge){
+    let bp=.5+.5*Math.sin(S.t*3.1);
+    x.fillStyle="#3f4945";x.fillRect(2860,350,190,18);
+    x.fillStyle="#8a8e7d";x.fillRect(2860,350,190,4);
+    x.strokeStyle="#8e744d";x.lineWidth=3;
+    for(let bx=2870;bx<3050;bx+=24){x.beginPath();x.moveTo(bx,350);x.lineTo(bx,368);x.stroke()}
+    x.fillStyle=`rgba(226,207,136,${.15+.18*bp})`;x.fillRect(2860,347,190,5);
+    x.lineWidth=1;
+  }
+}
+for(let q of currentSpikes){x.fillStyle="#171c1b";x.fillRect(q.x,q.y,q.w,q.h);x.fillStyle="#b6aaa0";for(let i=0;i<7;i++){x.beginPath();x.moveTo(q.x+i*14,q.y+20);x.lineTo(q.x+7+i*14,q.y);x.lineTo(q.x+14+i*14,q.y+20);x.fill()}}
+for(let v of currentVents){let active=Math.sin(v.phase*2.8)>0;x.fillStyle="#28211c";x.fillRect(v.x,v.y,v.w,v.h);x.fillStyle=active?"#d16a3c":"#72513a";x.fillRect(v.x+5,v.y+5,v.w-10,8);if(active){let gg=x.createLinearGradient(0,v.y,0,v.y-70);gg.addColorStop(0,"#e68b42");gg.addColorStop(1,"transparent");x.fillStyle=gg;x.fillRect(v.x-8,v.y-70,v.w+16,70)}}
+if(!S.book){
+  x.fillStyle="#4b3827";x.fillRect(345,407,78,43);
+  x.fillStyle="#735438";x.fillRect(350,412,68,33);
+  x.strokeStyle="#c9aa62";x.lineWidth=2;x.strokeRect(350,412,68,33);x.lineWidth=1;
+  x.fillStyle="#d9c67e";x.fillRect(377,421,14,7);
+  x.fillStyle="#b8aa7d";x.font="11px system-ui";x.fillText("СУМКА МИРЫ",332,466);
+}
+if(!S.double){
+  x.fillStyle="#252e2c";x.fillRect(1040,295,92,70);
+  x.strokeStyle="#d2b86e";x.strokeRect(1044,299,84,62);
+  x.fillStyle="#d8c47e";x.font="38px Georgia";x.fillText("◈",1067,347);
+  x.fillStyle="#b8aa7d";x.font="11px system-ui";x.fillText("ПЕЧАТЬ",1052,383);
+}
+for(let q of S.crystals)if(!q.taken){let yy=q.y+Math.sin(q.t)*7;x.fillStyle="#ead27e";x.beginPath();x.moveTo(q.x,yy-26);x.lineTo(q.x+14,yy);x.lineTo(q.x,yy+26);x.lineTo(q.x-14,yy);x.closePath();x.fill()}
+if(!S.mira.seen){x.globalAlpha=.28;x.fillStyle="#d7c9aa";x.beginPath();x.ellipse(S.mira.x,S.mira.y,32,68,0,0,6.28);x.fill();x.globalAlpha=1}
+for(let i=0;i<3;i++){let q=[{x:2390,y:260},{x:2940,y:235},{x:3860,y:240}][i];if(i>=S.signs){x.fillStyle="#18211f";x.fillRect(q.x,q.y,44,44);x.strokeStyle="#c2a965";x.strokeRect(q.x+3,q.y+3,38,38);x.fillStyle="#d7c67f";x.font="25px Georgia";x.fillText("ᛉ",q.x+11,q.y+31)}}
+if(!S.secret){x.strokeStyle="#a18a57";x.strokeRect(S.secretBox.x,S.secretBox.y,70,70);x.fillStyle="#ddca80";x.font="30px Georgia";x.fillText("✦",S.secretBox.x+19,S.secretBox.y+43)}
+if(!S.cache.open){x.fillStyle="#493b29";x.fillRect(S.cache.x,S.cache.y,65,65);x.strokeStyle="#c5a85d";x.strokeRect(S.cache.x+3,S.cache.y+3,59,59)}
+x.fillStyle="#313937";x.fillRect(S.altar.x,S.altar.y,78,64);x.strokeStyle=S.checkpoint?"#dec67b":"#70664e";x.strokeRect(S.altar.x+5,S.altar.y+5,68,54);
+x.fillStyle="#202625";x.fillRect(S.gate.x,S.gate.y,82,196);x.strokeStyle=S.shards>=3&&S.checkpoint?"#d6bf79":"#706b5b";x.lineWidth=4;x.strokeRect(S.gate.x+5,S.gate.y+5,72,186);x.lineWidth=1;
+if(S.level===2){
+  x.fillStyle="#26202b";x.fillRect(4440,270,110,206);
+  x.strokeStyle="#c7a9df";x.lineWidth=4;x.strokeRect(4445,275,100,196);x.lineWidth=1;
+  x.fillStyle="#d8c4e6";x.font="24px Georgia";x.fillText("II",4480,390);
+  x.fillStyle="#9d7fb4";x.fillRect(4390,405,40,12);
+  // archive consoles
+  for(let q of [{x:1160,y:400,on:S.archiveA},{x:3030,y:390,on:S.archiveB}]){x.fillStyle=q.on?"#3f4b43":"#22252a";x.fillRect(q.x,q.y,72,62);x.strokeStyle=q.on?"#d6c47c":"#8d789f";x.strokeRect(q.x+3,q.y+3,66,56);x.fillStyle=q.on?"#e0cf83":"#b08ac7";x.font="25px Georgia";x.fillText(q.on?"✓":"◈",q.x+23,q.y+40)}
+}
+if(S.level===3){
+  let pulse=.5+.5*Math.sin(S.t*2.2);
+  if(S.chapter3Done){
+    const ep=.5+.5*Math.sin(S.t*(S.ending&&S.ending.startsWith("dark")?5.4:2.8));
+    const dark=S.ending&&S.ending.startsWith("dark");
+    x.save();
+    x.fillStyle=dark?`rgba(36,9,15,${.28+.16*ep})`:`rgba(201,185,112,${.12+.10*ep})`;
+    x.fillRect(4380,180,280,296);
+    x.strokeStyle=dark?`rgba(157,59,67,${.65+.25*ep})`:`rgba(215,198,125,${.55+.25*ep})`;
+    x.lineWidth=4;x.strokeRect(4465,210,120,261);
+    x.lineWidth=1;
+    if(S.ending==="silent_mira"){
+      x.strokeStyle=`rgba(218,211,184,${.35+.35*ep})`;x.setLineDash([3,9]);x.beginPath();x.moveTo(4540,410);x.quadraticCurveTo(4630,330,4770,390);x.stroke();x.setLineDash([]);
+      x.fillStyle=`rgba(225,218,192,${.28+.25*ep})`;x.beginPath();x.ellipse(4780,350,18+5*ep,46,0,0,6.28);x.fill();
+    }else if(S.ending==="silent_self"){
+      x.fillStyle=`rgba(225,214,157,${.20+.25*ep})`;x.beginPath();x.moveTo(4740,430);x.lineTo(4780,320);x.lineTo(4820,430);x.closePath();x.fill();
+      x.strokeStyle=`rgba(233,218,159,${.45+.25*ep})`;x.beginPath();x.arc(4780,380,42+8*ep,0,6.28);x.stroke();
+    }else if(S.ending==="dark_mira"){
+      for(let i=0;i<7;i++){const yy=235+i*35+Math.sin(S.t*3+i)*8;x.fillStyle=`rgba(129,48,60,${.25+.12*ep})`;x.fillRect(4560+i*22,yy,5,28);}
+      x.fillStyle=`rgba(168,64,74,${.22+.18*ep})`;x.beginPath();x.arc(4780,370,45+10*ep,0,6.28);x.fill();
+    }else if(S.ending==="dark_self"){
+      x.strokeStyle=`rgba(108,91,124,${.35+.25*ep})`;x.lineWidth=6;x.beginPath();x.moveTo(4720,440);x.lineTo(4780,310);x.lineTo(4840,440);x.stroke();x.lineWidth=1;
+      x.fillStyle=`rgba(53,44,69,${.35+.18*ep})`;x.beginPath();x.arc(4780,370,38+9*ep,0,6.28);x.fill();
+    }
+    if(S.endingExitOpen){
+      x.fillStyle=dark?"#1a080c":"#e6d99d";x.fillRect(4742,315,76,150);
+      x.fillStyle=dark?"#6d2935":"#f4edc4";x.fillRect(4750,323,60,134);
+      x.fillStyle=dark?"#d07b86":"#7d714c";x.font="10px system-ui";x.textAlign="center";x.fillText("ВЫХОД",4780,304);x.textAlign="left";
+    }
+    x.restore();
+  }
+  x.fillStyle="#1b2028";x.fillRect(4460,205,130,271);
+  x.strokeStyle=`rgba(225,205,130,${.65+.3*pulse})`;x.lineWidth=5;x.strokeRect(4465,210,120,261);x.lineWidth=1;
+  x.fillStyle="#e2cf88";x.font="20px Georgia";x.fillText("ПОРОГ",4481,340);
+  x.fillStyle=`rgba(226,207,136,${.35+.35*pulse})`;x.beginPath();x.arc(4525,385,34+8*pulse,0,6.28);x.fill();
+  x.fillStyle="#d8c47e";x.font="18px Georgia";x.fillText(S.threshold?"ОТКРЫТ":"III",4502,391);
+  if(!S.bridge){
+    x.fillStyle="#25272c";x.fillRect(2820,302,48,86);
+    x.strokeStyle="#b28c57";x.strokeRect(2823,305,42,80);
+    x.fillStyle="#d6c47d";x.font="16px Georgia";x.fillText("◈",2834,350);
+    x.fillStyle="#9f9270";x.font="11px system-ui";x.fillText(S.lift3.used?"МОСТ":"НЕТ ПИТАНИЯ",2810,397);
+  }
+}
+drawFocusTarget();
+  if(S.level===3){
+    x.save();x.globalAlpha=.65;
+    if(S.lift3.used&&!S.upperCheckpoint){x.fillStyle="#e7cf86";x.font="700 12px Georgia";x.textAlign="center";x.fillText("ВЕРХНИЙ ЯРУС",1515,205);}
+    if(S.upperCheckpoint&&!S.bridge){x.fillStyle="#e7cf86";x.font="700 12px Georgia";x.textAlign="center";x.fillText("МЕХАНИЗМ МОСТА",2950,285);}
+    if(S.bridge&&!S.bridgeCheckpoint){x.fillStyle="#e7cf86";x.font="700 12px Georgia";x.textAlign="center";x.fillText("ПЕРЕХОД",3150,335);}
+    if(S.bridgeCheckpoint){x.fillStyle="#d8c77d";x.font="700 11px system-ui";x.textAlign="center";x.fillText("ПУТЬ ОТКРЫТ",3150,325);}
+    x.restore();
+  }
