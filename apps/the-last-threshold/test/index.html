@@ -356,7 +356,7 @@ function respawn(msg="Память вернула тебя к алтарю."){S.
 function platformUpdate(dt){
  const p=S.p,L=S.keys.arrowleft||S.keys.a||S.touch.left,R=S.keys.arrowright||S.keys.d||S.touch.right;
  const dir=(R?1:0)-(L?1:0);const accel=dir?2200:3100;p.vx+=((dir*275)-p.vx)*Math.min(1,accel*dt/1000);if(Math.abs(p.vx)<3&&!dir)p.vx=0;if(dir)p.dir=dir;
- p.x+=p.vx*dt;p.x=Math.max(18,Math.min(4930-p.w,p.x));
+ p.x+=p.vx*dt;p.x=Math.max(18,Math.min(4930-p.w,p.x));if(!S.resonancePassage.active&&p.x>2010&&p.x<2140)p.x=2010;
  const oldBottom=p.y+p.h;p.vy+=1850*dt;p.y+=p.vy*dt;p.ground=false;
  if(S.moving){S.moving.prevY=S.moving.y;S.moving.phase+=dt;S.moving.y=S.moving.baseY+Math.sin(S.moving.phase*1.25)*58}
  const candidates=plats.concat([{x:S.moving.x,y:S.moving.y,w:S.moving.w,h:S.moving.h}]);if(S.awakenedBridge.active)candidates.push(S.awakenedBridge);
@@ -365,7 +365,7 @@ function platformUpdate(dt){
  if(p.coyote>0)p.coyote-=dt;if(p.jumpBuffer>0)p.jumpBuffer-=dt;
  if(p.ground&&p.jumpBuffer>0){p.jumpBuffer=0;p.vy=-690;p.ground=false;p.jumps=1}
  if(p.y>680){respawn()}
- const e=S.enemy;if(!e.dead){e.dir=p.x>=e.x?1:-1;if(e.resonant&&Math.abs(p.x-e.x)<500){e.x+=e.dir*82*dt;}else if(Math.abs(p.x-e.x)<460)e.x+=e.dir*58*dt;else e.x+=e.dir*24*dt;if(Math.abs(p.x-e.x)<460)e.x+=e.dir*58*dt;else e.x+=e.dir*24*dt;e.x=Math.max(1765,Math.min(S.resonancePassage.active?2165:2025,e.x));e.cd=Math.max(0,e.cd-dt);if(e.cd<=0&&Math.abs(p.x-e.x)<78&&Math.abs(p.y-e.y)<72&&p.inv<=0){p.hp=Math.max(0,p.hp-14);p.inv=.55;toast("Страж Памяти ударил",650);if(p.hp<=0)respawn()}}
+ const e=S.enemy;if(!e.dead){e.dir=p.x>=e.x?1:-1;if(e.resonant&&Math.abs(p.x-e.x)<500)e.x+=e.dir*82*dt;else if(Math.abs(p.x-e.x)<460)e.x+=e.dir*58*dt;else e.x+=e.dir*24*dt;e.x=Math.max(1765,Math.min(S.resonancePassage.active?2165:2025,e.x));e.cd=Math.max(0,e.cd-dt);if(e.cd<=0&&Math.abs(p.x-e.x)<78&&Math.abs(p.y-e.y)<72&&p.inv<=0){p.hp=Math.max(0,p.hp-14);p.inv=.55;toast("Страж Памяти ударил",650);if(p.hp<=0)respawn()}}
  for(const q of S.crystals){q.b+=dt*2;if(!q.taken&&Math.hypot((p.x+p.w/2)-q.x,(p.y+p.h/2)-q.y)<62){q.taken=true;S.shards++;S.bookPages++;S.flash=.28;save();toast("Осколок памяти: "+S.shards+"/3",1100);if(S.shards===3)objective("Три осколка. Теперь вернись к алтарю.")}}
  if(S.puzzleSolved&&p.x>1190&&p.x<1260&&p.y>360)objective("Верхний маршрут открыт. Прыгай дальше.");if(S.resonancePassage.active&&p.x>1980&&p.x<2160)objective("Резонанс открыл проход. Пройди сквозь него.");if(S.puzzleSolved&&p.x>1260&&p.x<1710&&p.y<430)objective("Механизм изменил храм. Найди, куда ведёт новый путь.");
  if(S.checkpoint&&S.shards>=3&&p.x>4550)objective("Взаимодействуй с последними вратами.");if(!S.secret.found&&p.x>2050&&p.x<2380)objective("Здесь слишком тихо. Осмотри верхнюю нишу.");
