@@ -213,11 +213,79 @@ function checkSigns(){
  if(S.questSigns>=3){objective("Испытание Миры завершено. Книга получила новую запись.");S.bookPages++;S.story.miraWhisper=true;save();toast("Три знака найдены. Книга изменилась.",1700)}
 }
 function startQuickQuest(){S.mode="modal";showModal("Эхо Миры","«Если слышишь меня — найди три знака там, где свет не касается пола.»");}
-function openPuzzle(){S.mode="puzzle";document.getElementById("puzzle").classList.remove("hidden");selected=-1;buildPuzzle()}
-function buildPuzzle(){const g=document.getElementById("grid");g.innerHTML="";puzzle.forEach((v,i)=>{const b=document.createElement("button");b.className="tile"+(i===selected?" sel":"");b.textContent=v?["","I","II","III"][v]:"";b.onclick=()=>puzClick(i);g.appendChild(b)})}
+function registerMiniGames(){
+ const api=window.ThresholdCoreAPI;
+ if(!api||window.__tltMiniGamesRegistered)return;
+ api.registerMiniGame("seal_merge",({state})=>({
+   id:"seal_merge",
+   name:"Слияние Печатей",
+   state,
+   solved:false,
+   select(index){return {index}},
+   merge(a,b){
+     if(!Number.isInteger(a)||!Number.isInteger(b))return false;
+     if(a<0||b<0||a>=this.state.length||b>=this.state.length)return false;
+     if(!this.state[a]||this.state[a]!==this.state[b]||!adjacent(a,b))return false;
+     this.state[a]++;
+     this.state[b]=0;
+     this.solved=this.state[a]>=3;
+     return true;
+   }
+ }));
+ window.__tltMiniGamesRegistered=true;
+}
+function openPuzzle(){
+ registerMiniGames();
+ S.mode="puzzle";
+ document.getElementById("puzzle").classList.remove("hidden");
+ selected=-1;
+ buildPuzzle();
+}
+function buildPuzzle(){
+ const g=document.getElementById("grid");
+ g.innerHTML="";
+ puzzle.forEach((v,i)=>{
+   const b=document.createElement("button");
+   b.className="tile"+(i===selected?" sel":"");
+   b.textContent=v?["","I","II","III"][v]:"";
+   b.onclick=()=>puzClick(i);
+   g.appendChild(b);
+ });
+}
 function adjacent(a,b){return Math.abs(a%4-b%4)+Math.abs(Math.floor(a/4)-Math.floor(b/4))===1}
-function puzClick(i){if(!puzzle[i])return;if(selected<0){selected=i;buildPuzzle();return}if(i===selected){selected=-1;buildPuzzle();return}if(adjacent(selected,i)&&puzzle[selected]===puzzle[i]){puzzle[selected]++;puzzle[i]=0;const v=puzzle[selected];selected=-1;buildPuzzle();if(v>=3){S.puzzleSolved=true;S.doubleJump=true;S.p.maxJumps=2;objective("Печать III разбудила механизм. Пройди верхний маршрут.");toast("Новая способность: ДВОЙНОЙ ПРЫЖОК",1900);save();setTimeout(closePuzzle,500)}else toast("Печать усилилась",500)}else{selected=i;buildPuzzle()}}
+function puzClick(i){
+ if(!puzzle[i])return;
+ if(selected<0){selected=i;buildPuzzle();return}
+ if(i===selected){selected=-1;buildPuzzle();return}
+ const api=window.ThresholdCoreAPI;
+ let merged=false;
+ if(api){
+   const game=api.createMiniGame("seal_merge",{state:puzzle});
+   merged=game.merge(selected,i);
+ }else if(adjacent(selected,i)&&puzzle[selected]===puzzle[i]){
+   puzzle[selected]++;
+   puzzle[i]=0;
+   merged=true;
+ }
+ if(merged){
+   const v=puzzle[selected];
+   selected=-1;
+   buildPuzzle();
+   if(v>=3){
+     S.puzzleSolved=true;
+     acquireCoreArtifact("secondJump");
+     objective("Печать III разбудила механизм. Пройди верхний маршрут.");
+     toast("Новая способность: ДВОЙНОЙ ПРЫЖОК",1900);
+     save();
+     setTimeout(closePuzzle,500);
+   }else toast("Печать усилилась",500);
+ }else{
+   selected=i;
+   buildPuzzle();
+ }
+}
 function closePuzzle(){document.getElementById("puzzle").classList.add("hidden");S.mode="play";selected=-1}
+
 document.getElementById("startBtn").onclick=start;document.getElementById("loadBtn").onclick=()=>{if(load()){start();toast("Сохранение восстановлено",1200)}else toast("Сохранения нет",1000)};document.getElementById("closeBook").onclick=closeBook;document.getElementById("closePuzzle").onclick=closePuzzle;document.getElementById("mOk").onclick=()=>{document.getElementById("modal").classList.add("hidden");S.mode="play"};
 addEventListener("keydown",e=>{const k=e.key.toLowerCase();S.keys[k]=true;if(k==="e")interact();else if(k==="b")openBook();else if(k===" ")jump();else if(k==="shift")attack();else if(k==="escape"&&S.mode==="play")showModal("Пауза","Игра приостановлена.");if(["arrowleft","arrowright","arrowup","arrowdown","a","d","w","s","e","b"," ","shift","escape"].includes(k))e.preventDefault()});
 addEventListener("keyup",e=>{const k=e.key.toLowerCase();S.keys[k]=false;if(k===" "&&S.p.vy<-180)S.p.vy*=.52});
