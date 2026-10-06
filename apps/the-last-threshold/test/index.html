@@ -176,6 +176,7 @@ function ensureCoreInteractions(){
  api.registerInteractionTargets([
    {id:"bag",label:"Взаимодействие",priority:80,once:true,bounds:()=>contextRect(S.bag,60,80),enabled:()=>!S.bookFound,execute:()=>legacyInteract("bag")},
    {id:"mechanism",label:"Взаимодействие",priority:80,once:false,bounds:()=>contextRect(S.mechanism,95,95),enabled:()=>S.bookFound&&!S.puzzleSolved,execute:()=>legacyInteract("mechanism")},
+   {id:"bridgeRelic",label:"Взаимодействие",priority:85,once:false,bounds:()=>contextRect(S.bridgeRelic,70,85),enabled:()=>S.bridgeRelic.active&&!S.bridgeRelic.claimed,execute:()=>tryBridgeRelic()},
    {id:"mira",label:"Взаимодействие",priority:75,once:true,bounds:()=>({x:S.miraEcho.x-110,y:S.miraEcho.y-115,w:220,h:230}),enabled:()=>!S.miraEcho.seen,execute:()=>legacyInteract("mira")},
    ...S.signs.map((z,i)=>({id:"sign:"+i,label:"Взаимодействие",priority:70,once:true,bounds:()=>({x:z.x-70,y:z.y-80,w:210,h:230}),enabled:()=>!z.found,execute:()=>legacyInteract("sign:"+i)})),
    {id:"secret",label:"Взаимодействие",priority:68,once:true,bounds:()=>contextRect(S.secret,65,85),enabled:()=>!S.secret.found,execute:()=>legacyInteract("secret")},
@@ -208,6 +209,7 @@ function getContextAction(){
  const interactionTargets=[
    {x:S.bag.x-60,y:S.bag.y-80,w:S.bag.w+120,h:S.bag.h+160,enabled:!S.bookFound},
    {x:S.mechanism.x-95,y:S.mechanism.y-95,w:S.mechanism.w+190,h:S.mechanism.h+190,enabled:S.bookFound&&!S.puzzleSolved},
+   {x:S.bridgeRelic.x-70,y:S.bridgeRelic.y-85,w:S.bridgeRelic.w+140,h:S.bridgeRelic.h+170,enabled:S.bridgeRelic.active&&!S.bridgeRelic.claimed},
    {x:S.miraEcho.x-110,y:S.miraEcho.y-115,w:220,h:230,enabled:!S.miraEcho.seen},
    ...S.signs.map(z=>({x:z.x-70,y:z.y-80,w:210,h:230,enabled:!z.found})),
    {x:S.secret.x-65,y:S.secret.y-85,w:S.secret.w+130,h:S.secret.h+170,enabled:!S.secret.found},
