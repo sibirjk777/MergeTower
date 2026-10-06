@@ -59,7 +59,7 @@ loadAsset("spikes","../art/props/trap/TRAP_SPIKES_v01.svg");
 loadAsset("gate","../art/environments/temple/TEMPLE_GATE_MEMORY_v01.svg");
 const contextAttackButton=document.querySelector(".acts .attack");
 const contextInteractButton=document.querySelector(".acts .interact");
-const S={mode:"menu",t:0,bookFound:false,bookPages:0,puzzleSolved:false,doubleJump:false,checkpoint:false,shards:0,secrets:0,story:{miraWhisper:false},keys:Object.create(null),touch:{left:false,right:false,down:false},jumpBuffer:0,spawn:{x:110,y:406},p:{x:110,y:406,w:44,h:70,vx:0,vy:0,ground:false,jumps:0,maxJumps:1,coyote:0,dir:1,hp:100,inv:0,atk:0,atkHit:false,land:0},enemy:{x:1845,y:418,w:52,h:58,hp:120,dead:false,dir:-1,cd:0,hit:0},altar:{x:3370,y:412,w:78,h:64,used:false},bag:{x:365,y:428,w:58,h:48},mechanism:{x:1040,y:295,w:92,h:70},barrier:{x:1195,y:305,w:52,h:171},miraEcho:{x:2580,y:382,seen:false},finalGate:{x:4690,y:280,w:82,h:196},secret:{x:2200,y:245,w:70,h:70,found:false},signs:[{x:2390,y:260,found:false},{x:2940,y:235,found:false},{x:3860,y:240,found:false}],questSigns:0,totem:{x:3070,y:265,w:55,h:65,used:false},cache:{x:3980,y:290,w:65,h:65,opened:false},moving:{x:1485,y:380,w:145,h:18,baseY:380,phase:0,prevY:380},awakenedBridge:{x:1305,y:405,w:155,h:18,active:false},particles:[],shake:0,cameraX:0};
+const S={mode:"menu",t:0,bookFound:false,bookPages:0,puzzleSolved:false,doubleJump:false,checkpoint:false,shards:0,secrets:0,story:{miraWhisper:false},keys:Object.create(null),touch:{left:false,right:false,down:false},jumpBuffer:0,spawn:{x:110,y:406},p:{x:110,y:406,w:44,h:70,vx:0,vy:0,ground:false,jumps:0,maxJumps:1,coyote:0,dir:1,hp:100,inv:0,atk:0,atkHit:false,land:0},enemy:{x:1845,y:418,w:52,h:58,hp:120,dead:false,dir:-1,cd:0,hit:0},altar:{x:3370,y:412,w:78,h:64,used:false},bag:{x:365,y:428,w:58,h:48},mechanism:{x:1040,y:295,w:92,h:70},barrier:{x:1195,y:305,w:52,h:171},miraEcho:{x:2580,y:382,seen:false},finalGate:{x:4690,y:280,w:82,h:196},secret:{x:2200,y:245,w:70,h:70,found:false},signs:[{x:2390,y:260,found:false},{x:2940,y:235,found:false},{x:3860,y:240,found:false}],questSigns:0,totem:{x:3070,y:265,w:55,h:65,used:false},cache:{x:3980,y:290,w:65,h:65,opened:false},moving:{x:1485,y:380,w:145,h:18,baseY:380,phase:0,prevY:380},awakenedBridge:{x:1305,y:405,w:155,h:18,active:false},bridgeRelic:{x:1425,y:350,w:46,h:46,active:false,claimed:false},bridgeTrial:{active:false,progress:0,required:3},particles:[],shake:0,cameraX:0};
 const plats=[
 {x:0,y:476,w:610,h:44},{x:670,y:476,w:235,h:44},{x:980,y:476,w:210,h:44},{x:1245,y:476,w:230,h:44},{x:1510,y:476,w:205,h:44},{x:1760,y:476,w:285,h:44},{x:2080,y:476,w:225,h:44},{x:2350,y:476,w:215,h:44},{x:2610,y:476,w:230,h:44},{x:2895,y:476,w:225,h:44},{x:3170,y:476,w:230,h:44},{x:3440,y:476,w:235,h:44},{x:3720,y:476,w:300,h:44},{x:4070,y:476,w:260,h:44},{x:4380,y:476,w:350,h:44},
 {x:355,y:370,w:155,h:18},{x:545,y:310,w:145,h:18},{x:770,y:380,w:150,h:18},{x:900,y:350,w:175,h:18},{x:1260,y:355,w:150,h:18},{x:1515,y:325,w:150,h:18},{x:1725,y:350,w:160,h:18},{x:2050,y:345,w:170,h:18},{x:2295,y:310,w:150,h:18},{x:2540,y:342,w:150,h:18},{x:2765,y:285,w:155,h:18},{x:3020,y:330,w:160,h:18},{x:3260,y:285,w:165,h:18},{x:3510,y:330,w:155,h:18},{x:3760,y:290,w:170,h:18},{x:4005,y:350,w:160,h:18},{x:4250,y:300,w:165,h:18}
@@ -68,7 +68,7 @@ const puzzle=[2,1,1,0,0,0,2,0,1,0,0,2,0,1,0,0];let selected=-1;let sealMergeSess
 const CORE_ARTIFACTS={
   memoryMark:{name:"Знак Памяти",description:"След древнего хранителя. Усиливает связь Рена с Порогом."},
   secondJump:{name:"Искра Второго Прыжка",description:"Позволяет выполнять второй прыжок в воздухе."},
-  memoryShard:{name:"Осколок Памяти",description:"Фрагмент памяти, необходимый для открытия последних врат."}
+  memoryShard:{name:"Осколок Памяти",description:"Фрагмент памяти, необходимый для открытия последних врат."},bridgeSpark:{name:"Искра Порога",description:"Живая искра древнего моста. Открывает следующий слой взаимодействия с Порогом."}
 };
 function resize(){const d=Math.min(devicePixelRatio||1,2);c.width=Math.floor(innerWidth*d);c.height=Math.floor(innerHeight*d)}addEventListener("resize",resize);resize();
 function toast(m,ms=1500){const e=document.getElementById("toast");e.textContent=m;e.style.opacity=1;e.style.transform="translate(-50%,0)";clearTimeout(toast.t);toast.t=setTimeout(()=>{e.style.opacity=0;e.style.transform="translate(-50%,14px)"},ms)}
@@ -77,7 +77,7 @@ function hud(){document.getElementById("hp").textContent=Math.max(0,Math.round(S
 function save(){syncCoreWorld();localStorage.setItem("tlt_v02",JSON.stringify({bookFound:S.bookFound,bookPages:S.bookPages,puzzleSolved:S.puzzleSolved,doubleJump:S.doubleJump,checkpoint:S.checkpoint,shards:S.shards,story:S.story,spawn:S.spawn,crystals:S.crystals,enemyDead:S.enemy.dead,secrets:S.secrets,secretFound:S.secret.found,questSigns:S.questSigns,signs:S.signs,totemUsed:S.totem.used,cacheOpened:S.cache.opened,worldMutation:S.puzzleSolved}))}
 function load(){try{const q=JSON.parse(localStorage.getItem("tlt_v02")||"null");if(!q)return false;S.bookFound=!!q.bookFound;S.bookPages=q.bookPages||0;S.puzzleSolved=!!q.puzzleSolved;S.doubleJump=!!q.doubleJump;S.p.maxJumps=S.doubleJump?2:1;S.checkpoint=!!q.checkpoint;S.shards=q.shards||0;S.questSigns=q.questSigns||0;S.signs=S.signs||[{x:2390,y:260,found:false},{x:2940,y:235,found:false},{x:3860,y:240,found:false}];S.signs.forEach((z,i)=>z.found=!!(q.signs&&q.signs[i]));S.secrets=q.secrets||0;S.story=q.story||S.story;S.spawn=q.spawn||S.spawn;S.p.x=S.spawn.x;S.p.y=S.spawn.y;S.enemy.dead=!!q.enemyDead;S.enemy.hp=S.enemy.dead?0:120;if(q.crystals)S.crystals=q.crystals;if(q.worldMutation&&S.puzzleSolved){registerWorldMutations();bindWorldEvents();applyWorldMutation("seal_open_upper_route",{source:"save"});}hud();return true}catch(e){return false}}
 S.crystals=[{x:2310,y:275,taken:false,b:0},{x:2818,y:245,taken:false,b:1.7},{x:3555,y:290,taken:false,b:3}];
-function updateAwakenedWorld(){S.awakenedBridge.active=Boolean(S.puzzleSolved);S.awakenedBridge.y=405+Math.sin(S.t*1.7)*3;}\nfunction bindWorldEvents(){
+function updateAwakenedWorld(){S.awakenedBridge.active=Boolean(S.puzzleSolved);S.awakenedBridge.y=405+Math.sin(S.t*1.7)*3;S.bridgeRelic.active=S.awakenedBridge.active&&!S.bridgeRelic.claimed;}\nfunction bindWorldEvents(){
  const core=window.ThresholdCore;
  if(!core||window.__tltWorldEventsBound)return;
  core.eventBus.on("world:mutated",({id})=>{
@@ -126,7 +126,7 @@ function registerCoreArtifacts(){
  if(!core||core._artifactsRegistered)return;
  core.artifacts.register({id:"memoryMark",...CORE_ARTIFACTS.memoryMark});
  core.artifacts.register({id:"secondJump",...CORE_ARTIFACTS.secondJump,effect:()=>{S.doubleJump=true;S.p.maxJumps=2}});
- core.artifacts.register({id:"memoryShard",...CORE_ARTIFACTS.memoryShard});
+ core.artifacts.register({id:"memoryShard",...CORE_ARTIFACTS.memoryShard});core.artifacts.register({id:"bridgeSpark",...CORE_ARTIFACTS.bridgeSpark,effect:()=>{S.bridgeRelic.claimed=true;S.bridgeTrial.progress=3;}});
  core._artifactsRegistered=true;
 }
 function start(){registerCoreArtifacts();registerWorldMutations();bindWorldEvents();syncCoreWorld();S.mode="play";document.getElementById("start").classList.add("hidden");toast("Иди вправо. Сумка Миры впереди.",1300);hud();updateContextButtons()}
@@ -137,6 +137,22 @@ function renderBook(){document.getElementById("pageLeft").innerHTML="<span class
 function showModal(t,b){document.getElementById("mTitle").textContent=t;document.getElementById("mBody").textContent=b;document.getElementById("modal").classList.remove("hidden");S.mode="modal"}
 function jump(){if(S.mode!=="play")return;S.jumpBuffer=.14;const p=S.p;if(p.ground||p.coyote>0){p.vy=-690;p.ground=false;p.coyote=0;p.jumps=1;return}if(S.doubleJump&&p.jumps<p.maxJumps){p.vy=-610;p.jumps++;toast("Второй прыжок",500)}}
 function burst(x,y,n=8,type="dust"){for(let i=0;i<n;i++){const a=Math.random()*Math.PI*2,v=type==="hit"?70+Math.random()*150:35+Math.random()*90;S.particles.push({x,y,vx:Math.cos(a)*v,vy:Math.sin(a)*v-25,life:.35+.25*Math.random(),max:.6,type})}}\nfunction attack(){if(S.mode!=="play"||getContextAction()!=="attack")return;const p=S.p;if(p.atk>0)return;p.atk=.24;p.atkHit=false;burst(p.x+p.w/2,p.y+p.h-8,5,"dust");const h={x:p.dir>0?p.x+p.w:p.x-80,y:p.y+10,w:80,h:52};const e=S.enemy;if(!e.dead&&rect(h,e)){e.hp-=60;e.cd=.35;e.hit=.18;S.flash=.12;S.shake=.12;burst(e.x+26,e.y+28,12,"hit");toast(e.hp>0?"Страж ранен":"Страж повержен",750);if(e.hp<=0){e.dead=true;S.bookPages++;save()}}}
+function tryBridgeRelic(){
+ if(!S.bridgeRelic.active||S.bridgeRelic.claimed)return false;
+ if(!S.bridgeTrial.active){S.bridgeTrial.active=true;S.bridgeTrial.progress=0;objective("Испытание Искры: собери 3 вспышки вокруг моста.");toast("Искра проснулась. Не спеши — мост отвечает на твои движения.",1600);return true;}
+ if(S.bridgeTrial.progress>=3){acquireCoreArtifact("bridgeSpark");S.bridgeRelic.claimed=true;S.bookPages++;S.flash=.3;burst(S.bridgeRelic.x+23,S.bridgeRelic.y+23,24,"hit");objective("Искра Порога получена. Продолжай исследование.");save();return true;}
+ return true;
+}
+function updateBridgeTrial(dt){
+ if(!S.bridgeTrial.active||S.bridgeTrial.progress>=3)return;
+ const t=1.2+S.bridgeTrial.progress*2.1;
+ const x=1370+Math.sin(S.t*1.8+S.bridgeTrial.progress)*55;
+ const y=345+Math.cos(S.t*2.2+S.bridgeTrial.progress)*28;
+ if(Math.hypot(S.p.x+S.p.w/2-x,S.p.y+S.p.h/2-y)<55){
+   S.bridgeTrial.progress++;S.flash=.16;burst(x,y,10,"hit");toast("Вспышка "+S.bridgeTrial.progress+"/3",700);
+   if(S.bridgeTrial.progress>=3)objective("Вернись к Искре на мосту.");
+ }
+}
 function legacyInteract(targetId){
  const p=S.p;
  if(targetId==="mira"&&!S.miraEcho.seen){S.miraEcho.seen=true;S.story.miraWhisper=true;S.bookPages++;startQuickQuest();objective("Мира оставила испытание. Ищи три знака.");save();return true}
@@ -381,7 +397,7 @@ function draw(){
  ctx.restore();
  const vg=ctx.createRadialGradient(vw/2,270,110,vw/2,270,445);vg.addColorStop(0,"rgba(0,0,0,0)");vg.addColorStop(1,"rgba(0,0,0,.56)");ctx.fillStyle=vg;ctx.fillRect(0,0,vw,vh);if(S.flash>0){ctx.fillStyle="rgba(240,216,132,"+(S.flash*.42)+")";ctx.fillRect(0,0,vw,vh);S.flash=Math.max(0,S.flash-.012)}
 }
-let last=performance.now();function loop(now){const dt=Math.min(.025,(now-last)/1000);last=now;S.t+=dt;if(S.mode==="play"){platformUpdate(dt);updateAwakenedWorld();}draw();updateContextButtons();requestAnimationFrame(loop)}requestAnimationFrame(loop);hud();
+let last=performance.now();function loop(now){const dt=Math.min(.025,(now-last)/1000);last=now;S.t+=dt;if(S.mode==="play"){platformUpdate(dt);updateAwakenedWorld();updateBridgeTrial(dt);}draw();updateContextButtons();requestAnimationFrame(loop)}requestAnimationFrame(loop);hud();
 </script>
 </body>
 </html>
