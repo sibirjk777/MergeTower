@@ -1598,15 +1598,7 @@ function finishThresholdRitual(){
   $("#modal").classList.remove("hidden");
   syncControls();
   toast(result[0],1800);
-}  $("#mt").textContent=title;
-  $("#mb").textContent=text;
-  $("#mok").textContent="Остаться у Сердца";
-  $("#mok").onclick=()=>{ $("#modal").classList.add("hidden"); S.mode="play"; syncControls(); };
-  $("#modal").classList.remove("hidden");
-  syncControls();
-  toast(mira?"СЛЕД МИРЫ СОХРАНЁН":"РЕН ПРИНЯЛ СЕБЯ",1800);
-}
-function chooseThreshold(choice){
+}function chooseThreshold(choice){
   if(S.thresholdRitualStep!==2)return;
   S.thresholdChoice=choice;
   S.thresholdRitualStep=3;
