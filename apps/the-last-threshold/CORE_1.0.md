@@ -56,3 +56,8 @@ Legacy-логика сохранена только как исполняемы�
 Добавлен `WorldMutationSystem`: игровые события теперь могут менять мир через именованные мутации и публиковать `world:mutated`.
 
 Первая связка: `seal_merge` → `seal_open_upper_route` → `upperRouteOpen / mechanismAwakened / barrierState=open`. Финальные врата используют `memory_gate_awaken`, создавая отдельное состояние пробуждённого Порога.
+
+
+## World Reaction 1.0
+
+Мутации мира теперь сохраняются в `tlt_v02` и восстанавливаются при загрузке. `world:mutated` подключён к gameplay feedback: пробуждение маршрута вызывает вспышку, shake, particles и contextual toast. Таким образом изменение мира становится наблюдаемым игровым событием, а не только внутренним boolean.
